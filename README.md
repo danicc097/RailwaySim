@@ -7,7 +7,7 @@
   - [Usage](#usage)
   - [Results](#results)
 
-![Imgur999](https://imgur.com/OJsA1bL.gif)
+![Example Expression](Images/OJsA1bL.gif)
 
 A deterministic simulation tool to perform continuous dynamic railway route simulations.
 
