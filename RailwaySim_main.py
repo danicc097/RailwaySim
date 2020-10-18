@@ -2,6 +2,10 @@
 Plotting possibilities: 
 (pyinstaller supported) --> matplotlib, pandas , 
                         seaborn, ggplot2
+
+
+! pipenv run python RailwaySim_main.py
+
 """
 
 from PyQt5.QtCore import pyqtSlot
