@@ -3,13 +3,16 @@
 #### Table of contents  <!-- omit in toc -->
 
 - [RailwaySim](#railwaysim)
+  - [Installation](#installation)
   - [Capabilities](#capabilities)
   - [Usage](#usage)
   - [Results](#results)
 
-![Example Expression](Images/OJsA1bL.gif)
+![Example Expression](resources/images/OJsA1bL.gif)
 
-A deterministic simulation tool to perform continuous dynamic railway route simulations.
+A deterministic simulation tool to perform time-driven railway route simulations.
+
+## Installation
 
 ## Capabilities
 
