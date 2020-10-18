@@ -1,3 +1,5 @@
 RailwaySim_Notes.ipynb
 
 __pycache__/
+
+pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py/
