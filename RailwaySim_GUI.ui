@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>819</width>
-    <height>590</height>
+    <height>591</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,7 +57,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -110,13 +110,278 @@
        <attribute name="title">
         <string>Rolling stock</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_2">
+       <layout class="QFormLayout" name="formLayout">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout_3">
+          <item row="1" column="0">
+           <widget class="QGroupBox" name="groupBox_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="title">
+             <string>Passenger train simulation</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <layout class="QHBoxLayout" name="horizontalLayout_20">
+             <item>
+              <widget class="QGroupBox" name="groupBox_5">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="title">
+                <string>Car</string>
+               </property>
+               <layout class="QGridLayout" name="gridLayout_2">
+                <item row="2" column="1">
+                 <layout class="QHBoxLayout" name="horizontalLayout_14">
+                  <item>
+                   <widget class="QLabel" name="label_14">
+                    <property name="text">
+                     <string>Maximum acceleration</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_11">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> m/s²</string>
+                    </property>
+                    <property name="maximum">
+                     <double>9.990000000000000</double>
+                    </property>
+                    <property name="singleStep">
+                     <double>0.250000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="4" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_13">
+                  <item>
+                   <widget class="QLabel" name="label_13">
+                    <property name="text">
+                     <string>Frontal area</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> m²</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_15">
+                  <item>
+                   <widget class="QLabel" name="label_15">
+                    <property name="text">
+                     <string>Number</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_3">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> u</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="2" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_11">
+                  <item>
+                   <widget class="QLabel" name="label_9">
+                    <property name="text">
+                     <string>Train mass</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_8">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> t</string>
+                    </property>
+                    <property name="maximum">
+                     <double>999.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                  <item>
+                   <widget class="QLabel" name="label_12">
+                    <property name="text">
+                     <string>Running mass </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> %</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QHBoxLayout" name="horizontalLaya_2">
+                  <item>
+                   <widget class="QLabel" name="label_16">
+                    <property name="text">
+                     <string>Maximum speed</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_11">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> km/h</string>
+                    </property>
+                    <property name="maximum">
+                     <number>999</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="1">
+                 <layout class="QHBoxLayout" name="horizontalLayout_17">
+                  <item>
+                   <widget class="QLabel" name="label_18">
+                    <property name="text">
+                     <string>Bogies</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_5">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> u</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="4" column="1">
+                 <layout class="QHBoxLayout" name="horizontalLayout_16">
+                  <item>
+                   <widget class="QLabel" name="label_17">
+                    <property name="text">
+                     <string>Motorized bogies</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_4">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> u</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
           <item row="0" column="0">
            <widget class="QGroupBox" name="groupBox">
             <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
             </property>
             <property name="title">
              <string>Locomotive simulation</string>
@@ -139,7 +404,34 @@
                <property name="title">
                 <string>Locomotive</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout">
+               <layout class="QVBoxLayout" name="verticalLayout_2">
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_18">
+                  <item>
+                   <widget class="QLabel" name="label_19">
+                    <property name="text">
+                     <string>Axles</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_6">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> u</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout">
                   <item>
@@ -229,7 +521,7 @@
                   <item>
                    <widget class="QLabel" name="label_4">
                     <property name="text">
-                     <string>Front area</string>
+                     <string>Frontal area</string>
                     </property>
                    </widget>
                   </item>
@@ -314,26 +606,29 @@
              <item>
               <widget class="QGroupBox" name="groupBox_4">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="title">
-                <string>Wagons</string>
+                <string>Wagon</string>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <layout class="QVBoxLayout" name="verticalLayout_3">
                 <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
                   <item>
-                   <widget class="QLabel" name="label_10">
+                   <widget class="QLabel" name="label_7">
                     <property name="text">
-                     <string>Front area</string>
+                     <string>Number</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QSpinBox" name="spinBox_9">
+                   <widget class="QSpinBox" name="spinBox_2">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -341,7 +636,91 @@
                      <string/>
                     </property>
                     <property name="suffix">
+                     <string> u</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_5">
+                  <item>
+                   <widget class="QLabel" name="label_5">
+                    <property name="text">
+                     <string>Individual mass</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
                      <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> t</string>
+                    </property>
+                    <property name="maximum">
+                     <double>999.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_6">
+                  <item>
+                   <widget class="QLabel" name="label_6">
+                    <property name="text">
+                     <string>Running mass </string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_6">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> %</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_19">
+                  <item>
+                   <widget class="QLabel" name="label_20">
+                    <property name="text">
+                     <string>Axles</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_7">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string> u</string>
                     </property>
                    </widget>
                   </item>
@@ -353,25 +732,9 @@
             </layout>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="title">
-             <string>Passenger train simulation</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
-        <item row="1" column="0">
+        <item row="0" column="1">
          <widget class="QPushButton" name="pushButton">
           <property name="text">
            <string>Validate data</string>
@@ -379,6 +742,728 @@
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_3">
+       <attribute name="title">
+        <string>Traction systems</string>
+       </attribute>
+       <widget class="QGroupBox" name="groupBox_6">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>40</y>
+          <width>251</width>
+          <height>258</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Battery storage</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_21">
+         <item>
+          <widget class="QGroupBox" name="groupBox_7">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Locomotive</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_22">
+              <item>
+               <widget class="QLabel" name="label_21">
+                <property name="text">
+                 <string>Axles</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_8">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <item>
+               <widget class="QLabel" name="label_10">
+                <property name="text">
+                 <string>Number</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_9">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_23">
+              <item>
+               <widget class="QLabel" name="label_22">
+                <property name="text">
+                 <string>Individual mass</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_12">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> t</string>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_24">
+              <item>
+               <widget class="QLabel" name="label_23">
+                <property name="text">
+                 <string>Running mass </string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_13">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> %</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_25">
+              <item>
+               <widget class="QLabel" name="label_24">
+                <property name="text">
+                 <string>Frontal area</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_14">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m²</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLaya_3">
+              <item>
+               <widget class="QLabel" name="label_25">
+                <property name="text">
+                 <string>Maximum speed</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_12">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> km/h</string>
+                </property>
+                <property name="maximum">
+                 <number>999</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_26">
+              <item>
+               <widget class="QLabel" name="label_26">
+                <property name="text">
+                 <string>Maximum acceleration</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_15">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m/s²</string>
+                </property>
+                <property name="maximum">
+                 <double>9.990000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.250000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_8">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>340</x>
+          <y>40</y>
+          <width>251</width>
+          <height>258</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Overhead line</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_27">
+         <item>
+          <widget class="QGroupBox" name="groupBox_9">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Locomotive</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_28">
+              <item>
+               <widget class="QLabel" name="label_27">
+                <property name="text">
+                 <string>Axles</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_13">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_29">
+              <item>
+               <widget class="QLabel" name="label_28">
+                <property name="text">
+                 <string>Number</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_14">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_30">
+              <item>
+               <widget class="QLabel" name="label_29">
+                <property name="text">
+                 <string>Individual mass</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_16">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> t</string>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_31">
+              <item>
+               <widget class="QLabel" name="label_30">
+                <property name="text">
+                 <string>Running mass </string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_17">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> %</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_32">
+              <item>
+               <widget class="QLabel" name="label_31">
+                <property name="text">
+                 <string>Frontal area</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_18">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m²</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLaya_4">
+              <item>
+               <widget class="QLabel" name="label_32">
+                <property name="text">
+                 <string>Maximum speed</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_15">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> km/h</string>
+                </property>
+                <property name="maximum">
+                 <number>999</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_33">
+              <item>
+               <widget class="QLabel" name="label_33">
+                <property name="text">
+                 <string>Maximum acceleration</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_19">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m/s²</string>
+                </property>
+                <property name="maximum">
+                 <double>9.990000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.250000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_10">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>380</x>
+          <y>300</y>
+          <width>251</width>
+          <height>258</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
+        <property name="title">
+         <string>Diesel engine</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_34">
+         <item>
+          <widget class="QGroupBox" name="groupBox_11">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Locomotive</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_35">
+              <item>
+               <widget class="QLabel" name="label_34">
+                <property name="text">
+                 <string>Axles</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_16">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_36">
+              <item>
+               <widget class="QLabel" name="label_35">
+                <property name="text">
+                 <string>Number</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_17">
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> u</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_37">
+              <item>
+               <widget class="QLabel" name="label_36">
+                <property name="text">
+                 <string>Individual mass</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_20">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> t</string>
+                </property>
+                <property name="maximum">
+                 <double>999.000000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_38">
+              <item>
+               <widget class="QLabel" name="label_37">
+                <property name="text">
+                 <string>Running mass </string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_21">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> %</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_39">
+              <item>
+               <widget class="QLabel" name="label_38">
+                <property name="text">
+                 <string>Frontal area</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_22">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="prefix">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m²</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLaya_5">
+              <item>
+               <widget class="QLabel" name="label_39">
+                <property name="text">
+                 <string>Maximum speed</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="spinBox_18">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> km/h</string>
+                </property>
+                <property name="maximum">
+                 <number>999</number>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_40">
+              <item>
+               <widget class="QLabel" name="label_40">
+                <property name="text">
+                 <string>Maximum acceleration</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QDoubleSpinBox" name="doubleSpinBox_23">
+                <property name="wrapping">
+                 <bool>false</bool>
+                </property>
+                <property name="specialValueText">
+                 <string/>
+                </property>
+                <property name="suffix">
+                 <string> m/s²</string>
+                </property>
+                <property name="maximum">
+                 <double>9.990000000000000</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.250000000000000</double>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_5">
        <property name="minimumSize">
@@ -394,11 +1479,6 @@
       <widget class="QWidget" name="route">
        <attribute name="title">
         <string>Route</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_3">
-       <attribute name="title">
-        <string>Page</string>
        </attribute>
       </widget>
       <widget class="QWidget" name="Sim">
@@ -430,6 +1510,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionExi"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -516,6 +1597,11 @@
    </property>
    <property name="text">
     <string>Preferences</string>
+   </property>
+  </action>
+  <action name="actionExi">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>

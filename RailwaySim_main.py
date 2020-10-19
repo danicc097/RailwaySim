@@ -3,15 +3,20 @@ Plotting possibilities:
 (pyinstaller supported) --> matplotlib, pandas , 
                         seaborn, ggplot2
 
-
 ! pipenv run python RailwaySim_main.py
+
+! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py
+
+! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot  # Function wrapper
 from RailwaySim_GUI import Ui_MainWindow
-from PyQt5 import QtCore, QtGui, QtWidgets as qtw, uic, QtQml
+from PyQt5 import (QtCore, QtGui, QtWidgets as qtw, uic, QtQml)
 import os
+
+BASEDIR = os.path.dirname(__file__)
 
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -23,15 +28,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def mainEdits(self):
 
-        # ? Icon paths fix
-        path = os.path.dirname(os.path.abspath('RailwaySim_GUI.py'))
-        self.actionSave.setIcon(QtGui.QIcon(os.path.join(path, 'resources/images/save.png')))
-        self.actionPreferences.setIcon(QtGui.QIcon(os.path.join(path, 'resources/images/edit.png')))
-        self.actionNew_Window.setIcon(QtGui.QIcon(os.path.join(path, 'resources/images/new.png')))
-        self.actionGitHub_Homepage.setIcon(QtGui.QIcon(os.path.join(path, 'resources/images/github.png')))
-        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(path, 'resources/images/open.png')))
+        # TODO resize with locked aspect ratio
+        self.setFixedSize(self.size())
+        qtw.QLabel.font(self)
 
-        self.statusBar().showMessage(path)
+        # ? Icon paths fix
+        self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/save.png')))
+        self.actionPreferences.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/edit.png')))
+        self.actionNew_Window.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/new.png')))
+        self.actionGitHub_Homepage.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/github.png')))
+        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/open.png')))
+
+        self.statusBar().showMessage(BASEDIR)
 
         # ? Test for pushbutton
         self.pushButton.clicked.connect(self.ShowMessage)
@@ -61,7 +69,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     #         painter = QPainter(self)
     #         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
-    # TODO file managing
+    # TODO file managing - see book
 
 
 if __name__ == "__main__":
