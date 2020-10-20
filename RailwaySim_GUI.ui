@@ -57,7 +57,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -1559,8 +1559,8 @@
        <widget class="QTableWidget" name="tableWidget">
         <property name="geometry">
          <rect>
-          <x>470</x>
-          <y>80</y>
+          <x>480</x>
+          <y>50</y>
           <width>256</width>
           <height>192</height>
          </rect>

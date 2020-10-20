@@ -7,124 +7,121 @@ import inspect
 
 
 def guisave(self, settings):
-    print('guisave() was accessed')  # !DEBUG
+    print('guisave() was accessed')
     counter_a = 0
     counter_s = 0
-    # list1 = [(name, type(obj)) for name, obj in inspect.getmembers(self)] # !DEBUG
-    # print(list1) # !DEBUG
     for name, obj in inspect.getmembers(self):
         counter_a += 1
         if isinstance(obj, QComboBox):
             name = obj.objectName()
             index = obj.currentIndex()
             text = obj.itemText(index)
-            if text is not None:
-                settings.setValue(name, text)
-                counter_s += 1
+            settings.setValue(name, text)
+            counter_s += 1
 
         if isinstance(obj, QLineEdit):
             name = obj.objectName()
             value = obj.text()
-            if value is not None:
-                settings.setValue(name, value)
-                counter_s += 1
+            settings.setValue(name, value)
+            counter_s += 1
 
         if isinstance(obj, QCheckBox):
             name = obj.objectName()
             state = obj.checkState()
-            if state is not None:
-                settings.setValue(name, state)
-                counter_s += 1
+            settings.setValue(name, state)
+            counter_s += 1
 
         if isinstance(obj, QRadioButton):
             name = obj.objectName()
             state = obj.isChecked()
-            if state is not None:
-                settings.setValue(name, state)
-                counter_s += 1
+            settings.setValue(name, state)
+            counter_s += 1
 
-        if isinstance(obj, QSpinBox):
+        if isinstance(obj, QSpinBox):  # ✓
             name = obj.objectName()
             value = obj.text()
-            if value is not None:
-                settings.setValue(name, value)
-                counter_s += 1
+            settings.setValue(name, value)
+            counter_s += 1
 
-        if isinstance(obj, QDoubleSpinBox):
+        if isinstance(obj, QDoubleSpinBox):  # ✓
             name = obj.objectName()
             value = obj.text()
-            if value is not None:
-                settings.setValue(name, value)
-                counter_s += 1
+            settings.setValue(name, value)
+            counter_s += 1
 
-        if isinstance(obj, QGroupBox):
+        if isinstance(obj, QGroupBox):  # ✓
             name = obj.objectName()
             state = obj.isChecked()
-            if state is not None:
-                settings.setValue(name, state)
-                counter_s += 1
+            settings.setValue(name, bool(state))
+            counter_s += 1
 
     print("{} items accessed, {} items saved.".format(counter_a, counter_s))
     settings.sync()
 
 
 def guirestore(self, settings):
-    print('guirestore() was accessed')  # !DEBUG
+    print('guirestore() was accessed')
+    counter_a = 0
+    counter_s = 0
     for name, obj in inspect.getmembers(self):
+        counter_a += 1
         # * Untested combobox, lineedit
         if isinstance(obj, QComboBox):
-            index = obj.currentIndex()  # get current region from combobox
+            index = obj.currentIndex()
             name = obj.objectName()
             value = str(settings.value(name))
             if value == "":
                 continue
 
-            index = obj.findText(value)  # get the corresponding index for specified string in combobox
+            index = obj.findText(value)
 
-            if index == -1:  # add to list if not found
+            if index == -1:
                 obj.insertItems(0, [value])
                 index = obj.findText(value)
                 obj.setCurrentIndex(index)
             else:
-                obj.setCurrentIndex(index)  # preselect a combobox value by index
+                obj.setCurrentIndex(index)
+            counter_s += 1
 
         if isinstance(obj, QLineEdit):
             name = obj.objectName()
             value = str(settings.value(name))
             obj.setText(value)
-            print("QLineEdit: ", value)  # !DEBUG
+            counter_s += 1
 
         if isinstance(obj, QCheckBox):
             name = obj.objectName()
             value = settings.value(name)
             if value == 'false':
                 obj.setChecked(False)
+            counter_s += 1
 
         if isinstance(obj, QRadioButton):
             name = obj.objectName()
             value = settings.value(name)
             if value == 'false':
                 obj.setChecked(False)
+            counter_s += 1
 
-        if isinstance(obj, QSpinBox):
+        if isinstance(obj, QSpinBox):  # ✓
             name = obj.objectName()
             value = settings.value(name)
-            if value != None:
-                obj.setValue(int(value))
+            obj.setValue(int(value))
+            counter_s += 1
 
-        if isinstance(obj, QDoubleSpinBox):
+        if isinstance(obj, QDoubleSpinBox):  # ✓
             name = obj.objectName()
             value = settings.value(name)
-            if value != None:
-                obj.setValue(float(value))
+            obj.setValue(float(value))
+            counter_s += 1
 
-        if isinstance(obj, QGroupBox):
+        if isinstance(obj, QGroupBox):  # ✓
             name = obj.objectName()
-            value = settings.value(name)
-            if value == 'false':
-                obj.setChecked(False)
+            state = bool(settings.value(name))
+            obj.setChecked(state)
+            counter_s += 1
 
-    print("Items restored")  # !DEBUG
+    print("{} items accessed, {} items restored.".format(counter_a, counter_s))
 
 
 # TODO # TODO # TODO # TODO # TODO

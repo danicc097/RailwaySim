@@ -752,6 +752,11 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab_5, "")
         self.route = QtWidgets.QWidget()
         self.route.setObjectName("route")
+        self.tableWidget = QtWidgets.QTableWidget(self.route)
+        self.tableWidget.setGeometry(QtCore.QRect(480, 50, 256, 192))
+        self.tableWidget.setObjectName("tableWidget")
+        self.tableWidget.setColumnCount(0)
+        self.tableWidget.setRowCount(0)
         self.tabWidget.addTab(self.route, "")
         self.Sim = QtWidgets.QWidget()
         self.Sim.setObjectName("Sim")
@@ -818,7 +823,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
