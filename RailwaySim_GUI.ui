@@ -57,7 +57,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -150,7 +150,7 @@
                   <item>
                    <widget class="QLabel" name="label_14">
                     <property name="text">
-                     <string>Maximum acceleration</string>
+                     <string>Maximum acceleration [ m/s²]</string>
                     </property>
                    </widget>
                   </item>
@@ -163,7 +163,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> m/s²</string>
+                     <string/>
                     </property>
                     <property name="maximum">
                      <double>9.990000000000000</double>
@@ -180,7 +180,7 @@
                   <item>
                    <widget class="QLabel" name="label_13">
                     <property name="text">
-                     <string>Frontal area</string>
+                     <string>Frontal area [m²]</string>
                     </property>
                    </widget>
                   </item>
@@ -196,7 +196,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> m²</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -207,7 +207,7 @@
                   <item>
                    <widget class="QLabel" name="label_15">
                     <property name="text">
-                     <string>Number</string>
+                     <string>Number [u]</string>
                     </property>
                    </widget>
                   </item>
@@ -223,7 +223,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> u</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -234,7 +234,7 @@
                   <item>
                    <widget class="QLabel" name="label_9">
                     <property name="text">
-                     <string>Train mass</string>
+                     <string>Train mass [t]</string>
                     </property>
                    </widget>
                   </item>
@@ -250,7 +250,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> t</string>
+                     <string/>
                     </property>
                     <property name="maximum">
                      <double>999.000000000000000</double>
@@ -264,7 +264,7 @@
                   <item>
                    <widget class="QLabel" name="label_12">
                     <property name="text">
-                     <string>Running mass </string>
+                     <string>Running mass [%]</string>
                     </property>
                    </widget>
                   </item>
@@ -280,7 +280,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> %</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -291,7 +291,7 @@
                   <item>
                    <widget class="QLabel" name="label_16">
                     <property name="text">
-                     <string>Maximum speed</string>
+                     <string>Maximum speed [km/h]</string>
                     </property>
                    </widget>
                   </item>
@@ -304,7 +304,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> km/h</string>
+                     <string/>
                     </property>
                     <property name="maximum">
                      <number>999</number>
@@ -318,7 +318,7 @@
                   <item>
                    <widget class="QLabel" name="label_18">
                     <property name="text">
-                     <string>Bogies</string>
+                     <string>Bogies [u]</string>
                     </property>
                    </widget>
                   </item>
@@ -334,7 +334,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> u</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -345,7 +345,7 @@
                   <item>
                    <widget class="QLabel" name="label_17">
                     <property name="text">
-                     <string>Motorized bogies</string>
+                     <string>Motorized bogies [u]</string>
                     </property>
                    </widget>
                   </item>
@@ -361,7 +361,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> u</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -404,97 +404,13 @@
                <property name="title">
                 <string>Locomotive</string>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout_2">
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_18">
-                  <item>
-                   <widget class="QLabel" name="label_19">
-                    <property name="text">
-                     <string>Axles</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="spinBox_6">
-                    <property name="layoutDirection">
-                     <enum>Qt::LeftToRight</enum>
-                    </property>
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="suffix">
-                     <string> u</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout">
-                  <item>
-                   <widget class="QLabel" name="label">
-                    <property name="text">
-                     <string>Number</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="spinBox">
-                    <property name="layoutDirection">
-                     <enum>Qt::LeftToRight</enum>
-                    </property>
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="suffix">
-                     <string> u</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_2">
-                  <item>
-                   <widget class="QLabel" name="label_2">
-                    <property name="text">
-                     <string>Individual mass</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string/>
-                    </property>
-                    <property name="suffix">
-                     <string> t</string>
-                    </property>
-                    <property name="maximum">
-                     <double>999.000000000000000</double>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
+               <layout class="QGridLayout" name="gridLayout_4">
+                <item row="3" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_3">
                   <item>
                    <widget class="QLabel" name="label_3">
                     <property name="text">
-                     <string>Running mass </string>
+                     <string>Running mass [%]</string>
                     </property>
                    </widget>
                   </item>
@@ -510,18 +426,99 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> %</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
                  </layout>
                 </item>
-                <item>
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_18">
+                  <item>
+                   <widget class="QLabel" name="label_19">
+                    <property name="text">
+                     <string>Axles [u]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_6">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="5" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLaya">
+                  <item>
+                   <widget class="QLabel" name="label_11">
+                    <property name="text">
+                     <string>Maximum speed [km/h]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox_10">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="maximum">
+                     <number>999</number>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout">
+                  <item>
+                   <widget class="QLabel" name="label">
+                    <property name="text">
+                     <string>Number [u]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="spinBox">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="4" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_4">
                   <item>
                    <widget class="QLabel" name="label_4">
                     <property name="text">
-                     <string>Frontal area</string>
+                     <string>Frontal area [m²]</string>
                     </property>
                    </widget>
                   </item>
@@ -537,45 +534,18 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> m²</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLaya">
-                  <item>
-                   <widget class="QLabel" name="label_11">
-                    <property name="text">
-                     <string>Maximum speed</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="spinBox_10">
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
                      <string/>
                     </property>
-                    <property name="suffix">
-                     <string> km/h</string>
-                    </property>
-                    <property name="maximum">
-                     <number>999</number>
-                    </property>
                    </widget>
                   </item>
                  </layout>
                 </item>
-                <item>
+                <item row="6" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_7">
                   <item>
                    <widget class="QLabel" name="label_8">
                     <property name="text">
-                     <string>Maximum acceleration</string>
+                     <string>Maximum acceleration [ m/s²]</string>
                     </property>
                    </widget>
                   </item>
@@ -588,13 +558,43 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> m/s²</string>
+                     <string/>
                     </property>
                     <property name="maximum">
                      <double>9.990000000000000</double>
                     </property>
                     <property name="singleStep">
                      <double>0.250000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="2" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_2">
+                  <item>
+                   <widget class="QLabel" name="label_2">
+                    <property name="text">
+                     <string>Individual mass [t]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_2">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="maximum">
+                     <double>999.000000000000000</double>
                     </property>
                    </widget>
                   </item>
@@ -620,7 +620,7 @@
                   <item>
                    <widget class="QLabel" name="label_7">
                     <property name="text">
-                     <string>Number</string>
+                     <string>Number [u]</string>
                     </property>
                    </widget>
                   </item>
@@ -636,7 +636,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> u</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -647,7 +647,7 @@
                   <item>
                    <widget class="QLabel" name="label_5">
                     <property name="text">
-                     <string>Individual mass</string>
+                     <string>Individual mass [t]</string>
                     </property>
                    </widget>
                   </item>
@@ -663,7 +663,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> t</string>
+                     <string/>
                     </property>
                     <property name="maximum">
                      <double>999.000000000000000</double>
@@ -677,7 +677,7 @@
                   <item>
                    <widget class="QLabel" name="label_6">
                     <property name="text">
-                     <string>Running mass </string>
+                     <string>Running mass [%]</string>
                     </property>
                    </widget>
                   </item>
@@ -693,7 +693,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> %</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -704,7 +704,7 @@
                   <item>
                    <widget class="QLabel" name="label_20">
                     <property name="text">
-                     <string>Axles</string>
+                     <string>Axles [u]</string>
                     </property>
                    </widget>
                   </item>
@@ -720,7 +720,7 @@
                      <string/>
                     </property>
                     <property name="suffix">
-                     <string> u</string>
+                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -753,10 +753,10 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>20</x>
-          <y>40</y>
-          <width>251</width>
-          <height>258</height>
+          <x>9</x>
+          <y>9</y>
+          <width>386</width>
+          <height>240</height>
          </rect>
         </property>
         <property name="font">
@@ -807,7 +807,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -834,7 +834,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -861,7 +861,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> t</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>999.000000000000000</double>
@@ -891,7 +891,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> %</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -918,7 +918,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m²</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -942,7 +942,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> km/h</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <number>999</number>
@@ -969,7 +969,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m/s²</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>9.990000000000000</double>
@@ -992,10 +992,10 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>340</x>
-          <y>40</y>
-          <width>251</width>
-          <height>258</height>
+          <x>401</x>
+          <y>9</y>
+          <width>385</width>
+          <height>240</height>
          </rect>
         </property>
         <property name="font">
@@ -1022,7 +1022,7 @@
             </sizepolicy>
            </property>
            <property name="title">
-            <string>Locomotive</string>
+            <string>Traction chain</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
@@ -1046,7 +1046,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1073,7 +1073,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1100,7 +1100,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> t</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>999.000000000000000</double>
@@ -1130,7 +1130,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> %</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1157,7 +1157,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m²</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1181,7 +1181,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> km/h</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <number>999</number>
@@ -1208,7 +1208,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m/s²</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>9.990000000000000</double>
@@ -1231,10 +1231,10 @@
         </property>
         <property name="geometry">
          <rect>
-          <x>380</x>
-          <y>300</y>
-          <width>251</width>
-          <height>258</height>
+          <x>401</x>
+          <y>255</y>
+          <width>385</width>
+          <height>239</height>
          </rect>
         </property>
         <property name="font">
@@ -1285,7 +1285,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1312,7 +1312,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> u</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1339,7 +1339,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> t</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>999.000000000000000</double>
@@ -1369,7 +1369,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> %</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1396,7 +1396,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m²</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -1420,7 +1420,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> km/h</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <number>999</number>
@@ -1447,7 +1447,7 @@
                  <string/>
                 </property>
                 <property name="suffix">
-                 <string> m/s²</string>
+                 <string/>
                 </property>
                 <property name="maximum">
                  <double>9.990000000000000</double>
@@ -1460,6 +1460,82 @@
              </layout>
             </item>
            </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>180</x>
+          <y>330</y>
+          <width>215</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_41">
+         <item>
+          <widget class="QLabel" name="label_41">
+           <property name="text">
+            <string>Maximum acceleration</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_24">
+           <property name="wrapping">
+            <bool>false</bool>
+           </property>
+           <property name="specialValueText">
+            <string/>
+           </property>
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="maximum">
+            <double>9.990000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.250000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget_2">
+        <property name="geometry">
+         <rect>
+          <x>180</x>
+          <y>290</y>
+          <width>215</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_42">
+         <item>
+          <widget class="QLabel" name="label_42">
+           <property name="text">
+            <string>Maximum acceleration</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_25">
+           <property name="wrapping">
+            <bool>false</bool>
+           </property>
+           <property name="specialValueText">
+            <string/>
+           </property>
+           <property name="suffix">
+            <string/>
+           </property>
+           <property name="maximum">
+            <double>9.990000000000000</double>
+           </property>
+           <property name="singleStep">
+            <double>0.250000000000000</double>
+           </property>
           </widget>
          </item>
         </layout>
@@ -1480,6 +1556,16 @@
        <attribute name="title">
         <string>Route</string>
        </attribute>
+       <widget class="QTableWidget" name="tableWidget">
+        <property name="geometry">
+         <rect>
+          <x>470</x>
+          <y>80</y>
+          <width>256</width>
+          <height>192</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="Sim">
        <attribute name="title">
@@ -1510,7 +1596,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
-    <addaction name="actionExi"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -1599,7 +1685,7 @@
     <string>Preferences</string>
    </property>
   </action>
-  <action name="actionExi">
+  <action name="actionExit">
    <property name="text">
     <string>Exit</string>
    </property>
