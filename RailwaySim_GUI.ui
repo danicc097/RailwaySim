@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>819</width>
-    <height>591</height>
+    <height>612</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2046,6 +2046,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionGitHub_Homepage"/>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2151,6 +2152,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
    </property>
   </action>
  </widget>

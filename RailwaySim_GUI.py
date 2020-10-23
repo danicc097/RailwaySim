@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(819, 591)
+        MainWindow.resize(819, 612)
         MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setMaximumSize(QtCore.QSize(833, 559))
@@ -1024,6 +1024,8 @@ class Ui_MainWindow(object):
         self.actionExit.setObjectName("actionExit")
         self.actionPrintToPDF = QtWidgets.QAction(MainWindow)
         self.actionPrintToPDF.setObjectName("actionPrintToPDF")
+        self.actionAbout = QtWidgets.QAction(MainWindow)
+        self.actionAbout.setObjectName("actionAbout")
         self.menuFile.addAction(self.actionNew_Window)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionOpen)
@@ -1034,6 +1036,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionExit)
         self.menuEdit.addAction(self.actionEdit)
         self.menuHelp.addAction(self.actionGitHub_Homepage)
+        self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -1149,6 +1152,7 @@ class Ui_MainWindow(object):
         self.actionPrintToPDF.setText(_translate("MainWindow", "Print To PDF"))
         self.actionPrintToPDF.setToolTip(_translate("MainWindow", "Print data to PDF"))
         self.actionPrintToPDF.setShortcut(_translate("MainWindow", "Ctrl+P"))
+        self.actionAbout.setText(_translate("MainWindow", "About"))
 
 
 if __name__ == "__main__":

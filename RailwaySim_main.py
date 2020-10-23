@@ -10,6 +10,7 @@ Plotting possibilities:
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
+from PyQt5.QtCore import QSize
 import PyQt5.QtPrintSupport as qtps
 import qtmodern.styles  # * Dark theme
 import qtmodern.windows  # * Dark theme
@@ -36,6 +37,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # ? Icon paths fix
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/save.png')))
         self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/open.png')))
+        self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/about.png')))
         self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/edit.png')))
         self.actionPrintToPDF.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/print.png'))
@@ -47,7 +49,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionGitHub_Homepage.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/github.png'))
         )
-
         self.statusBar().showMessage(BASEDIR)
 
         # ? Test for pushbutton
@@ -55,6 +56,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         # ? Toolbar button actions
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
+        self.actionAbout.triggered.connect(self.AboutInfo)
         self.actionExit.triggered.connect(self.close)
 
         # ? open and save triggers
@@ -149,6 +151,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def ShowMessage(self):
         myNumber = self.doubleSpinBox_2.cleanText()
         qtw.QMessageBox.information(self, 'The number is:', myNumber)
+
+    def AboutInfo(self):
+
+        infoScreen = qtw.QMessageBox()
+        infoScreen.setWindowTitle('Legal Information')
+        infoScreen.setText('RailwaySim is licenced under the GNU GPL.')
+        infoScreen.setInformativeText("The complete license is available below.")
+        infoScreen.setDetailedText(open(os.path.join(BASEDIR, "LICENSE"), "r").read())
+        infoScreen.setWindowModality(QtCore.Qt.WindowModal)
+        infoScreen.exec()
 
     def GitHubLink(self):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
