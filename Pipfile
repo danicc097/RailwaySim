@@ -9,6 +9,7 @@ verify_ssl = true
 pyqt5 = "*"
 pyinstaller = "*"
 pyqt5-tools = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.8"

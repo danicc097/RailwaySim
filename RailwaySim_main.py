@@ -10,8 +10,7 @@ Plotting possibilities:
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
-
-from PyQt5.QtWidgets import QDialog
+import PyQt5.QtPrintSupport as qtps
 import qtmodern.styles  # * Dark theme
 import qtmodern.windows  # * Dark theme
 from RailwaySim_GUI import Ui_MainWindow
@@ -30,27 +29,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.config_is_set = 0  # Call tracker
         self.mainEdits()
 
-        #TODO selected from file dialog
-        #TODO save button first to dialog, then to saved path
-        # self.my_settings = QtCore.QSettings(os.path.join(BASEDIR, "gui_data.ini"), QtCore.QSettings.IniFormat)
-
     def mainEdits(self):
-
         # ? Disable window resizing
         self.setFixedSize(self.size())
 
         # ? Icon paths fix
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/save.png')))
-        self.actionPreferences.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/edit.png'))
+        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/open.png')))
+        self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/edit.png')))
+        self.actionPrintToPDF.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/print.png'))
         )
+
         self.actionNew_Window.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/new.png'))
         )
         self.actionGitHub_Homepage.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/github.png'))
         )
-        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/open.png')))
 
         self.statusBar().showMessage(BASEDIR)
 
@@ -67,9 +63,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
 
-        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+        # TODO PDF - See invoice_maker
+        # self.printer = qtps.QPrinter()
+        # self.printer.setOrientation(qtps.QPrinter.Portrait)
+        # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
+        #self.actionPrintToPDF.triggered.connect(self.export_pdf)
 
-        # self.actionSave.triggered.connect(self.save)
+        # TODO csv
+
+        # ? window exit
+        qtw.QAction("Quit", self).triggered.connect(self.questionEvent)
 
     def newFile(self):  # ? New empty instance
         clear = qtw.QMessageBox.warning(
@@ -80,8 +83,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.win = NewWindow()
             self.win.show()
             self.hide()
-        else:
-            QDialog.closeEvent
 
     def writeNewFile(self):  # ? Save as
         self.config_is_set += 1
@@ -144,15 +145,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             self.writeNewFile()
 
-    def closeEvent(self, event):
-        close = qtw.QMessageBox.question(
-            self, "Exit", "Exit application?", qtw.QMessageBox.Yes | qtw.QMessageBox.No
-        )
-        if close == qtw.QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
-
     # ? capture data
     def ShowMessage(self):
         myNumber = self.doubleSpinBox_2.cleanText()
@@ -160,6 +152,26 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def GitHubLink(self):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
+
+    # TODO _print_document()
+    # def export_pdf(self):
+    #     filename, _ = qtw.QFileDialog.getSaveFileName(
+    #         self, "Save to PDF", QtCore.QDir.homePath(), "PDF Files (*.pdf)"
+    #     )
+    #     if filename:
+    #         self.printer.setOutputFileName(filename)
+    #         self.printer.setOutputFormat(qtps.QPrinter.PdfFormat)
+    #         self._print_document()
+
+    def questionEvent(self, event):
+        """Accept or Ignore event action"""
+        close = qtw.QMessageBox.question(
+            self, "Exit", "Exit application?", qtw.QMessageBox.Yes | qtw.QMessageBox.No
+        )
+        if close == qtw.QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
     # TODO animation when loading excel
 
@@ -177,6 +189,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     #         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
 
+def get_sec(time):
+    """Split seconds from hh:mm."""
+    h, m = time.split(':')
+    return int(h) * 3600 + int(m) * 60
+
+
 # * There is no restriction on the number of QMainWindow instances
 # ! There is a limitation of one QApplication per process
 class NewWindow(MainWindow):
@@ -190,7 +208,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()  # Show our own modified class
 
-    # * Dark theme
+    # * Dark theme - link to pref
     # qtmodern.styles.dark(app)
     # mw = qtmodern.windows.ModernWindow(window)
     # mw.show()

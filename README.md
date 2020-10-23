@@ -11,7 +11,7 @@
 
 ![Example Expression](resources/images/OJsA1bL.gif)
 
-A deterministic simulation tool to perform time-driven railway route simulations.
+A deterministic simulation tool to perform time-driven railway route simulations. 
 ## Implemented functionality
 
 
