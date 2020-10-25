@@ -18,10 +18,10 @@ A deterministic simulation tool to perform time-driven railway route simulations
 
 ### Rolling stock resistance
 
-<img src="resources/images/formulas/equivalent_resistance.gif" alt="equivalent_resistance" width="300"/> \
-<img src="resources/images/formulas/grade_resistance.gif" alt="grade_resistance" width="260"/> \
+<img src="resources/images/formulas/equivalent_resistance.gif" alt="equivalent_resistance" width="350"/> \
+<img src="resources/images/formulas/grade_resistance.gif" alt="grade_resistance" width="220"/> \
 <img src="resources/images/formulas/curve_resistance.gif" alt="curve_resistance" width="270"/>\
-<img src="resources/images/formulas/rolling_resistance.gif" alt="rolling_resistance" width="500"/>
+<img src="resources/images/formulas/rolling_resistance.gif" alt="rolling_resistance" width="460"/>
 
 where <i>m</i> is the mass in tonnes and <i>g</i> is gravity in m/s<sup>2</sup>. <i>R<sub>S</sub></i> is the starting resistance, introduced manually.
 ## Installation
