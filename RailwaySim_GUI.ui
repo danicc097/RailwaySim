@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>819</width>
-    <height>612</height>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -149,7 +149,11 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_25">
            <item>
-            <widget class="QLineEdit" name="TECurveLoadFilename"/>
+            <widget class="QLineEdit" name="TECurveLoadFilename">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QToolButton" name="TECurveLoadButton">
@@ -188,7 +192,11 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_26">
            <item>
-            <widget class="QLineEdit" name="TECurveLoadFilename_2"/>
+            <widget class="QLineEdit" name="TECurveLoadFilename_2">
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
            <item>
             <widget class="QToolButton" name="TECurveLoadButton_2">
@@ -222,7 +230,7 @@
             </font>
            </property>
            <property name="title">
-            <string>Passenger train simulation</string>
+            <string>Passenger train</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -482,7 +490,7 @@
             </font>
            </property>
            <property name="title">
-            <string>Locomotive simulation</string>
+            <string>Locomotive</string>
            </property>
            <property name="checkable">
             <bool>true</bool>
@@ -643,7 +651,7 @@
                  <item>
                   <widget class="QLabel" name="label_8">
                    <property name="text">
-                    <string>Maximum acceleration [ m/s²]</string>
+                    <string>Maximum acceleration [m/s²]</string>
                    </property>
                   </widget>
                  </item>
@@ -1048,7 +1056,11 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_28">
               <item>
-               <widget class="QLineEdit" name="TECurveLoadFilename_4"/>
+               <widget class="QLineEdit" name="TECurveLoadFilename_4">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QToolButton" name="TECurveLoadButton_4">
@@ -1087,7 +1099,11 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_29">
               <item>
-               <widget class="QLineEdit" name="TECurveLoadFilename_5"/>
+               <widget class="QLineEdit" name="TECurveLoadFilename_5">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QToolButton" name="TECurveLoadButton_5">
@@ -1153,7 +1169,11 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_27">
               <item>
-               <widget class="QLineEdit" name="TECurveLoadFilename_3"/>
+               <widget class="QLineEdit" name="TECurveLoadFilename_3">
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QToolButton" name="TECurveLoadButton_3">
@@ -1919,7 +1939,11 @@
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="profileLoadFilename"/>
+          <widget class="QLineEdit" name="profileLoadFilename">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QToolButton" name="profileLoadButton">
@@ -1941,7 +1965,7 @@
           <x>20</x>
           <y>20</y>
           <width>231</width>
-          <height>72</height>
+          <height>81</height>
          </rect>
         </property>
         <property name="title">
@@ -1991,7 +2015,7 @@
            </property>
            <item>
             <property name="text">
-             <string>Minimize travel time</string>
+             <string>Minimize operation time</string>
             </property>
            </item>
            <item>
@@ -2001,7 +2025,7 @@
            </item>
            <item>
             <property name="text">
-             <string>Fixed route time</string>
+             <string>Fixed travel time</string>
             </property>
            </item>
           </widget>
@@ -2160,6 +2184,77 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>spinBox_6</tabstop>
+  <tabstop>spinBox</tabstop>
+  <tabstop>doubleSpinBox_2</tabstop>
+  <tabstop>doubleSpinBox_3</tabstop>
+  <tabstop>doubleSpinBox_4</tabstop>
+  <tabstop>spinBox_10</tabstop>
+  <tabstop>doubleSpinBox_7</tabstop>
+  <tabstop>spinBox_2</tabstop>
+  <tabstop>doubleSpinBox_5</tabstop>
+  <tabstop>doubleSpinBox_6</tabstop>
+  <tabstop>spinBox_7</tabstop>
+  <tabstop>spinBox_3</tabstop>
+  <tabstop>doubleSpinBox_8</tabstop>
+  <tabstop>doubleSpinBox_9</tabstop>
+  <tabstop>doubleSpinBox_10</tabstop>
+  <tabstop>spinBox_11</tabstop>
+  <tabstop>doubleSpinBox_11</tabstop>
+  <tabstop>spinBox_5</tabstop>
+  <tabstop>spinBox_4</tabstop>
+  <tabstop>TECurveLoadFilename_2</tabstop>
+  <tabstop>groupBox_2</tabstop>
+  <tabstop>pushButton</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>TECurveLoadButton_2</tabstop>
+  <tabstop>TECurveLoadFilename</tabstop>
+  <tabstop>groupBox</tabstop>
+  <tabstop>groupBox_10</tabstop>
+  <tabstop>TECurveLoadButton</tabstop>
+  <tabstop>spinBox_16</tabstop>
+  <tabstop>spinBox_17</tabstop>
+  <tabstop>doubleSpinBox_20</tabstop>
+  <tabstop>doubleSpinBox_21</tabstop>
+  <tabstop>doubleSpinBox_22</tabstop>
+  <tabstop>TECurveLoadFilename_4</tabstop>
+  <tabstop>TECurveLoadButton_4</tabstop>
+  <tabstop>TECurveLoadFilename_5</tabstop>
+  <tabstop>TECurveLoadButton_5</tabstop>
+  <tabstop>groupBox_8</tabstop>
+  <tabstop>TECurveLoadFilename_3</tabstop>
+  <tabstop>TECurveLoadButton_3</tabstop>
+  <tabstop>doubleSpinBox_24</tabstop>
+  <tabstop>spinBox_20</tabstop>
+  <tabstop>doubleSpinBox_26</tabstop>
+  <tabstop>doubleSpinBox_27</tabstop>
+  <tabstop>spinBox_21</tabstop>
+  <tabstop>groupBox_16</tabstop>
+  <tabstop>spinBox_25</tabstop>
+  <tabstop>spinBox_26</tabstop>
+  <tabstop>doubleSpinBox_29</tabstop>
+  <tabstop>doubleSpinBox_33</tabstop>
+  <tabstop>spinBox_27</tabstop>
+  <tabstop>groupBox_6</tabstop>
+  <tabstop>spinBox_8</tabstop>
+  <tabstop>spinBox_9</tabstop>
+  <tabstop>doubleSpinBox_12</tabstop>
+  <tabstop>doubleSpinBox_13</tabstop>
+  <tabstop>doubleSpinBox_28</tabstop>
+  <tabstop>spinBox_22</tabstop>
+  <tabstop>spinBox_23</tabstop>
+  <tabstop>doubleSpinBox_19</tabstop>
+  <tabstop>doubleSpinBox_30</tabstop>
+  <tabstop>doubleSpinBox_31</tabstop>
+  <tabstop>spinBox_24</tabstop>
+  <tabstop>tableWidget</tabstop>
+  <tabstop>graphicsView</tabstop>
+  <tabstop>profileLoadFilename</tabstop>
+  <tabstop>profileLoadButton</tabstop>
+  <tabstop>doubleSpinBox_32</tabstop>
+  <tabstop>comboBox</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

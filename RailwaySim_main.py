@@ -10,6 +10,9 @@ Plotting possibilities:
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
+# TODO
+# * Solver - read .ini (prompt to save before)
+
 from PyQt5.QtCore import QSize
 import PyQt5.QtPrintSupport as qtps
 import qtmodern.styles  # * Dark theme
@@ -74,7 +77,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # TODO csv
 
         # ? window exit
-        qtw.QAction("Quit", self).triggered.connect(self.questionEvent)
+        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
 
     def newFile(self):  # ? New empty instance
         clear = qtw.QMessageBox.warning(
@@ -153,13 +156,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         qtw.QMessageBox.information(self, 'The number is:', myNumber)
 
     def AboutInfo(self):
-
         infoScreen = qtw.QMessageBox()
         infoScreen.setWindowTitle('Legal Information')
         infoScreen.setText('RailwaySim is licenced under the GNU GPL.')
         infoScreen.setInformativeText("The complete license is available below.")
-        infoScreen.setDetailedText(open(os.path.join(BASEDIR, "LICENSE"), "r").read())
+        try:
+            infoScreen.setDetailedText(
+                open(os.path.join(BASEDIR, "LICENSE"), "r", encoding="utf-8").read()
+            )
+        except:
+            infoScreen.setDetailedText("http://www.gnu.org/licenses/gpl-3.0.en.html")
         infoScreen.setWindowModality(QtCore.Qt.WindowModal)
+        infoScreen.resize(250, 150)
         infoScreen.exec()
 
     def GitHubLink(self):
@@ -175,7 +183,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     #         self.printer.setOutputFormat(qtps.QPrinter.PdfFormat)
     #         self._print_document()
 
-    def questionEvent(self, event):
+    def closeEvent(self, event):
         """Accept or Ignore event action"""
         close = qtw.QMessageBox.question(
             self, "Exit", "Exit application?", qtw.QMessageBox.Yes | qtw.QMessageBox.No

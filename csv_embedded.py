@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons
 from matplotlib import rcParams
 from matplotlib.ticker import FixedLocator, FixedFormatter
+
 #rcParams['font.family'] = 'Euclid'
 rcParams.update({'font.size': 12})
 
@@ -54,14 +55,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # ! MAIN DATA
         # listcomp removes empty last row
-        x_axis1 = [float(a) for a in dataset_np[8][1:] if a != ""]  # Speed limitation
-        y_axis1 = [float(a) for a in dataset_np[9][1:] if a != ""]
-        x_axis2 = [float(a) for a in dataset_np[0][1:] if a != ""]  # Stations
-        y_axis2 = [str(a) for a in dataset_np[1][1:] if a != ""]
-        x_axis3 = [float(a) for a in dataset_np[4][1:] if a != ""]  # Grade
-        y_axis3 = [float(a) for a in dataset_np[5][1:] if a != ""]
-        x_axis4 = [float(a) for a in dataset_np[6][1:] if a != ""]  # Radius
-        y_axis4 = [float(a) for a in dataset_np[7][1:] if a != ""]
+        #!Outdated x_axis1 = [float(a) for a in dataset_np[8][1:] if a != ""]  # Speed limitation
+        #!Outdated y_axis1 = [float(a) for a in dataset_np[9][1:] if a != ""]
+
+        x_axis2 = [float(a) for a in dataset_np[1][1:] if a != ""]
+        y_axis2 = [str(a) for a in dataset_np[0][1:] if a != ""]  # Station name
+        #!Outdated x_axis3 = [float(a) for a in dataset_np[4][1:] if a != ""]  # Grade
+        #!Outdated y_axis3 = [float(a) for a in dataset_np[5][1:] if a != ""]
+        #!Outdated x_axis4 = [float(a) for a in dataset_np[6][1:] if a != ""]  # Radius
+        #!Outdated y_axis4 = [float(a) for a in dataset_np[7][1:] if a != ""]
 
         self.ax.set_xlabel("Distance [km]")
         self.ax.set_ylabel("Speed [km/h]")

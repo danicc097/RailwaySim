@@ -4,17 +4,20 @@
 
 - [RailwaySim](#railwaysim)
   - [Implemented functionality](#implemented-functionality)
+    - [Rolling stock resistance](#rolling-stock-resistance)
   - [Installation](#installation)
   - [Capabilities](#capabilities)
   - [Usage](#usage)
   - [Results](#results)
 
-![Example Expression](resources/images/OJsA1bL.gif)
+
 
 A deterministic simulation tool to perform time-driven railway route simulations. 
 ## Implemented functionality
+R^3^
+### Rolling stock resistance
 
-
+![equivalent resistance](resources/images/formulas/equivalent resistance.gif)
 
 ## Installation
 
