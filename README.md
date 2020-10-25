@@ -18,8 +18,7 @@ A deterministic simulation tool to perform time-driven railway route simulations
 
 ### Rolling stock resistance
 
-![equivalent resistance](resources/images/formulas/equivalent_resistance.gif)
-<img src="resources/images/formulas/equivalent_resistance.gif" alt="equivalent resistance" width="200"/>
+<img src="resources/images/formulas/equivalent_resistance.gif" alt="equivalent resistance" width="500"/>
 
 ## Installation
 
