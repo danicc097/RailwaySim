@@ -18,7 +18,7 @@ A deterministic simulation tool to perform time-driven railway route simulations
 
 ### Rolling stock resistance
 
-<img src="resources/images/formulas/Resistances.png" alt="resistances" width="520"/>
+<img src="resources/images/formulas/Resistances.png" alt="resistances" width="480"/>
 
 where <i>m</i> is the mass in tonnes and <i>g</i> is gravity in m/s<sup>2</sup>. <i>R<sub>S</sub></i> is the starting resistance, introduced manually.
 ## Installation
