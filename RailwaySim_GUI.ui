@@ -113,8 +113,8 @@
        <widget class="QPushButton" name="pushButton">
         <property name="geometry">
          <rect>
-          <x>469</x>
-          <y>9</y>
+          <x>580</x>
+          <y>340</y>
           <width>111</width>
           <height>41</height>
          </rect>
@@ -185,21 +185,21 @@
          <item>
           <widget class="QLabel" name="label_62">
            <property name="text">
-            <string>Tractive effort - Speed curve (.csv)</string>
+            <string>Braking effort - Speed curve (.csv)</string>
            </property>
           </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_26">
            <item>
-            <widget class="QLineEdit" name="TECurveLoadFilename_2">
+            <widget class="QLineEdit" name="BECurveLoadFilename">
              <property name="readOnly">
               <bool>true</bool>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="TECurveLoadButton_2">
+            <widget class="QToolButton" name="BECurveLoadButton">
              <property name="text">
               <string>...</string>
              </property>
@@ -370,7 +370,7 @@
                  <item>
                   <widget class="QLabel" name="label_12">
                    <property name="text">
-                    <string>Running mass [%]</string>
+                    <string>Rotational mass [%]</string>
                    </property>
                   </widget>
                  </item>
@@ -516,7 +516,7 @@
                  <item>
                   <widget class="QLabel" name="label_3">
                    <property name="text">
-                    <string>Running mass [%]</string>
+                    <string>Rotational mass [%]</string>
                    </property>
                   </widget>
                  </item>
@@ -2204,11 +2204,11 @@
   <tabstop>doubleSpinBox_11</tabstop>
   <tabstop>spinBox_5</tabstop>
   <tabstop>spinBox_4</tabstop>
-  <tabstop>TECurveLoadFilename_2</tabstop>
+  <tabstop>BECurveLoadFilename</tabstop>
   <tabstop>groupBox_2</tabstop>
   <tabstop>pushButton</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>TECurveLoadButton_2</tabstop>
+  <tabstop>BECurveLoadButton</tabstop>
   <tabstop>TECurveLoadFilename</tabstop>
   <tabstop>groupBox</tabstop>
   <tabstop>groupBox_10</tabstop>
