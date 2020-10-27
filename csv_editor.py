@@ -1,8 +1,14 @@
+#
+# TODO integrate in every csv load button
+# * Conversion to ndarray done after sim start
+
 import sys
 from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 
 import csv
+
+from PyQt5.QtCore import QSize
 
 
 class CsvTableModel(qtc.QAbstractTableModel):
@@ -40,7 +46,8 @@ class CsvTableModel(qtc.QAbstractTableModel):
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()  # needs to be emitted before a sort
-        self._data.sort(key=lambda x: x[column])
+        self._data.sort(key=lambda x: float(x[column]))
+        print(column)
         if order == qtc.Qt.DescendingOrder:
             self._data.reverse()
         self.layoutChanged.emit()  # needs to be emitted after a sort
@@ -100,7 +107,7 @@ class MainWindow(qtw.QMainWindow):
         self.tableview = qtw.QTableView()
         self.tableview.setSortingEnabled(True)
         self.setCentralWidget(self.tableview)
-
+        self.resize(850, 650)
         # Setup the menu
         menu = self.menuBar()
         file_menu = menu.addMenu('File')

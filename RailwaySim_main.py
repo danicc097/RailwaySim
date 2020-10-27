@@ -5,22 +5,21 @@ Plotting possibilities:
 
 ! pipenv run python RailwaySim_main.py
 
-! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py
-
+! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py 
+! pyuic5 -x RailwaySim_GUI_pref.ui -o RailwaySim_GUI_pref.py
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
-# TODO
-# * Solver - read .ini (prompt to save before)
-
-from PyQt5.QtCore import QSize
+import PyQt5
+from PyQt5.QtCore import QSize, pyqtSlot
+from PyQt5.QtGui import QPalette
 import PyQt5.QtPrintSupport as qtps
-import qtmodern.styles  # * Dark theme
-import qtmodern.windows  # * Dark theme
+from PyQt5.QtWidgets import QDialog, QWidget
 from RailwaySim_GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets as qtw, uic
 import os
 from save_restore import guisave, guirestore
+from RailwaySim_GUI_pref import Ui_Form
 
 BASEDIR = os.path.dirname(__file__)
 
@@ -31,28 +30,56 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.config_is_set = 0  # Call tracker
+        self.statusBar().showMessage(BASEDIR)
         self.mainEdits()
+        self.iconFixes()
+
+    # TODO dark mode replace "_dark.png"
+    def iconFixes(self, styleSheet=False):
+        global darkPath
+        if not styleSheet:
+            darkPath = 'resources/images/'
+        if styleSheet:
+            darkPath = 'resources/images_dark/'
+        self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
+        print(os.path.join(BASEDIR, darkPath, 'save.png'))
+        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
+        self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'about.png')))
+        self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'settings.png')))
+        self.actionExit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'exit.png')))
+        self.actionPrintToPDF.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'print.png')))
+        self.actionNew_Window.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'new.png')))
+        self.actionGitHub_Homepage.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'github.png'))
+        )
+        self.E_TECurveEditButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        )
+        self.E_TECurveLoadButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        )
+        self.E_BECurveEditButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        )
+        self.E_BECurveLoadButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        )
+        self.D_TECurveEditButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        )
+        self.D_TECurveLoadButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        )
+        self.D_BECurveEditButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        )
+        self.D_BECurveLoadButton.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        )
 
     def mainEdits(self):
         # ? Disable window resizing
         self.setFixedSize(self.size())
-
-        # ? Icon paths fix
-        self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/save.png')))
-        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/open.png')))
-        self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/about.png')))
-        self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/edit.png')))
-        self.actionPrintToPDF.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/print.png'))
-        )
-
-        self.actionNew_Window.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/new.png'))
-        )
-        self.actionGitHub_Homepage.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, 'resources/images/github.png'))
-        )
-        self.statusBar().showMessage(BASEDIR)
 
         # ? Test for pushbutton
         self.pushButton.clicked.connect(self.ShowMessage)
@@ -61,6 +88,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
         self.actionAbout.triggered.connect(self.AboutInfo)
         self.actionExit.triggered.connect(self.close)
+        self.actionEdit.triggered.connect(self.preferences_window)
 
         # ? open and save triggers
         self.actionNew_Window.triggered.connect(self.newFile)
@@ -193,6 +221,44 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
+    def preferences_window(self):
+        self.pref_screen = Preferences()
+        # ApplicationModal to block input in all windows
+        self.pref_screen.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.pref_screen.setFocus(True)
+        self.pref_screen.show()
+
+
+class Preferences(QWidget, Ui_Form):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setupUi(self)
+        self.cb_dark.stateChanged.connect(self.cb_dark_check)
+        self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
+
+    def cb_dark_check(self):
+        try:
+            import qdarkstyle
+            app.setStyleSheet(qdarkstyle.load_stylesheet())
+            window.iconFixes(styleSheet=True)
+
+            if not self.cb_dark.isChecked():
+                app.setStyleSheet("")
+                window.iconFixes()
+        except:
+            qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
+
+    def cb_watermark_check(self):
+        if self.cb_watermark.isChecked():
+            global chart_watermark
+            chart_watermark = self.watermark.text()
+            chart_watermark_global()
+
+
+def chart_watermark_global():
+    print(chart_watermark)
+    # TODO matplotlib
+
     # TODO animation when loading excel
 
     # TODO QMovie animation simulation
@@ -209,12 +275,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     #         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
 
-def get_sec(time):
-    """Split seconds from hh:mm."""
-    h, m = time.split(':')
-    return int(h) * 3600 + int(m) * 60
-
-
 # * There is no restriction on the number of QMainWindow instances
 # ! There is a limitation of one QApplication per process
 class NewWindow(MainWindow):
@@ -228,12 +288,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()  # Show our own modified class
 
-    # * Dark theme - link to pref
-    # qtmodern.styles.dark(app)
-    # mw = qtmodern.windows.ModernWindow(window)
-    # mw.show()
-
-    # ! Exit with Ctrl + C
+    # ? Exit with Ctrl + C
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)
     timer.start(100)
