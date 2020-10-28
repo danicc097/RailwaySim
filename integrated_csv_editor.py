@@ -9,6 +9,7 @@ from PyQt5 import QtCore as qtc
 import csv
 
 from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget
 
 
 class CsvTableModel(qtc.QAbstractTableModel):
@@ -16,10 +17,15 @@ class CsvTableModel(qtc.QAbstractTableModel):
     def __init__(self, csv_file):
         super().__init__()
         self.filename = csv_file
-        with open(self.filename, encoding='utf-8') as fh:
-            csvreader = csv.reader(fh)
-            self._headers = next(csvreader)
-            self._data = list(csvreader)
+        try:
+            with open(self.filename, encoding='utf-8') as fh:
+                csvreader = csv.reader(fh)
+                self._headers = next(csvreader)
+                self._data = list(csvreader)
+        except Exception as e:
+            qtw.QMessageBox.critical(
+                QWidget(None), 'Error', f"Could not open the specified path: {e}"
+            )  # parent must be QWidget()
 
     # Minimum necessary methods:
     def rowCount(self, parent):
@@ -46,11 +52,16 @@ class CsvTableModel(qtc.QAbstractTableModel):
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()  # needs to be emitted before a sort
-        self._data.sort(key=lambda x: float(x[column]))
-        print(column)
-        if order == qtc.Qt.DescendingOrder:
-            self._data.reverse()
-        self.layoutChanged.emit()  # needs to be emitted after a sort
+        try:
+            self._data.sort(key=lambda x: float(x[column]))
+            if order == qtc.Qt.DescendingOrder:
+                self._data.reverse()
+            self.layoutChanged.emit()  # needs to be emitted after a sort
+        except:
+            self._data.sort(key=lambda x: x[column])
+            if order == qtc.Qt.DescendingOrder:
+                self._data.reverse()
+            self.layoutChanged.emit()
 
     # Methods for Read/Write
 
@@ -111,7 +122,7 @@ class MainWindow(qtw.QMainWindow):
         # Setup the menu
         menu = self.menuBar()
         file_menu = menu.addMenu('File')
-        file_menu.addAction('Open', self.select_file)
+        # file_menu.addAction('Open', self.select_file) # Disabled for integrated editor
         file_menu.addAction('Save', self.save_file)
 
         edit_menu = menu.addMenu('Edit')
@@ -123,14 +134,10 @@ class MainWindow(qtw.QMainWindow):
         self.show()
 
     # File methods
-    def select_file(self):
-        filename, _ = qtw.QFileDialog.getOpenFileName(
-            self, 'Select a CSV file to open…', qtc.QDir.homePath(),
-            'CSV Files (*.csv) ;; All Files (*)'
-        )
-        if filename:
-            self.model = CsvTableModel(filename)
-            self.tableview.setModel(self.model)
+    def select_file(self, filename):
+        self.model = CsvTableModel(filename)
+        self.tableview.setModel(self.model)
+        self.setWindowTitle(filename)
 
     def save_file(self):
         if self.model:
@@ -150,14 +157,6 @@ class MainWindow(qtw.QMainWindow):
 
     def remove_rows(self):
         selected = self.tableview.selectedIndexes()
-        # Errata:  The book contains the following code:
-        #if selected:
-        #    self.model.removeRows(selected[0].row(), len(selected), None)
-
-        # This is incorrect, as len(selected) is the number of *cells* selected,
-        # not the number of *rows* selected.
-
-        # correct approach would look like this:
         num_rows = len(set(index.row() for index in selected))
         if selected:
             self.model.removeRows(selected[0].row(), num_rows, None)

@@ -46,11 +46,16 @@ class CsvTableModel(qtc.QAbstractTableModel):
 
     def sort(self, column, order):
         self.layoutAboutToBeChanged.emit()  # needs to be emitted before a sort
-        self._data.sort(key=lambda x: float(x[column]))
-        print(column)
-        if order == qtc.Qt.DescendingOrder:
-            self._data.reverse()
-        self.layoutChanged.emit()  # needs to be emitted after a sort
+        try:
+            self._data.sort(key=lambda x: float(x[column]))
+            if order == qtc.Qt.DescendingOrder:
+                self._data.reverse()
+            self.layoutChanged.emit()  # needs to be emitted after a sort
+        except:
+            self._data.sort(key=lambda x: x[column])
+            if order == qtc.Qt.DescendingOrder:
+                self._data.reverse()
+            self.layoutChanged.emit()
 
     # Methods for Read/Write
 

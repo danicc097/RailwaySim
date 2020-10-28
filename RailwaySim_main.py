@@ -20,6 +20,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets as qtw, uic
 import os
 from save_restore import guisave, guirestore
 from RailwaySim_GUI_pref import Ui_Form
+import integrated_csv_editor
 
 BASEDIR = os.path.dirname(__file__)
 
@@ -28,6 +29,8 @@ BASEDIR = os.path.dirname(__file__)
 # TODO resize app based on resolution
 
 # TODO center new windows based on mainWindow current location
+
+# TODO new .ini file for theme preference on startup
 
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -87,16 +90,63 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
 
+        # ? CSV import buttons - anon to prevent autostart
+        self.E_TECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.E_TECurveLoadFilename)
+        )
+        self.E_BECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.E_BECurveLoadFilename)
+        )
+        self.D_TECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.D_TECurveLoadFilename)
+        )
+        self.D_BECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.D_BECurveLoadFilename)
+        )
+
+        # ? CSV edit buttons
+        self.E_TECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.E_TECurveLoadFilename.text())
+        )
+        self.E_BECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.E_BECurveLoadFilename.text())
+        )
+        self.D_TECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.D_TECurveLoadFilename.text())
+        )
+        self.D_BECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.D_BECurveLoadFilename.text())
+        )
+
         # TODO PDF - See invoice_maker
         # self.printer = qtps.QPrinter()
         # self.printer.setOrientation(qtps.QPrinter.Portrait)
         # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
         #self.actionPrintToPDF.triggered.connect(self.export_pdf)
 
-        # TODO csv loader reading QLineEdit - *_*ECurveLoadFilename
-
         # ? window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+    def path_extractor(self, dest):
+        """Write CSV file path to destination"""
+        my_path, _ = qtw.QFileDialog.getOpenFileName(
+            self,
+            "Select a CSV file to load…",
+            BASEDIR,
+            'CSV Files (*.csv)',
+            options=qtw.QFileDialog.DontResolveSymlinks
+        )
+        dest.setText(my_path)
+
+    def csv_editor(self, path):
+        """Edit CSV file located in path"""
+        if path:
+            self.csveditor_screen = integrated_csv_editor.MainWindow()
+            self.csveditor_screen.select_file(path)
+            # ApplicationModal to block input in all windows
+            self.csveditor_screen.setWindowModality(QtCore.Qt.ApplicationModal)
+            self.csveditor_screen.setFocus(True)
+            self.csveditor_screen.show()
 
     def newFile(self):  # ? New empty instance
         clear = qtw.QMessageBox.warning(
@@ -122,10 +172,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             try:
                 self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                 guisave(self, self.my_settings)
+                # TODO custom settings elements (no spaces):
+                self.my_settings.setValue(str('My nice setting name'), bool('Tobedefined'))
                 self.my_settings.sync()
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
             except Exception as e:
-                qtw.QMessageBox.critical(self, f"Could not save settings: {e}")
+                qtw.QMessageBox.critical(self, 'Error', f"Could not save settings: {e}")
 
     def readFile(self):  # ? Open
         self.config_is_set += 1
@@ -147,11 +199,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 try:
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
+                    # TODO read custom settings elements in guirestore(no spaces)
                     self.my_settings.sync()
                     self.statusBar().showMessage("Changes being saved to: {}".format(self.filename))
                     self.setWindowTitle(os.path.basename(self.filename))
-                except Exception as e:
-                    qtw.QMessageBox.critical(self, f"Could not open settings: {e}")
+                except Exception or TypeError as e:
+                    qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
             else:
                 qtw.QMessageBox.critical(
                     self, "Invalid file type", "Please select a .ini file.", qtw.QMessageBox.Ok
@@ -163,6 +216,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
                 self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                 guisave(self, self.my_settings)
+                # TODO custom settings elements (no spaces):
+                self.my_settings.setValue(str('My nice setting name'), bool('Tobedefined'))
                 self.my_settings.sync()
             else:
                 self.writeNewFile()
@@ -227,9 +282,11 @@ class Preferences(QWidget, Ui_Form):
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
 
     def cb_dark_check(self):
+        self.darkIsChecked = self.cb_dark.isChecked()
+        self.my_settings
         try:
             import qdarkstyle
-            if not self.cb_dark.isChecked():
+            if not self.darkIsChecked:
                 app.setStyleSheet("")
                 window.iconFixes()
             else:
