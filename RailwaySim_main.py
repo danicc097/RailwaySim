@@ -57,30 +57,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionGitHub_Homepage.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'github.png'))
         )
-        self.E_TECurveEditButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
-        )
-        self.E_TECurveLoadButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
-        )
-        self.E_BECurveEditButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
-        )
-        self.E_BECurveLoadButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
-        )
-        self.D_TECurveEditButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
-        )
-        self.D_TECurveLoadButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
-        )
-        self.D_BECurveEditButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
-        )
-        self.D_BECurveLoadButton.setIcon(
-            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
-        )
+        icon_edit = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        icon_import = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        self.E_TECurveEditButton.setIcon(icon_edit)
+        self.E_TECurveLoadButton.setIcon(icon_import)
+        self.E_BECurveEditButton.setIcon(icon_edit)
+        self.E_BECurveLoadButton.setIcon(icon_import)
+        self.D_TECurveEditButton.setIcon(icon_edit)
+        self.D_TECurveLoadButton.setIcon(icon_import)
+        self.D_BECurveEditButton.setIcon(icon_edit)
+        self.D_BECurveLoadButton.setIcon(icon_import)
 
     def mainEdits(self):
         # ? Disable window resizing
@@ -107,7 +93,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
         #self.actionPrintToPDF.triggered.connect(self.export_pdf)
 
-        # TODO csv
+        # TODO csv loader reading QLineEdit - *_*ECurveLoadFilename
 
         # ? window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
