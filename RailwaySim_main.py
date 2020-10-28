@@ -14,7 +14,7 @@ import PyQt5
 from PyQt5.QtCore import QSize, pyqtSlot
 from PyQt5.QtGui import QPalette
 import PyQt5.QtPrintSupport as qtps
-from PyQt5.QtWidgets import QDialog, QWidget
+from PyQt5.QtWidgets import QDialog, QWidget, QSizePolicy
 from RailwaySim_GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets as qtw, uic
 import os
@@ -22,6 +22,12 @@ from save_restore import guisave, guirestore
 from RailwaySim_GUI_pref import Ui_Form
 
 BASEDIR = os.path.dirname(__file__)
+
+# TODO interpolate widget size upon resize
+
+# TODO resize app based on resolution
+
+# TODO center new windows based on mainWindow current location
 
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -42,7 +48,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if styleSheet:
             darkPath = 'resources/images_dark/'
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
-        print(os.path.join(BASEDIR, darkPath, 'save.png'))
         self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
         self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'about.png')))
         self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'settings.png')))
@@ -79,7 +84,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def mainEdits(self):
         # ? Disable window resizing
-        self.setFixedSize(self.size())
+        #self.setFixedSize(self.size())
 
         # ? Test for pushbutton
         self.pushButton.clicked.connect(self.ShowMessage)
@@ -186,16 +191,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def AboutInfo(self):
         infoScreen = qtw.QMessageBox()
         infoScreen.setWindowTitle('Legal Information')
-        infoScreen.setText('RailwaySim is licenced under the GNU GPL.')
-        infoScreen.setInformativeText("The complete license is available below.")
+        infoScreen.setText('RailwaySim is licenced under the GNU GPL.\t\t')
+        infoScreen.setInformativeText("The complete license is available below.\t\t")
         try:
             infoScreen.setDetailedText(
                 open(os.path.join(BASEDIR, "LICENSE"), "r", encoding="utf-8").read()
             )
         except:
             infoScreen.setDetailedText("http://www.gnu.org/licenses/gpl-3.0.en.html")
-        infoScreen.setWindowModality(QtCore.Qt.WindowModal)
-        infoScreen.resize(250, 150)
+        infoScreen.setWindowModality(QtCore.Qt.ApplicationModal)
         infoScreen.exec()
 
     def GitHubLink(self):
@@ -239,12 +243,13 @@ class Preferences(QWidget, Ui_Form):
     def cb_dark_check(self):
         try:
             import qdarkstyle
-            app.setStyleSheet(qdarkstyle.load_stylesheet())
-            window.iconFixes(styleSheet=True)
-
             if not self.cb_dark.isChecked():
                 app.setStyleSheet("")
                 window.iconFixes()
+            else:
+                app.setStyleSheet(qdarkstyle.load_stylesheet())
+                window.iconFixes(styleSheet=True)
+
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
 

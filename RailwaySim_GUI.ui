@@ -57,7 +57,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -136,7 +136,7 @@
              <item>
               <widget class="QGroupBox" name="groupBox_5">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
@@ -145,7 +145,34 @@
                 <string/>
                </property>
                <layout class="QGridLayout" name="gridLayout">
-                <item row="0" column="1">
+                <item row="3" column="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_32">
+                  <item>
+                   <widget class="QLabel" name="label_25">
+                    <property name="text">
+                     <string>Train length [m]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="TRAIN_LENGTH">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="0" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_11">
                   <item>
                    <widget class="QLabel" name="label_9">
@@ -170,33 +197,6 @@
                     </property>
                     <property name="maximum">
                      <double>999.000000000000000</double>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="1" column="0">
-                 <layout class="QHBoxLayout" name="horizontalLayout_16">
-                  <item>
-                   <widget class="QLabel" name="label_17">
-                    <property name="text">
-                     <string>Motorized bogies [u]</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="MOTOR_BOGIES">
-                    <property name="layoutDirection">
-                     <enum>Qt::LeftToRight</enum>
-                    </property>
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="suffix">
-                     <string/>
                     </property>
                    </widget>
                   </item>
@@ -229,17 +229,44 @@
                   </item>
                  </layout>
                 </item>
-                <item row="0" column="0">
-                 <layout class="QHBoxLayout" name="horizontalLayout_17">
+                <item row="2" column="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <item>
-                   <widget class="QLabel" name="label_18">
+                   <widget class="QLabel" name="label_13">
                     <property name="text">
-                     <string>Bogies [u]</string>
+                     <string>Frontal area [m²]</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QSpinBox" name="BOGIES">
+                   <widget class="QDoubleSpinBox" name="TRAIN_AREA">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="prefix">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_16">
+                  <item>
+                   <widget class="QLabel" name="label_17">
+                    <property name="text">
+                     <string>Motorized bogies [u]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QSpinBox" name="MOTOR_BOGIES">
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
                     </property>
@@ -256,17 +283,17 @@
                   </item>
                  </layout>
                 </item>
-                <item row="2" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_13">
+                <item row="1" column="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_12">
                   <item>
-                   <widget class="QLabel" name="label_13">
+                   <widget class="QLabel" name="label_12">
                     <property name="text">
-                     <string>Frontal area [m²]</string>
+                     <string>Rotational mass [%]</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="TRAIN_AREA">
+                   <widget class="QDoubleSpinBox" name="TRAIN_ROT_MASS">
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -313,24 +340,24 @@
                   </item>
                  </layout>
                 </item>
-                <item row="1" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_12">
+                <item row="0" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_17">
                   <item>
-                   <widget class="QLabel" name="label_12">
+                   <widget class="QLabel" name="label_18">
                     <property name="text">
-                     <string>Rotational mass [%]</string>
+                     <string>Bogies [u]</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QDoubleSpinBox" name="TRAIN_ROT_MASS">
+                   <widget class="QSpinBox" name="BOGIES">
+                    <property name="layoutDirection">
+                     <enum>Qt::LeftToRight</enum>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
                     <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="prefix">
                      <string/>
                     </property>
                     <property name="suffix">
@@ -340,32 +367,21 @@
                   </item>
                  </layout>
                 </item>
-                <item row="3" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_32">
-                  <item>
-                   <widget class="QLabel" name="label_25">
-                    <property name="text">
-                     <string>Train length [m]</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QDoubleSpinBox" name="TRAIN_LENGTH">
-                    <property name="wrapping">
-                     <bool>false</bool>
-                    </property>
-                    <property name="specialValueText">
-                     <string/>
-                    </property>
-                    <property name="prefix">
-                     <string/>
-                    </property>
-                    <property name="suffix">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
+                <item row="0" column="1">
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Maximum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>10</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
@@ -404,7 +420,7 @@
                <item row="0" column="0" alignment="Qt::AlignTop">
                 <widget class="QGroupBox" name="groupBox_3">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -614,7 +630,7 @@
                <item row="0" column="1" alignment="Qt::AlignTop">
                 <widget class="QGroupBox" name="groupBox_4">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Ignored">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -778,7 +794,7 @@
           <item row="0" column="1" rowspan="2" alignment="Qt::AlignTop">
            <widget class="QGroupBox" name="groupBox_6">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+             <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
