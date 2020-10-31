@@ -14,11 +14,11 @@ import PyQt5
 from PyQt5.QtCore import QSize, pyqtSlot
 from PyQt5.QtGui import QPalette
 import PyQt5.QtPrintSupport as qtps
-from PyQt5.QtWidgets import QDialog, QWidget, QSizePolicy
+from PyQt5.QtWidgets import QDialog, QMainWindow, QWidget, QSizePolicy
 from RailwaySim_GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets as qtw, uic
 import os
-from save_restore import guisave, guirestore
+from save_restore import guisave, guirestore, grab_GC
 from RailwaySim_GUI_pref import Ui_Form
 import integrated_csv_editor
 
@@ -33,11 +33,28 @@ BASEDIR = os.path.dirname(__file__)
 # TODO new .ini file for theme preference on startup
 
 
-class MainWindow(qtw.QMainWindow, Ui_MainWindow):
-    def __init__(self, *args, **kwargs):
+class NewWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        global window_list
+        window_list = []  # Allow multiple MainWindow instances
+        self.add_new_window()
 
-        super().__init__(*args, **kwargs)
+    def add_new_window(self):
+        global window
+        window = MainWindow()
+        window_list.append(window)
+        print(window_list)
+        window.show()
+
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+    def __init__(self, parent=None):
+
+        super().__init__(parent)
         self.setupUi(self)
+        self.window = window
+
         self.config_is_set = 0  # Call tracker
         self.statusBar().showMessage(BASEDIR)
         self.mainEdits()
@@ -70,13 +87,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.D_TECurveLoadButton.setIcon(icon_import)
         self.D_BECurveEditButton.setIcon(icon_edit)
         self.D_BECurveLoadButton.setIcon(icon_import)
+        self.ProfileEditButton.setIcon(icon_edit)
+        self.ProfileLoadButton.setIcon(icon_import)
 
     def mainEdits(self):
         # ? Disable window resizing
         #self.setFixedSize(self.size())
 
-        # ? Test for pushbutton
-        self.pushButton.clicked.connect(self.ShowMessage)
+        # ? PushButton
+        self.StartSimButton.clicked.connect(self.start_simulation)
 
         # ? Toolbar button actions
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
@@ -85,7 +104,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.actionEdit.triggered.connect(self.preferences_window)
 
         # ? open and save triggers
-        self.actionNew_Window.triggered.connect(self.newFile)
+        self.actionNew_Window.triggered.connect(self.window.add_new_window)
         self.actionOpen.triggered.connect(self.readFile)
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
@@ -103,6 +122,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.D_BECurveLoadButton.clicked.connect(
             lambda: self.path_extractor(self.D_BECurveLoadFilename)
         )
+        self.ProfileLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.ProfileLoadFilename)
+        )
 
         # ? CSV edit buttons
         self.E_TECurveEditButton.clicked.connect(
@@ -117,6 +139,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.D_BECurveEditButton.clicked.connect(
             lambda: self.csv_editor(self.D_BECurveLoadFilename.text())
         )
+        self.ProfileEditButton.clicked.connect(
+            lambda: self.csv_editor(self.ProfileLoadFilename.text())
+        )
+
+        #? Embedded matplotlib in Route tab
+
+        # self.StartSimButton = qtw.QPushButton(self.RouteTab)
+        # self.StartSimButton.setObjectName("StartSimButton")
+        # self.verticalLayout_2.addWidget(self.StartSimButton)
 
         # TODO PDF - See invoice_maker
         # self.printer = qtps.QPrinter()
@@ -148,15 +179,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.csveditor_screen.setFocus(True)
             self.csveditor_screen.show()
 
-    def newFile(self):  # ? New empty instance
-        clear = qtw.QMessageBox.warning(
-            self, "Clear contents", "Clear all fields? Any changes will be lost.",
-            qtw.QMessageBox.Yes | qtw.QMessageBox.No
-        )
-        if clear == qtw.QMessageBox.Yes:
-            self.win = NewWindow()
-            self.win.show()
-            self.hide()
+    # @pyqtSlot()
+    # def newFile(self):
+    #     """Creates new empty MainWindow instance"""
+    #     # * No restriction on the number of QMainWindow instances
+    #     # ! Limitation of one QApplication per process
+    #     win = NewWindow()
+    #     win.show()
+    #     self.window.append(win)
 
     def writeNewFile(self):  # ? Save as
         self.config_is_set += 1
@@ -171,9 +201,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.filename.lower().endswith('.ini'):
             try:
                 self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
+                # all values will be returned as QString
                 guisave(self, self.my_settings)
                 # TODO custom settings elements (no spaces):
-                self.my_settings.setValue(str('My nice setting name'), bool('Tobedefined'))
+                self.my_settings.setValue(str('Custom_setting_name'), bool('Tobedefined'))
                 self.my_settings.sync()
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
             except Exception as e:
@@ -225,23 +256,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.writeNewFile()
 
     # ? capture data
-    def ShowMessage(self):
-        myNumber = self.doubleSpinBox_2.cleanText()
-        qtw.QMessageBox.information(self, 'The number is:', myNumber)
+    # def ShowMessage(self):
+    #     # myNumber = self.TIME_STEP.cleanText()
+    #     # qtw.QMessageBox.information(self, 'The number is:', myNumber)
 
     def AboutInfo(self):
-        infoScreen = qtw.QMessageBox()
-        infoScreen.setWindowTitle('Legal Information')
-        infoScreen.setText('RailwaySim is licenced under the GNU GPL.\t\t')
-        infoScreen.setInformativeText("The complete license is available below.\t\t")
+        self.infoScreen = qtw.QMessageBox(self)  # Pass self to QMessageBox
+        self.infoScreen.setWindowTitle('Legal Information')
+        self.infoScreen.setText('RailwaySim is licenced under the GNU GPL.\t\t')
+        self.infoScreen.setInformativeText("The complete license is available below.\t\t")
+        # self.infoScreen.closeEvent()
         try:
-            infoScreen.setDetailedText(
+            self.infoScreen.setDetailedText(
                 open(os.path.join(BASEDIR, "LICENSE"), "r", encoding="utf-8").read()
             )
         except:
-            infoScreen.setDetailedText("http://www.gnu.org/licenses/gpl-3.0.en.html")
-        infoScreen.setWindowModality(QtCore.Qt.ApplicationModal)
-        infoScreen.exec()
+            self.infoScreen.setDetailedText("http://www.gnu.org/licenses/gpl-3.0.en.html")
+        self.infoScreen.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.infoScreen.show()
 
     def GitHubLink(self):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
@@ -273,6 +305,23 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.pref_screen.setFocus(True)
         self.pref_screen.show()
 
+    def start_simulation(self):
+        runSim = qtw.QMessageBox.question(
+            self, "Start simulation", "Start simulation?\nAll changes will be saved locally.",
+            qtw.QMessageBox.Yes | qtw.QMessageBox.No
+        )
+        if runSim == qtw.QMessageBox.Yes:
+            try:
+                self.writeFile()
+                print('Changes saved')
+                # import solver.shortest_operation as s_o
+                # s_o.run(self.my_settings)
+                grab_GC(self.my_settings)
+            except:
+                print('Failed')
+        else:
+            self.close
+
 
 class Preferences(QWidget, Ui_Form):
     def __init__(self, parent=None):
@@ -280,18 +329,21 @@ class Preferences(QWidget, Ui_Form):
         self.setupUi(self)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
+        self.pushButton.clicked.connect(self.hide)
 
     def cb_dark_check(self):
-        self.darkIsChecked = self.cb_dark.isChecked()
-        self.my_settings
         try:
             import qdarkstyle
-            if not self.darkIsChecked:
-                app.setStyleSheet("")
-                window.iconFixes()
+            if not self.cb_dark.isChecked():
+                app.setStyleSheet("")  # Default style
+                for window in window_list:
+                    self.window = window
+                    self.window.iconFixes()
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
-                window.iconFixes(styleSheet=True)
+                for window in window_list:
+                    self.window = window
+                    self.window.iconFixes(styleSheet=True)
 
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
@@ -300,41 +352,25 @@ class Preferences(QWidget, Ui_Form):
         if self.cb_watermark.isChecked():
             global chart_watermark
             chart_watermark = self.watermark.text()
-            chart_watermark_global()
 
 
-def chart_watermark_global():
-    print(chart_watermark)
-    # TODO matplotlib
+# TODO QMovie animation simulation
+# self.movie = QMovie("{filename}.gif")
+# self.movie.frameChanged.connect(self.repaint)
+# self.movie.start()
 
-    # TODO animation when loading excel
-
-    # TODO QMovie animation simulation
-    # self.movie = QMovie("{filename}.gif")
-    # self.movie.frameChanged.connect(self.repaint)
-    # self.movie.start()
-
-    # def paintEvent(self, event):
-    #     currentFrame = self.movie.currentPixmap()
-    #     frameRect = currentFrame.rect()
-    #     frameRect.moveCenter(self.rect().center())
-    #     if frameRect.intersects(event.rect()):
-    #         painter = QPainter(self)
-    #         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
-
-
-# * There is no restriction on the number of QMainWindow instances
-# ! There is a limitation of one QApplication per process
-class NewWindow(MainWindow):
-    def __init__(self):
-        super().__init__()
-
+# def paintEvent(self, event):
+#     currentFrame = self.movie.currentPixmap()
+#     frameRect = currentFrame.rect()
+#     frameRect.moveCenter(self.rect().center())
+#     if frameRect.intersects(event.rect()):
+#         painter = QPainter(self)
+#         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
 if __name__ == "__main__":
     import sys
     app = qtw.QApplication(sys.argv)
-    window = MainWindow()
-    window.show()  # Show our own modified class
+    w = NewWindow()  # Instantiate window factory class
 
     # ? Exit with Ctrl + C
     timer = QtCore.QTimer()

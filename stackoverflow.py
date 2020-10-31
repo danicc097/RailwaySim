@@ -34,6 +34,7 @@ ax2.xaxis.set_major_formatter(x_formatter)
 for x in x_axis2:
     ax2.axvline(x, color='red', ls=':', lw=1.5)
 
+# * Edit lines for each new axis
 lines = [l0, ax2]
 rax = plt.axes([0, 0, 0.12, 0.1])
 labels = [str(line.get_label()) for line in lines]
@@ -52,3 +53,5 @@ check.on_clicked(func)
 fig.tight_layout()
 
 plt.show()
+
+#! ------------------------------------------------------

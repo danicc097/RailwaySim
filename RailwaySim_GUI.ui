@@ -57,7 +57,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -71,7 +71,7 @@
       <property name="tabBarAutoHide">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="rolling">
+      <widget class="QWidget" name="RollingStockTab">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -114,7 +114,7 @@
         <item>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="1" column="0">
-           <widget class="QGroupBox" name="groupBox_2">
+           <widget class="QGroupBox" name="gb_passenger">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -390,7 +390,7 @@
            </widget>
           </item>
           <item row="0" column="0">
-           <widget class="QGroupBox" name="groupBox">
+           <widget class="QGroupBox" name="gb_locomotive">
             <property name="enabled">
              <bool>true</bool>
             </property>
@@ -1047,7 +1047,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="TractionChainTab">
        <attribute name="title">
         <string>Traction chain</string>
        </attribute>
@@ -1069,7 +1069,7 @@
          </spacer>
         </item>
         <item row="2" column="0">
-         <widget class="QGroupBox" name="cb_eff">
+         <widget class="QGroupBox" name="gb_eff">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
@@ -1093,7 +1093,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="trafo_eff">
+              <widget class="QDoubleSpinBox" name="TRAFO_EFF">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1123,7 +1123,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="rect_eff">
+              <widget class="QDoubleSpinBox" name="RECT_EFF">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1153,7 +1153,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="inv_eff">
+              <widget class="QDoubleSpinBox" name="INV_EFF">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1183,7 +1183,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="motor_eff">
+              <widget class="QDoubleSpinBox" name="MOTOR_EFF">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1213,7 +1213,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QDoubleSpinBox" name="aux_eff">
+              <widget class="QDoubleSpinBox" name="AUX_EFF">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1237,7 +1237,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QGroupBox" name="cb_onboard_storage">
+         <widget class="QGroupBox" name="gb_onboard_storage">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1284,7 +1284,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="batt_number">
+                 <widget class="QSpinBox" name="BATT_NUMBER">
                   <property name="layoutDirection">
                    <enum>Qt::LeftToRight</enum>
                   </property>
@@ -1311,7 +1311,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QSpinBox" name="batt_capacity">
+                 <widget class="QSpinBox" name="BATT_CAPACITY">
                   <property name="layoutDirection">
                    <enum>Qt::LeftToRight</enum>
                   </property>
@@ -1338,7 +1338,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="batt_charg_rate">
+                 <widget class="QDoubleSpinBox" name="BATT_CHARG_RATE">
                   <property name="wrapping">
                    <bool>false</bool>
                   </property>
@@ -1368,7 +1368,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QDoubleSpinBox" name="batt_discharg_rate">
+                 <widget class="QDoubleSpinBox" name="BATT_DISCHARG_RATE">
                   <property name="wrapping">
                    <bool>false</bool>
                   </property>
@@ -1392,7 +1392,7 @@
          </widget>
         </item>
         <item row="2" column="2">
-         <widget class="QGroupBox" name="cb_electric_traction">
+         <widget class="QGroupBox" name="gb_electric_traction">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1533,7 +1533,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="E_aux_cons">
+              <widget class="QSpinBox" name="E_AUX_CONS">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1560,7 +1560,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="E_max_rate">
+              <widget class="QSpinBox" name="E_MAX_RATE">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1581,7 +1581,7 @@
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QGroupBox" name="cb_diesel_engine">
+         <widget class="QGroupBox" name="gb_diesel_engine">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -1716,7 +1716,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="D_aux_cons">
+              <widget class="QSpinBox" name="D_AUX_CONS">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1743,7 +1743,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QSpinBox" name="D_max_rate">
+              <widget class="QSpinBox" name="D_MAX_RATE">
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1765,25 +1765,15 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="route">
+      <widget class="QWidget" name="RouteTab">
        <attribute name="title">
         <string>Route</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_17">
-        <item>
-         <widget class="QLabel" name="label_42">
-          <property name="text">
-           <string>Table</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="tableWidget"/>
-        </item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_42">
           <item>
-           <widget class="QCheckBox" name="InvertRoute">
+           <widget class="QCheckBox" name="cb_InvertRoute">
             <property name="text">
              <string>Invert route</string>
             </property>
@@ -1799,7 +1789,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>300</width>
+              <width>160</width>
               <height>20</height>
              </size>
             </property>
@@ -1813,7 +1803,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="profileLoadFilename">
+           <widget class="QToolButton" name="ProfileEditButton">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="ProfileLoadFilename">
             <property name="readOnly">
              <bool>true</bool>
             </property>
@@ -1829,90 +1826,94 @@
          </layout>
         </item>
         <item>
-         <widget class="QGraphicsView" name="graphicsView"/>
+         <widget class="QGroupBox" name="groupBox_15">
+          <property name="title">
+           <string/>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_28">
+           <item>
+            <widget class="QComboBox" name="combo_solver">
+             <property name="editable">
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string>Select solver method</string>
+             </property>
+             <property name="placeholderText">
+              <string>Select solver method</string>
+             </property>
+             <item>
+              <property name="text">
+               <string>Minimize operation time</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Minimize energy consumption</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>Fixed travel time</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_53">
+             <item>
+              <widget class="QLabel" name="label_55">
+               <property name="layoutDirection">
+                <enum>Qt::LeftToRight</enum>
+               </property>
+               <property name="text">
+                <string>Time step [s]</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="TIME_STEP">
+               <property name="wrapping">
+                <bool>false</bool>
+               </property>
+               <property name="specialValueText">
+                <string/>
+               </property>
+               <property name="suffix">
+                <string/>
+               </property>
+               <property name="maximum">
+                <double>9999.000000000000000</double>
+               </property>
+               <property name="singleStep">
+                <double>0.500000000000000</double>
+               </property>
+               <property name="stepType">
+                <enum>QAbstractSpinBox::DefaultStepType</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="StartSimButton">
+          <property name="text">
+           <string>Start simulation</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="Sim">
+      <widget class="QWidget" name="SimulationTab">
        <attribute name="title">
         <string>Simulation</string>
        </attribute>
-       <widget class="QGroupBox" name="groupBox_15">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>20</y>
-          <width>231</width>
-          <height>81</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string/>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_53">
-           <item>
-            <widget class="QLabel" name="label_55">
-             <property name="text">
-              <string>Time step [s]</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QDoubleSpinBox" name="TIME_STEP">
-             <property name="wrapping">
-              <bool>false</bool>
-             </property>
-             <property name="specialValueText">
-              <string/>
-             </property>
-             <property name="suffix">
-              <string/>
-             </property>
-             <property name="maximum">
-              <double>9999.000000000000000</double>
-             </property>
-             <property name="singleStep">
-              <double>0.500000000000000</double>
-             </property>
-             <property name="stepType">
-              <enum>QAbstractSpinBox::DefaultStepType</enum>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBox">
-           <property name="editable">
-            <bool>false</bool>
-           </property>
-           <property name="currentText">
-            <string>Select solver method</string>
-           </property>
-           <property name="placeholderText">
-            <string>Select solver method</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>Minimize operation time</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Minimize energy consumption</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Fixed travel time</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </widget>
       </widget>
      </widget>
     </item>
@@ -2104,27 +2105,23 @@
   <tabstop>TRAIN_MAX_A</tabstop>
   <tabstop>BOGIES</tabstop>
   <tabstop>MOTOR_BOGIES</tabstop>
-  <tabstop>groupBox_2</tabstop>
+  <tabstop>gb_passenger</tabstop>
   <tabstop>pushButton</tabstop>
-  <tabstop>groupBox</tabstop>
+  <tabstop>gb_locomotive</tabstop>
   <tabstop>D_TECurveLoadFilename</tabstop>
   <tabstop>D_TECurveLoadButton</tabstop>
   <tabstop>D_BECurveLoadFilename</tabstop>
   <tabstop>D_BECurveLoadButton</tabstop>
-  <tabstop>E_aux_cons</tabstop>
-  <tabstop>inv_eff</tabstop>
-  <tabstop>motor_eff</tabstop>
-  <tabstop>cb_onboard_storage</tabstop>
-  <tabstop>batt_number</tabstop>
-  <tabstop>batt_capacity</tabstop>
-  <tabstop>batt_charg_rate</tabstop>
-  <tabstop>batt_discharg_rate</tabstop>
-  <tabstop>tableWidget</tabstop>
-  <tabstop>graphicsView</tabstop>
-  <tabstop>profileLoadFilename</tabstop>
+  <tabstop>E_AUX_CONS</tabstop>
+  <tabstop>INV_EFF</tabstop>
+  <tabstop>MOTOR_EFF</tabstop>
+  <tabstop>gb_onboard_storage</tabstop>
+  <tabstop>BATT_NUMBER</tabstop>
+  <tabstop>BATT_CAPACITY</tabstop>
+  <tabstop>BATT_CHARG_RATE</tabstop>
+  <tabstop>BATT_DISCHARG_RATE</tabstop>
+  <tabstop>ProfileLoadFilename</tabstop>
   <tabstop>ProfileLoadButton</tabstop>
-  <tabstop>TIME_STEP</tabstop>
-  <tabstop>comboBox</tabstop>
  </tabstops>
  <resources/>
  <connections/>
