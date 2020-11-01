@@ -63,7 +63,6 @@ def guirestore(self, settings):
     """Restores GUI values from a settings file (.ini format)"""
     counter_a = 0
     counter_s = 0
-    # Loop through the list of MainWindow members
     for name, obj in inspect.getmembers(self):
         counter_a += 1
         if isinstance(obj, QComboBox):
@@ -73,6 +72,8 @@ def guirestore(self, settings):
                 continue
             # Restore the index associated to the string
             index = obj.findText(value)
+
+            # OPTIONAL add to list if not found
             if index == -1:
                 obj.insertItems(0, [value])
                 index = obj.findText(value)
@@ -89,15 +90,19 @@ def guirestore(self, settings):
 
         if isinstance(obj, QCheckBox):
             name = obj.objectName()
-            value = settings.value(name)
-            if value == 'false':
+            value = bool(int(settings.value(name)))
+            if value:
+                obj.setChecked(True)
+            else:
                 obj.setChecked(False)
             counter_s += 1
 
         if isinstance(obj, QRadioButton):
             name = obj.objectName()
-            value = settings.value(name)
-            if value == 'false':
+            value = bool(int(settings.value(name)))
+            if bool(value):
+                obj.setChecked(True)
+            else:
                 obj.setChecked(False)
             counter_s += 1
 

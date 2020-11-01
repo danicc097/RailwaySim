@@ -10,7 +10,7 @@ Plotting possibilities:
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
 """
-import PyQt5
+import configparser
 from PyQt5.QtCore import QSize, pyqtSlot
 from PyQt5.QtGui import QPalette
 import PyQt5.QtPrintSupport as qtps
@@ -21,6 +21,12 @@ import os
 from save_restore import guisave, guirestore, grab_GC
 from RailwaySim_GUI_pref import Ui_Form
 import integrated_csv_editor
+
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import random
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 BASEDIR = os.path.dirname(__file__)
 
@@ -38,34 +44,37 @@ class NewWindow(QMainWindow):
         super().__init__()
         global window_list
         window_list = []  # Allow multiple MainWindow instances
+        # Create Preferences on program start
+        GUI_preferences_path = os.path.join(BASEDIR, 'resources/GUI_preferences.ini')
+        self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
 
     def add_new_window(self):
-        global window
-        window = MainWindow()
+        window = MainWindow(self, self.GUI_preferences)
         window_list.append(window)
-        print(window_list)
         window.show()
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-    def __init__(self, parent=None):
-
-        super().__init__(parent)
+    def __init__(self, window, GUI):
+        super().__init__()
         self.setupUi(self)
         self.window = window
-
+        self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker
         self.statusBar().showMessage(BASEDIR)
+
+        #self.iconFixes()
         self.mainEdits()
-        self.iconFixes()
 
     # TODO dark mode replace "_dark.png"
-    def iconFixes(self, styleSheet=False):
+    def iconFixes(self):
+        print('iconFixes was called')
         global darkPath
-        if not styleSheet:
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        if not self.dark_mode_set:
             darkPath = 'resources/images/'
-        if styleSheet:
+        if self.dark_mode_set:
             darkPath = 'resources/images_dark/'
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
         self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
@@ -101,9 +110,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
         self.actionAbout.triggered.connect(self.AboutInfo)
         self.actionExit.triggered.connect(self.close)
-        self.actionEdit.triggered.connect(self.preferences_window)
+        self.actionEdit.triggered.connect(self.show_preferences)
 
         # ? open and save triggers
+        # WindowShortcut context is required
         self.actionNew_Window.triggered.connect(self.window.add_new_window)
         self.actionOpen.triggered.connect(self.readFile)
         self.actionSave.triggered.connect(self.writeFile)
@@ -144,10 +154,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         #? Embedded matplotlib in Route tab
-
-        # self.StartSimButton = qtw.QPushButton(self.RouteTab)
-        # self.StartSimButton.setObjectName("StartSimButton")
-        # self.verticalLayout_2.addWidget(self.StartSimButton)
+        self.route_canvas = PlotCanvas(self.GUI_preferences, width=10, height=8)
+        self.route_toolbar = NavigationToolbar(self.route_canvas, self)
+        self.verticalLayout_2.addWidget(self.route_toolbar)
+        self.verticalLayout_2.addWidget(self.route_canvas)
 
         # TODO PDF - See invoice_maker
         # self.printer = qtps.QPrinter()
@@ -157,6 +167,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # ? window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+        # Instantiate and restore theme preferences
+        self.pref_screen = Preferences(self.GUI_preferences)
+        # guirestore(self.pref_screen, self.GUI_preferences)
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        print('dark_mode_set: ', self.dark_mode_set)
+        self.iconFixes()
+        # self.route_canvas.plot_theme_update() #* update in class
+
+    def show_preferences(self):
+        """Shows the Preferences widget"""
+        # ApplicationModal to block input in all windows
+        self.pref_screen.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.pref_screen.setFocus(True)
+        guirestore(self.pref_screen, self.GUI_preferences)
+        self.pref_screen.show()
 
     def path_extractor(self, dest):
         """Write CSV file path to destination"""
@@ -205,7 +231,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 guisave(self, self.my_settings)
                 # TODO custom settings elements (no spaces):
                 self.my_settings.setValue(str('Custom_setting_name'), bool('Tobedefined'))
-                self.my_settings.sync()
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
             except Exception as e:
                 qtw.QMessageBox.critical(self, 'Error', f"Could not save settings: {e}")
@@ -231,7 +256,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
                     # TODO read custom settings elements in guirestore(no spaces)
-                    self.my_settings.sync()
                     self.statusBar().showMessage("Changes being saved to: {}".format(self.filename))
                     self.setWindowTitle(os.path.basename(self.filename))
                 except Exception or TypeError as e:
@@ -249,7 +273,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 guisave(self, self.my_settings)
                 # TODO custom settings elements (no spaces):
                 self.my_settings.setValue(str('My nice setting name'), bool('Tobedefined'))
-                self.my_settings.sync()
             else:
                 self.writeNewFile()
         else:
@@ -298,13 +321,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-    def preferences_window(self):
-        self.pref_screen = Preferences()
-        # ApplicationModal to block input in all windows
-        self.pref_screen.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.pref_screen.setFocus(True)
-        self.pref_screen.show()
-
     def start_simulation(self):
         runSim = qtw.QMessageBox.question(
             self, "Start simulation", "Start simulation?\nAll changes will be saved locally.",
@@ -323,35 +339,93 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.close
 
 
+class PlotCanvas(FigureCanvas):
+    def __init__(self, GUI, parent=None, width=10, height=8, dpi=100):
+        # plt.style.use('dark_background')
+        # plt.style.use('default')
+        self.GUI_preferences = GUI
+        self.route_fig = Figure(figsize=(width, height), dpi=dpi)
+        FigureCanvas.__init__(self, self.route_fig)
+        # self.setParent(parent)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.plot_theme_update()
+        self.plot()
+
+    def plot(self):
+        data = [random.random() for i in range(250)]
+        ax = self.figure.add_subplot(111)
+        ax.plot(data, 'r-', linewidth=0.5)
+        ax.set_title('PyQt Matplotlib Example')
+        self.draw()
+
+    def plot_theme_update(self):
+        print('plot_theme_update was called')
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        if self.dark_mode_set:
+            self.route_fig.patch.set_facecolor(
+                (0.09803921569, 0.13725490196, 0.17647058824)
+            )  # light grey
+            plt.rcParams['axes.facecolor'] = (
+                0.19607843137, 0.25490196078, 0.29411764706
+            )  # dark grey
+            self.COLOR = 'white'
+            plt.rcParams['text.color'] = self.COLOR
+            plt.rcParams['axes.labelcolor'] = self.COLOR
+            plt.rcParams['axes.edgecolor'] = self.COLOR
+            plt.rcParams['xtick.color'] = self.COLOR
+            plt.rcParams['ytick.color'] = self.COLOR
+        else:
+            plt.style.use('default')
+            self.route_fig.patch.set_facecolor('white')
+
+
+# TODO QLineEdit is not restored. Deleted on new app init
+
+
 class Preferences(QWidget, Ui_Form):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    """Preferences widget screen"""
+    def __init__(self, GUI):
+        super().__init__()
         self.setupUi(self)
+        self.GUI_preferences = GUI
+        guirestore(self, self.GUI_preferences)
+        print('Preferences instantiated')
+        print([(key, self.GUI_preferences.value(key)) for key in self.GUI_preferences.allKeys()])
+        self.pushButton.clicked.connect(self.hide_preferences)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
-        self.pushButton.clicked.connect(self.hide)
 
     def cb_dark_check(self):
+        """Define stylesheet based on checkbox state"""
+        print('cb_dark_check accessed')
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         try:
             import qdarkstyle
-            if not self.cb_dark.isChecked():
+            checked = bool(int(self.GUI_preferences.value('cb_dark')))
+            print('checked is', checked)
+            if not checked:
                 app.setStyleSheet("")  # Default style
-                for window in window_list:
-                    self.window = window
-                    self.window.iconFixes()
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
-                for window in window_list:
-                    self.window = window
-                    self.window.iconFixes(styleSheet=True)
+            for window in window_list:
+                self.window = window
 
+                print('cb_dark_check\'s dark_mode_set: ', self.dark_mode_set)
+                self.window.iconFixes()
+                self.window.route_canvas.plot_theme_update()
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
+        guisave(self, self.GUI_preferences)
 
     def cb_watermark_check(self):
-        if self.cb_watermark.isChecked():
-            global chart_watermark
-            chart_watermark = self.watermark.text()
+        print('cb_watermark_check accessed')
+        guisave(self, self.GUI_preferences)
+        """Define watermark based on checkbox state and line text"""
+
+    def hide_preferences(self):
+        guisave(self, self.GUI_preferences)
+        self.hide()
 
 
 # TODO QMovie animation simulation

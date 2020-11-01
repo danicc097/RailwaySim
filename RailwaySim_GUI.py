@@ -971,7 +971,7 @@ class Ui_MainWindow(object):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("D:/OneDrive/RailwaySim/Qt/images/png/doc_new_icon&48.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionNew_Window.setIcon(icon)
-        self.actionNew_Window.setShortcutContext(QtCore.Qt.ApplicationShortcut)
+        self.actionNew_Window.setShortcutContext(QtCore.Qt.WindowShortcut)
         self.actionNew_Window.setObjectName("actionNew_Window")
         self.actionOpen = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
