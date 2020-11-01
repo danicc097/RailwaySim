@@ -44,7 +44,10 @@ class NewWindow(QMainWindow):
         super().__init__()
         global window_list
         window_list = []  # Allow multiple MainWindow instances
-        # Create Preferences on program start
+        # pref_parser = configparser.ConfigParser()
+        # pref_parser.read(GUI_preferences_path)
+
+        # ? Create Preferences on program start
         GUI_preferences_path = os.path.join(BASEDIR, 'resources/GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
@@ -63,8 +66,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker
         self.statusBar().showMessage(BASEDIR)
-
-        #self.iconFixes()
         self.mainEdits()
 
     # TODO dark mode replace "_dark.png"
@@ -153,6 +154,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.csv_editor(self.ProfileLoadFilename.text())
         )
 
+        # ? window exit
+        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+        # Instantiate and restore theme preferences
+        self.pref_screen = Preferences(self.GUI_preferences)
+        # guirestore(self.pref_screen, self.GUI_preferences)
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        print('dark_mode_set: ', self.dark_mode_set)
+        self.iconFixes()
+
         #? Embedded matplotlib in Route tab
         self.route_canvas = PlotCanvas(self.GUI_preferences, width=10, height=8)
         self.route_toolbar = NavigationToolbar(self.route_canvas, self)
@@ -163,18 +174,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.printer = qtps.QPrinter()
         # self.printer.setOrientation(qtps.QPrinter.Portrait)
         # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
-        #self.actionPrintToPDF.triggered.connect(self.export_pdf)
-
-        # ? window exit
-        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
-
-        # Instantiate and restore theme preferences
-        self.pref_screen = Preferences(self.GUI_preferences)
-        # guirestore(self.pref_screen, self.GUI_preferences)
-        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
-        print('dark_mode_set: ', self.dark_mode_set)
-        self.iconFixes()
-        # self.route_canvas.plot_theme_update() #* update in class
+        # self.actionPrintToPDF.triggered.connect(self.export_pdf)
 
     def show_preferences(self):
         """Shows the Preferences widget"""
@@ -340,7 +340,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 class PlotCanvas(FigureCanvas):
-    def __init__(self, GUI, parent=None, width=10, height=8, dpi=100):
+    def __init__(self, GUI, width=10, height=8, dpi=100):
         # plt.style.use('dark_background')
         # plt.style.use('default')
         self.GUI_preferences = GUI
@@ -349,26 +349,18 @@ class PlotCanvas(FigureCanvas):
         # self.setParent(parent)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.plot_theme_update()
         self.plot()
 
     def plot(self):
-        data = [random.random() for i in range(250)]
-        ax = self.figure.add_subplot(111)
-        ax.plot(data, 'r-', linewidth=0.5)
-        ax.set_title('PyQt Matplotlib Example')
-        self.draw()
-
-    def plot_theme_update(self):
-        print('plot_theme_update was called')
+        self.route_fig.clear()  # clear wrong format on graph init
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        print('plot\'s dark_mode_set is ', self.dark_mode_set)
         if self.dark_mode_set:
             self.route_fig.patch.set_facecolor(
                 (0.09803921569, 0.13725490196, 0.17647058824)
             )  # light grey
-            plt.rcParams['axes.facecolor'] = (
-                0.19607843137, 0.25490196078, 0.29411764706
-            )  # dark grey
+            plt.rcParams['axes.facecolor'] = 'black'
+            # (0.19607843137, 0.25490196078, 0.29411764706)  # dark grey
             self.COLOR = 'white'
             plt.rcParams['text.color'] = self.COLOR
             plt.rcParams['axes.labelcolor'] = self.COLOR
@@ -379,8 +371,12 @@ class PlotCanvas(FigureCanvas):
             plt.style.use('default')
             self.route_fig.patch.set_facecolor('white')
 
-
-# TODO QLineEdit is not restored. Deleted on new app init
+        data = [random.random() for i in range(50)]
+        self.ax = self.figure.add_subplot(111)
+        self.line0, = self.ax.plot(data, 'r-', linewidth=0.5)
+        self.ax.set_title('PyQt Matplotlib Example')
+        if self.dark_mode_set: self.line0.set_color("white")
+        self.draw()
 
 
 class Preferences(QWidget, Ui_Form):
@@ -395,9 +391,11 @@ class Preferences(QWidget, Ui_Form):
         self.pushButton.clicked.connect(self.hide_preferences)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
+        self.cb_dark_check()
 
     def cb_dark_check(self):
         """Define stylesheet based on checkbox state"""
+        guisave(self, self.GUI_preferences)
         print('cb_dark_check accessed')
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         try:
@@ -410,13 +408,11 @@ class Preferences(QWidget, Ui_Form):
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
             for window in window_list:
                 self.window = window
-
                 print('cb_dark_check\'s dark_mode_set: ', self.dark_mode_set)
                 self.window.iconFixes()
-                self.window.route_canvas.plot_theme_update()
+                self.window.route_canvas.plot()
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
-        guisave(self, self.GUI_preferences)
 
     def cb_watermark_check(self):
         print('cb_watermark_check accessed')
