@@ -52,26 +52,42 @@ from matplotlib.widgets import CheckButtons
 
 # plt.show()
 
-#! ------------------------------------------------------
+# # # ! ------------------------------------------------------
 
+# Based on : widgets example code: check_buttons.py
+#          : http://matplotlib.org/examples/widgets/check_buttons.html
+# -- Make CheckButtons based on subplots automatically --
+
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.widgets import CheckButtons
 
-x_values1 = [1, 2, 3, 4, 5]
-y_values1 = [1, 2, 2, 4, 1]
+t = np.arange(0.0, 2.0, 0.01)
+s0 = np.sin(2 * np.pi * t)
+s1 = np.sin(4 * np.pi * t)
+s2 = np.sin(6 * np.pi * t)
+s3 = np.sin(12 * np.pi * t)
+fig, ax = plt.subplots()
+ax.plot(t, s0, visible=False, lw=2, color='k', label='2 Hz')
+ax.plot(t, s1, lw=2, color='r', label='4 Hz')
+ax.plot(t, s2, lw=2, color='g', label='6 Hz')
+ax.plot(t, s3, lw=2, color='yellow', label='12 Hz')
+plt.subplots_adjust(left=0.2)
 
-x_values3 = [150, 200, 250, 300, 350]
-y_values3 = [10, 20, 30, 40, 50]
+lines = ax.get_lines()  # self.lines
 
-fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(nrows=2, ncols=3, figsize=(10, 6))
+# Make checkbuttons with all plotted lines with correct visibility
+rax = plt.axes([0.05, 0.4, 0.1, 0.15])
+labels = [str(line.get_label()) for line in lines]
+visibility = [line.get_visible() for line in lines]
+check = CheckButtons(rax, labels, visibility)
 
-ax6 = fig.add_subplot(111, label="1")
-# ax7 = fig.add_subplot(111, label="2", frame_on=False)
-ax6.plot(
-    x_values1,
-    y_values1,
-)
-# ax7.plot(x_values3, y_values3)
+
+def func(label):
+    lines[labels.index(label)].set_visible(not lines[labels.index(label)].get_visible())
+    plt.draw()
+
+
+check.on_clicked(func)
 
 plt.show()
-
-# https://matplotlib.org/3.3.2/gallery/ticks_and_spines/multiple_yaxis_with_spines.html#sphx-glr-gallery-ticks-and-spines-multiple-yaxis-with-spines-py
