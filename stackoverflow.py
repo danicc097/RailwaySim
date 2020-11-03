@@ -91,3 +91,73 @@ def func(label):
 check.on_clicked(func)
 
 plt.show()
+
+#########################################################################
+# CREATE PIE CHART IN ROUTE
+#########################################################################
+
+
+class PlotCanvas_route(FigureCanvas):
+    """Route input data graph"""
+    def __init__(self, path=''):
+        self.figure = Figure()
+        self.drawFigure = self.figure.subplots()
+        self.annotate = self.drawFigure.annotate(
+            "",
+            xy=(0, 0),
+            xytext=(-20, 20),
+            textcoords="offset points",
+            color='#f4b41a',
+            bbox=dict(boxstyle="round", fc="#143d59", ec="#28559a", lw=2),
+            arrowprops=dict(arrowstyle="->")
+        )
+        self.annotate.set_visible(False)
+        FigureCanvas.__init__(self, self.figure)
+        FigureCanvas.setSizePolicy(self, qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.SetFigureAspect()
+        self.DrawGraph(amounts=[1, 2, 3, 4, 5])
+        # time.sleep(5)
+        self.UpdateNewPlot()
+
+    def SetFigureAspect(self):
+        self.figure.tight_layout()
+        self.figure.set_facecolor('#acc2d9')
+        self.figure.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+
+    def OpenFile(self, filePath):
+        with open(filePath) as graphData:
+            graphDict = json.load(graphData)
+        return graphDict
+
+    def DrawGraph(self, amounts, file="skip"):
+        # if file == "skip":
+        #     path = os.path.join(path, 'Spent\\daily.json')
+        # else:
+        #     path = os.path.join(path, f'Spent\\{file}.json')
+
+        days = (['Mo', 'Tu', 'We', 'Th', 'Fr'])
+        # self.containedData = self.OpenFile(path)
+        self.wedges, _ = self.drawFigure.pie(amounts, labels=days, textprops={'visible': False})
+        self.drawFigure.axis('equal')
+        self.draw()
+
+    def UpdateNewPlot(self):
+
+        self.figure.clear()
+        self.drawFigure = self.figure.subplots()
+        self.annotate = self.drawFigure.annotate(
+            "",
+            xy=(0, 0),
+            xytext=(-20, 20),
+            textcoords="offset points",
+            color='#f4b41a',
+            bbox=dict(boxstyle="round", fc="#143d59", ec="#28559a", lw=2),
+            arrowprops=dict(arrowstyle="->")
+        )
+        self.annotate.set_visible(False)
+        FigureCanvas.__init__(self, self.figure)
+        FigureCanvas.setSizePolicy(self, qtw.QSizePolicy.Expanding, qtw.QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.SetFigureAspect()
+        self.DrawGraph(amounts=[5, 5, 5, 5, 5])

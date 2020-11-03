@@ -8,8 +8,14 @@ Plotting possibilities:
 ! pyuic5 -x RailwaySim_GUI_pref.ui -o RailwaySim_GUI_pref.py
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
+
+# * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
 """
-from PyQt5.QtWidgets import QDialog, QMainWindow, QWidget, QSizePolicy
+
+from custom_mpl_toolbar import MyMplToolbar
+
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAbstractButton, QDialog, QMainWindow, QWidget, QSizePolicy
 from RailwaySim_GUI import Ui_MainWindow
 from PyQt5 import QtCore, QtGui, QtWidgets as qtw
 import os
@@ -29,9 +35,7 @@ BASEDIR = os.path.dirname(__file__)
 
 # TODO resize app based on resolution
 
-# TODO center new windows based on mainWindow current location
-
-# TODO new .ini file for theme preference on startup
+# TODO read route INPUT
 
 
 class NewWindow(QMainWindow):
@@ -40,7 +44,7 @@ class NewWindow(QMainWindow):
         super().__init__()
         global window_list
         window_list = []  # Allow multiple MainWindow instances
-        # ? Create Preferences on program start
+        # ? Preferences on program start
         GUI_preferences_path = os.path.join(BASEDIR, 'resources/GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
@@ -141,13 +145,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ProfileEditButton.setToolTip('Edit CSV file')
 
     def mainEdits(self):
+        """MainWindow GUI changes"""
         # ? Disable window resizing
         #self.setFixedSize(self.size())
 
-        # ? PushButton
+        # ? PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
 
-        # ? Toolbar button actions
+        # ? Toolbar buttons
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
         self.actionAbout.triggered.connect(self.AboutInfo)
         self.actionExit.triggered.connect(self.close)
@@ -165,22 +170,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         #? Instantiate and restore theme preferences
         self.pref_screen = Preferences(self.GUI_preferences)
-        # guirestore(self.pref_screen, self.GUI_preferences)
-        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
-        print('dark_mode_set: ', self.dark_mode_set)
-        self.iconFixes()
+        self.iconFixes()  # change theme after Preferences settings are restored
 
         #? Checkboxes based on graph in Route tab
         # self.horizontalLayout_checkboxes = qtw.QHBoxLayout(self.groupBox_15)
         # self.cb_ax_stations = qtw.QCheckBox(self.RouteTab)
         # self.horizontalLayout_checkboxes.addWidget(self.cb_ax_stations)
         # self.cb_ax_stations.setText('Stations')
+
         #? Embedded matplotlib in Route tab
-        self.route_canvas = PlotCanvas(self.GUI_preferences)
-        self.route_toolbar = NavigationToolbar(self.route_canvas, self)
-        self.verticalLayout_2.addWidget(self.route_toolbar)
-        # self.verticalLayout_2.addLayout(self.horizontalLayout_checkboxes)
+        self.route_canvas = PlotCanvas_route(self.GUI_preferences)
+        darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+        self.route_toolbar = Toolbar_route(
+            self.route_canvas, None, coordinates=True, darkMode=darkMode
+        )  # Do not set parent on this first widget - Prevents toolbar theme update
         self.verticalLayout_2.addWidget(self.route_canvas)
+        self.verticalLayout_2.addWidget(self.route_toolbar)
 
         # for line in self.route_canvas.get_lines()
 
@@ -322,10 +327,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         """Accept or Ignore event action"""
-        close = qtw.QMessageBox.question(
-            self, "Exit", "Exit application?", qtw.QMessageBox.Yes | qtw.QMessageBox.No
-        )
-        if close == qtw.QMessageBox.Yes:
+        close = qtw.QMessageBox(qtw.QMessageBox.Question, 'Exit', 'Exit application?', parent=self)
+        close_reject = close.addButton('No', qtw.QMessageBox.NoRole)
+        close_accept = close.addButton('Yes', qtw.QMessageBox.AcceptRole)
+        close.exec()  # Necessary for property-based API
+        if close.clickedButton() == close_accept:
             event.accept()
         else:
             event.ignore()
@@ -348,10 +354,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.close
 
 
-class PlotCanvas(FigureCanvas):
+class Toolbar_route(MyMplToolbar):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class PlotCanvas_route(FigureCanvas):
+    """Route input data graph"""
     def __init__(self, GUI, dpi=100):
-        # style.use('dark_background')
-        # style.use('default')
         # TODO param font lost on new window and updates
         self.GUI_preferences = GUI
         self.route_fig = Figure(dpi=dpi)
@@ -363,7 +373,6 @@ class PlotCanvas(FigureCanvas):
     def plot(self):
         self.route_fig.clear()  # clear wrong format on graph init
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
-        # print('plot\'s dark_mode_set is ', self.dark_mode_set)
         if self.dark_mode_set:
             self.route_fig.patch.set_facecolor(
                 (0.09803921569, 0.13725490196, 0.17647058824)
@@ -371,10 +380,11 @@ class PlotCanvas(FigureCanvas):
             rcParams['axes.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)  # dark grey
             rcParams['text.color'] = rcParams['axes.labelcolor'] = rcParams[
                 'axes.edgecolor'] = rcParams['xtick.color'] = rcParams['ytick.color'] = 'white'
-
+            rcParams['savefig.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)
         else:
             style.use('default')
             self.route_fig.patch.set_facecolor('white')
+        rcParams['savefig.dpi'] = 300
         rcParams['font.family'] = 'Euclid'
 
         data = [random.random() for i in range(50)]
@@ -389,18 +399,26 @@ class PlotCanvas(FigureCanvas):
         )
         self.draw()
 
+        #TODO checkbuttons to show or hide
+        # self.cb_r_stations.setText(_translate("MainWindow", "Stations"))
+        # self.cb_r_speedres.setText(_translate("MainWindow", "Speed restriction"))
+        # self.cb_r_grade.setText(_translate("MainWindow", "Grade"))
+        # self.cb_r_profile.setText(_translate("MainWindow", "Profile"))
+        # self.cb_r_radii.setText(_translate("MainWindow", "Curve radii"))
+
 
 class Preferences(QWidget, Ui_Form):
     """Preferences widget screen"""
     def __init__(self, GUI):
-        # print('Preferences instantiated')
         super().__init__()
         self.setupUi(self)
         self.GUI_preferences = GUI
-        guirestore(self, self.GUI_preferences)
+        try:
+            guirestore(self, self.GUI_preferences)
+        except:  # Create new empty file if none found
+            guisave(self, self.GUI_preferences)
         global watermark
         watermark = self.watermark.text()
-        print([(key, self.GUI_preferences.value(key)) for key in self.GUI_preferences.allKeys()])
         self.pushButton.clicked.connect(self.hide_preferences)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
@@ -408,29 +426,25 @@ class Preferences(QWidget, Ui_Form):
 
     def cb_dark_check(self):
         """Define stylesheet based on saved settings"""
-        # print('cb_dark_check accessed')
         guisave(self, self.GUI_preferences)
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         try:
             import qdarkstyle
-            checked = bool(int(self.GUI_preferences.value('cb_dark')))
-            print('checked is', checked)
-            if not checked:
+            if not self.dark_mode_set:
                 app.setStyleSheet("")  # Default style
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
             self.window_plot_update()
+            # self.window_toolbar_update()
 
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
 
     def cb_watermark_check(self):
         """Define watermark based on checkbox state and line text"""
-        # print('cb_watermark_check accessed')
         self.text_watermark_check()
         for window in window_list:
-            self.window = window
-            self.window.route_canvas.plot()
+            window.route_canvas.plot()
         guisave(self, self.GUI_preferences)
 
     def text_watermark_check(self):
@@ -444,14 +458,41 @@ class Preferences(QWidget, Ui_Form):
     def window_plot_update(self):
         """Update icons and replot"""
         for window in window_list:
-            self.window = window
-            print('cb_dark_check\'s dark_mode_set: ', self.dark_mode_set)
-            self.window.iconFixes()
-            self.window.route_canvas.plot()
+            window.iconFixes()
+            try:
+                # del window.route_toolbar
+                # rcParams['toolbar'] = 'None'
+                window.route_toolbar = None
+                # window.verticalLayout_2.removeWidget(window.route_toolbar)
+            except:
+                pass
+            window.route_toolbar = Toolbar_route(
+                window.route_canvas, None, coordinates=True, darkMode=self.dark_mode_set
+            )
+            window.route_canvas.plot()
+            window.route_toolbar.update()
+
+            # window.verticalLayout_2.addWidget(window.route_toolbar)
+
+    # def window_toolbar_update(self):
+    # for window in window_list:
+    # HOW TO CLEAR TOOLBAR AND REDRAW? window.route_toolbar.
+    # window.route_toolbar.setVisible(False)
+    # window.verticalLayout_2.removeWidget(window.route_toolbar)  #??? REMOVE WIDGET
+    # print('self.dark_mode_set is ', self.dark_mode_set)
+    # try:
+    #     # del window.route_toolbar
+    #     rcParams['toolbar'] = 'None'
+    #     # window.verticalLayout_2.removeWidget(window.route_toolbar)
+    # except:
+    #     pass
+    # window.route_toolbar = Toolbar_route(
+    #     window.route_canvas, window, coordinates=True, darkMode=self.dark_mode_set
+    # )
+    # window.verticalLayout_2.addWidget(window.route_toolbar)
 
     def hide_preferences(self):
         """Exits Preferences window"""
-        guisave(self, self.GUI_preferences)
         self.text_watermark_check()
         self.cb_watermark_check()
         self.hide()

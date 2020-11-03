@@ -1924,35 +1924,35 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_29">
            <item>
-            <widget class="QCheckBox" name="checkBox">
+            <widget class="QCheckBox" name="cb_r_stations">
              <property name="text">
               <string>Stations</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_2">
+            <widget class="QCheckBox" name="cb_r_speedres">
              <property name="text">
               <string>Speed restriction</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_3">
+            <widget class="QCheckBox" name="cb_r_grade">
              <property name="text">
               <string>Grade</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_4">
+            <widget class="QCheckBox" name="cb_r_profile">
              <property name="text">
               <string>Profile</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="checkBox_5">
+            <widget class="QCheckBox" name="cb_r_radii">
              <property name="text">
               <string>Curve radii</string>
              </property>
