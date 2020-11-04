@@ -63,6 +63,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.window = window
         self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker
+        self.instances_route_canvas = []
+        self.instances_toolbar_canvas = []
         self.statusBar().showMessage(BASEDIR)
         self._buttonEdits()
         self.mainEdits()
@@ -187,7 +189,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.verticalLayout_2.addWidget(self.route_canvas)
         self.verticalLayout_2.addWidget(self.route_toolbar)
 
-        # for line in self.route_canvas.get_lines()
+        # ? Keep track of NavToolbar and Canvas
+        self.instances_route_canvas.append(self.route_canvas)
+        self.instances_toolbar_canvas.append(self.route_toolbar)
 
         # TODO PDF - See invoice_maker
         # self.printer = qtps.QPrinter()
@@ -435,7 +439,6 @@ class Preferences(QWidget, Ui_Form):
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
             self.window_plot_update()
-            # self.window_toolbar_update()
 
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
@@ -466,30 +469,30 @@ class Preferences(QWidget, Ui_Form):
                 # window.verticalLayout_2.removeWidget(window.route_toolbar)
             except:
                 pass
+
             window.route_toolbar = Toolbar_route(
                 window.route_canvas, None, coordinates=True, darkMode=self.dark_mode_set
             )
+            window.route_canvas = PlotCanvas_route(window.GUI_preferences)
             window.route_canvas.plot()
-            window.route_toolbar.update()
-
             # window.verticalLayout_2.addWidget(window.route_toolbar)
 
-    # def window_toolbar_update(self):
-    # for window in window_list:
-    # HOW TO CLEAR TOOLBAR AND REDRAW? window.route_toolbar.
-    # window.route_toolbar.setVisible(False)
-    # window.verticalLayout_2.removeWidget(window.route_toolbar)  #??? REMOVE WIDGET
-    # print('self.dark_mode_set is ', self.dark_mode_set)
-    # try:
-    #     # del window.route_toolbar
-    #     rcParams['toolbar'] = 'None'
-    #     # window.verticalLayout_2.removeWidget(window.route_toolbar)
-    # except:
-    #     pass
-    # window.route_toolbar = Toolbar_route(
-    #     window.route_canvas, window, coordinates=True, darkMode=self.dark_mode_set
-    # )
-    # window.verticalLayout_2.addWidget(window.route_toolbar)
+            window.instances_route_canvas.append(window.route_canvas)
+            window.instances_toolbar_canvas.append(window.route_toolbar)
+            # ? Hide or delete previous
+            # window.instances_route_canvas[:-1].setVisible(False)
+            if len(window.instances_toolbar_canvas) > 1:
+                print(window.instances_route_canvas)
+                # del window.instances_route_canvas[:-1]
+                # del window.instances_toolbar_canvas[:-1]
+                # hide previous
+                a = window.instances_toolbar_canvas[-1]
+                a.setVisible(False)
+                a = window.instances_route_canvas[-1]
+                a.setVisible(False)
+                print("after delete")
+            print("canvas", window.instances_route_canvas)
+            print("toolbars", window.instances_toolbar_canvas)
 
     def hide_preferences(self):
         """Exits Preferences window"""
