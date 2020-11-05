@@ -64,7 +64,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker
         self.instances_route_canvas = []
-        self.instances_toolbar_canvas = []
+        self.instances_route_toolbar = []
         self.statusBar().showMessage(BASEDIR)
         self._buttonEdits()
         self.mainEdits()
@@ -191,7 +191,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # ? Keep track of NavToolbar and Canvas
         self.instances_route_canvas.append(self.route_canvas)
-        self.instances_toolbar_canvas.append(self.route_toolbar)
+        self.instances_route_toolbar.append(self.route_toolbar)
 
         # TODO PDF - See invoice_maker
         # self.printer = qtps.QPrinter()
@@ -394,7 +394,7 @@ class PlotCanvas_route(FigureCanvas):
         data = [random.random() for i in range(50)]
         self.ax = self.figure.add_subplot(111)
         self.line0, = self.ax.plot(data, 'r-', linewidth=0.5)
-        self.ax.set_title('PyQt Matplotlib Example')
+        self.ax.set_title('Very nice graph')
         # Line color has to be set during/after axis plot
         if self.dark_mode_set: self.line0.set_color("white")
         global watermark
@@ -426,18 +426,21 @@ class Preferences(QWidget, Ui_Form):
         self.pushButton.clicked.connect(self.hide_preferences)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
-        self.cb_dark_check()
+        self.cb_dark_check()  # Restores dark mode on start
 
     def cb_dark_check(self):
         """Define stylesheet based on saved settings"""
+        # * Save checkbox status after signal
         guisave(self, self.GUI_preferences)
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        # * Apply corresponding style
         try:
             import qdarkstyle
             if not self.dark_mode_set:
                 app.setStyleSheet("")  # Default style
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
+            # * Update icons, toolbar and canvas
             self.window_plot_update()
 
         except:
@@ -462,37 +465,40 @@ class Preferences(QWidget, Ui_Form):
         """Update icons and replot"""
         for window in window_list:
             window.iconFixes()
-            try:
-                # del window.route_toolbar
-                # rcParams['toolbar'] = 'None'
-                window.route_toolbar = None
-                # window.verticalLayout_2.removeWidget(window.route_toolbar)
-            except:
-                pass
-
-            window.route_toolbar = Toolbar_route(
-                window.route_canvas, None, coordinates=True, darkMode=self.dark_mode_set
-            )
+            # window.verticalLayout_2.removeWidget(window.route_canvas)
+            # window.verticalLayout_2.removeWidget(window.route_toolbar)
             window.route_canvas = PlotCanvas_route(window.GUI_preferences)
-            window.route_canvas.plot()
-            # window.verticalLayout_2.addWidget(window.route_toolbar)
-
+            darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
+            window.route_toolbar = Toolbar_route(
+                window.route_canvas, None, coordinates=True, darkMode=darkMode
+            )  # Do not set parent on this first widget - Prevents toolbar theme update
+            window.verticalLayout_2.addWidget(window.route_canvas)
+            window.verticalLayout_2.addWidget(window.route_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
-            window.instances_toolbar_canvas.append(window.route_toolbar)
-            # ? Hide or delete previous
-            # window.instances_route_canvas[:-1].setVisible(False)
-            if len(window.instances_toolbar_canvas) > 1:
-                print(window.instances_route_canvas)
-                # del window.instances_route_canvas[:-1]
-                # del window.instances_toolbar_canvas[:-1]
-                # hide previous
-                a = window.instances_toolbar_canvas[-1]
-                a.setVisible(False)
-                a = window.instances_route_canvas[-1]
-                a.setVisible(False)
-                print("after delete")
-            print("canvas", window.instances_route_canvas)
-            print("toolbars", window.instances_toolbar_canvas)
+            window.instances_route_toolbar.append(window.route_toolbar)
+            print('window.instances_route_canvas :', window.instances_route_canvas)
+            print('window.instances_route_toolbar :', window.instances_route_toolbar)
+            if len(window.instances_route_toolbar) > 1:
+                window.instances_route_canvas[0].hide()
+                window.instances_route_toolbar[0].hide()
+                del window.instances_route_canvas[0]
+                del window.instances_route_toolbar[0]
+
+            # TODO hide delete
+            # # ? Hide or delete previous
+            # # window.instances_route_canvas[:-1].setVisible(False)
+            # if len(window.instances_route_toolbar) > 1:
+            #     #     print(window.instances_route_toolbar)
+            #     del window.instances_route_canvas[:-1]
+            #     del window.instances_route_toolbar[:-1]
+            # hide previous
+            # a = window.instances_route_toolbar[-1]
+            # a.setVisible(False)
+            # a = window.instances_route_canvas[-1]
+            # a.setVisible(False)
+            #     print("after delete")
+            # print("canvas", window.instances_route_canvas)
+            # print("toolbars", window.instances_route_toolbar)
 
     def hide_preferences(self):
         """Exits Preferences window"""
