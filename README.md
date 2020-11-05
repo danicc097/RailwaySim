@@ -1,4 +1,13 @@
-# <font size="20"><b> WIP</b></font>
+<p align="center">
+  <br>
+  <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src="https://badgen.net/badge/license/GPLv3/red"></a>
+  <a ><img alt="undefined" src="https://badgen.net/badge/Download/Windows/?color=blue&icon=windows&label"></a>
+  <a ><img alt="undefined" src="https://badgen.net/badge/Download/Linux/?color=purple&icon=terminal&label"></a>
+  <br>
+</p>
+
+<font size="20"><b>WIP</b></font>
+
 # RailwaySim
 
 #### Table of contents  <!-- omit in toc -->
