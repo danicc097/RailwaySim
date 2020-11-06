@@ -67,7 +67,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.window = window
         self.GUI_preferences = GUI
-        self.config_is_set = 0  # Call tracker
+        self.config_is_set = 0  # Call tracker for config file
+        self.route_checkboxes_set = 0  # Call tracker for route checkbuttons
         self.instances_route_canvas = []
         self.instances_route_toolbar = []
         self.statusBar().showMessage(BASEDIR)
@@ -125,6 +126,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lambda: self.path_extractor(self.ProfileLoadFilename)
         )
         self.ProfileLoadButton.clicked.connect(self.create_route_plot)
+        self.ProfileLoadButton.clicked.connect(self.setup_route_checkbuttons)
 
         self.E_TECurveLoadButton.setToolTip('Import CSV file')
         self.E_BECurveLoadButton.setToolTip('Import CSV file')
@@ -187,6 +189,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #! TO BE CALLED WHEN A FILE IS LOADED
     def create_route_plot(self):
         #* Delete previous instances if any
+
         try:
             self.instances_route_canvas[0].hide()
             self.instances_route_toolbar[0].hide()
@@ -206,12 +209,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.instances_route_canvas.append(self.route_canvas)
         self.instances_route_toolbar.append(self.route_toolbar)
 
-        # ? Route tab checkboxes
+    def setup_route_checkbuttons(self):
+        # ? Route tab checkboxes - called after each plot update
         self.cb_r_stations.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
         self.cb_r_speedres.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
         self.cb_r_grade.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
         self.cb_r_profile.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
         self.cb_r_radii.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
+        self.route_checkboxes_set += 1
 
     # TODO PDF - See invoice_maker
     # self.printer = qtps.QPrinter()
@@ -301,7 +306,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     )
                     self.setWindowTitle(os.path.basename(self.filename))
                     #* Update plots
-                    if self.ProfileLoadFilename is not None:
+                    if self.ProfileLoadFilename.text() is not None:  # not the same as != ""
                         try:
                             self.instances_route_canvas[0].hide()
                             self.instances_route_toolbar[0].hide()
@@ -310,6 +315,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         except:
                             pass
                         self.create_route_plot()
+                        self.setup_route_checkbuttons()
 
                 except Exception or TypeError as e:
                     qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
@@ -413,7 +419,7 @@ class PlotCanvas_route(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
         # * SOURCE DATA
-        if self.parent.ProfileLoadFilename.text() is not None:
+        if self.parent.ProfileLoadFilename.text() is not None:  # not the same as != "" (None != "")
             self.ROUTE_INPUT_DF = np.genfromtxt(
                 self.parent.ProfileLoadFilename.text(),
                 delimiter=',',
@@ -542,7 +548,7 @@ class PlotCanvas_route(FigureCanvas):
                 handles.append(h)
                 labels.append(l)
 
-        self.ax.legend(handles, labels)
+        # self.ax.legend(handles, labels)
         self.draw()
         self.route_fig.set_tight_layout(True)  # Tight layout on start
 
@@ -585,8 +591,12 @@ class Preferences(QWidget, Ui_Form):
                 window.iconFixes()
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
-        if len(self.parent.instances_route_canvas) > 0:
+        # TODO FIX CB NOT WORKING WHEN LOADING AND THEN CHANGING THEME, A
+        # AND WHEN OPENING NEW WINDOW THEN LOADING FROM IMPORT BUTTON
+        try:
             self.window_plot_update()
+        except:
+            pass
 
     def cb_watermark_check(self):
         """Define watermark based on checkbox state and line text"""
@@ -649,6 +659,7 @@ class Preferences(QWidget, Ui_Form):
     def hide_preferences(self):
         """Exits Preferences window"""
         self.cb_watermark_check()
+        self.parent.setup_route_checkbuttons()  # Must be called every replot
         self.hide()
 
 
