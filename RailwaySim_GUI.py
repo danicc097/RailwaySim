@@ -969,6 +969,8 @@ class Ui_MainWindow(object):
         self.cb_r_radii.setObjectName("cb_r_radii")
         self.horizontalLayout_29.addWidget(self.cb_r_radii)
         self.verticalLayout_2.addWidget(self.groupBox, 0, QtCore.Qt.AlignHCenter)
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem3)
         self.tabWidget.addTab(self.RouteTab, "")
         self.SimulationTab = QtWidgets.QWidget()
         self.SimulationTab.setObjectName("SimulationTab")

@@ -189,7 +189,9 @@ class MyMplToolbar(NavigationToolbar):
 
     def configure_subplots(self):
         image = os.path.join(matplotlib.rcParams['datapath'], 'images', 'matplotlib.png')
-        dia = SubplotToolQt(self.canvas.figure, self.canvas.parent())
+        dia = SubplotToolQt(
+            self.canvas.figure, self.canvas.figure
+        )  #! , self.canvas.figure <-- , self.canvas.parent()
         dia.setWindowIcon(QtGui.QIcon(image))
         dia.exec_()
 
@@ -211,7 +213,11 @@ class MyMplToolbar(NavigationToolbar):
         filters = ';;'.join(filters)
 
         fname, filter = _getSaveFileName(
-            self.canvas.parent(), "Choose a filename to save to", start, filters, selectedFilter
+            None,  #! None - self.canvas.parent()
+            "Choose a filename to save to",
+            start,
+            filters,
+            selectedFilter
         )
         if fname:
             # Save dir for next time, unless empty str (i.e., use cwd).
