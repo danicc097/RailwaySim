@@ -65,7 +65,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, window, GUI):
         super().__init__()
         self.setupUi(self)
-        self.window = window
+        self.windowManager = window
         self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker for config file
         self.route_checkboxes_set = 0  # Call tracker for route checkbuttons
@@ -173,7 +173,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # ? open and save triggers
         # WindowShortcut context is required with multiple windows
-        self.actionNew_Window.triggered.connect(self.window.add_new_window)
+        self.actionNew_Window.triggered.connect(self.windowManager.add_new_window)
         self.actionOpen.triggered.connect(self.readFile)
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
@@ -659,7 +659,11 @@ class Preferences(QWidget, Ui_Form):
     def hide_preferences(self):
         """Exits Preferences window"""
         self.cb_watermark_check()
-        self.parent.setup_route_checkbuttons()  # Must be called every replot
+        try:
+            for window in window_list:
+                window.setup_route_checkbuttons()  # Must be called every replot
+        except:
+            pass
         self.hide()
 
 
