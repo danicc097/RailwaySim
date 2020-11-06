@@ -1,15 +1,19 @@
 """
-Plotting possibilities: 
-(pyinstaller supported) --> matplotlib, pandas , 
-                        seaborn, ggplot2
 ! pipenv run python RailwaySim_main.py
-
 ! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py 
 ! pyuic5 -x RailwaySim_GUI_pref.ui -o RailwaySim_GUI_pref.py
 ! pipenv run pyinstaller --onefile RailwaySim_main.py
 
-
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
+
+# * Known bugs → 
+Load profile, open new instance, load second profile, first profile gives error
+solution - apply a different theme 
+(some missing function prob not exec'ed plotting on first instances)
+(or function on window_list loop messing things up)
+
+
+
 """
 
 import matplotlib.pyplot as plt
@@ -36,20 +40,15 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 
 BASEDIR = os.path.dirname(__file__)
 
-# TODO interpolate widget size upon resize
-
-# TODO resize app based on resolution
-
-# TODO read route INPUT
+#* Allow multiple MainWindow instances
+window_list = []
 
 
 class NewWindow(QMainWindow):
     """MainWindow factory"""
     def __init__(self):
         super().__init__()
-        global window_list
-        window_list = []  # Allow multiple MainWindow instances
-        # ? Preferences on program start
+        #* Preferences load on program start
         GUI_preferences_path = os.path.join(BASEDIR, 'resources/GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
@@ -68,7 +67,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.windowManager = window
         self.GUI_preferences = GUI
         self.config_is_set = 0  # Call tracker for config file
-        self.route_checkboxes_set = 0  # Call tracker for route checkbuttons
         self.instances_route_canvas = []
         self.instances_route_toolbar = []
         self.statusBar().showMessage(BASEDIR)
@@ -233,7 +231,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.route_canvas.route_canvas_checkbox_handler
                 )
         except Exception as e:
-            self.statusBar().showMessage("Could not setup checkboxes: " + str(e))
+            self.statusBar().showMessage(
+                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
+            )
 
     # TODO PDF - See invoice_maker
     # self.printer = qtps.QPrinter()
@@ -299,6 +299,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def readFile(self):  # ? Open
         """Restores GUI user input from a config file"""
         self.config_is_set += 1
+        #* File dialog
         self.filename, _ = qtw.QFileDialog.getOpenFileName(
             self,
             "Select a configuration file to load…",
@@ -306,12 +307,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             'Configuration Files (*.ini)',
             options=qtw.QFileDialog.DontResolveSymlinks
         )
+        #* Invalid file
         if self.filename == "":
             qtw.QMessageBox.critical(
                 self, "Operation aborted", "Empty filename or none selected. \n Please try again.",
                 qtw.QMessageBox.Ok
             )
             self.statusBar().showMessage("Select a valid configuration file")
+        #* Valid file
         else:
             if self.filename.lower().endswith('.ini'):
                 try:
@@ -427,16 +430,17 @@ class Toolbar_route(MyMplToolbar):
 # Need to define parent to access MainWindow widgets
 class PlotCanvas_route(FigureCanvas):
     """Route input data graph"""
-    def __init__(self, GUI, parent=None, dpi=100):
-        # TODO param font lost on new window and updates
+    def __init__(self, GUI, parent, dpi=100):
         self.GUI_preferences = GUI
         self.parent = parent
         self.route_fig = Figure(dpi=dpi)
         FigureCanvas.__init__(self, self.route_fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-
+        self.route_data_import()
         # * SOURCE DATA
+
+    def route_data_import(self):
         if len(self.parent.ProfileLoadFilename.text()) > 3:
             self.ROUTE_INPUT_DF = np.genfromtxt(
                 self.parent.ProfileLoadFilename.text(),
@@ -448,48 +452,64 @@ class PlotCanvas_route(FigureCanvas):
             )
 
             self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF.T
-            self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
-            self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
-            self.grade = np.array(self.ROUTE_INPUT_DF[4][1:], dtype=float)
-            self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
-            self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
-            self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
-            self.profile = [0] * len(self.distance)
-            for index, distance_step in enumerate(self.distance):
-                if index < 1:
-                    self.profile[index] = 0
-                else:
-                    self.profile[index] = distance_step * self.grade[index] / 1000 + self.profile[
-                        index - 1]
-
-            self.profile = np.array(self.profile)
-
-            #TODO profile from grade and distance
-
-            # * Timetable
-            self.timetable_stations = np.array(
-                [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
-            )
-            self.timetable_stations_kpoint = np.array(
-                [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
-            )
             try:
-                self.timetable_dwell_time = np.array(
-                    [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
+                self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
+                self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
+                self.grade = np.array(self.ROUTE_INPUT_DF[4][1:], dtype=float)
+                self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
+                self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
+                self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
+                self.profile = [0] * len(self.distance)
+                for index, distance_step in enumerate(self.distance):
+                    if index < 1:
+                        self.profile[index] = 0
+                    else:
+                        self.profile[
+                            index] = distance_step * self.grade[index] / 1000 + self.profile[index -
+                                                                                             1]
+
+                self.profile = np.array(self.profile, dtype=float)
+
+                # * Timetable
+                self.timetable_stations = np.array(
+                    [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
                 )
-            except:
-                self.timetable_dwell_time = None
-            try:
-                self.timetable_arrival_time = np.array(
-                    [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
+                self.timetable_stations_kpoint = np.array(
+                    [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
                 )
+                try:
+                    self.timetable_dwell_time = np.array(
+                        [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
+                    )
+                except:
+                    self.timetable_dwell_time = None
+                try:
+                    self.timetable_arrival_time = np.array(
+                        [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
+                    )
+                except:
+                    self.timetable_arrival_time = None
+                self.plot_route()
             except:
-                self.timetable_arrival_time = None
-            self.plot_route()
+                #
+                try:
+                    self.route_data_import()
+                except:
+                    pass
+            # except Exception as e:
+            #     qtw.QMessageBox.critical(
+            #         self, "Error",
+            #         str(e) + "\nMake sure the right template has been used."
+            #     )
 
     def plot_route(self):
 
-        #* ↓ OLD
+        if len(self.parent.instances_route_toolbar) > 1:
+            self.parent.instances_route_canvas[0].hide()
+            self.parent.instances_route_toolbar[0].hide()
+            del self.parent.instances_route_canvas[0]
+            del self.parent.instances_route_toolbar[0]
+
         self.route_fig.clear()  # clear wrong format on graph init
 
         #? Setting theme
@@ -578,7 +598,15 @@ class PlotCanvas_route(FigureCanvas):
         self.route_fig.set_tight_layout(True)  # Tight layout on start
 
     def route_canvas_checkbox_handler(self):
-        self.plot_route()
+        try:
+            self.plot_route()
+        except:
+            pass
+        # except Exception as e:
+        #     qtw.QMessageBox.critical(
+        #         self, "Error",
+        #         str(e) + "\nCould not plot, please reload the data."
+        #     )
 
 
 class Preferences(QWidget, Ui_Form):
@@ -645,8 +673,6 @@ class Preferences(QWidget, Ui_Form):
         """Update icons and replot"""
         for index, window in enumerate(window_list):
             window.iconFixes()
-            # window.verticalLayout_2.removeWidget(window.route_canvas)
-            # window.verticalLayout_2.removeWidget(window.route_toolbar)
             window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
             darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
             window.route_toolbar = Toolbar_route(
@@ -656,10 +682,10 @@ class Preferences(QWidget, Ui_Form):
             window.verticalLayout_2.addWidget(window.route_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
             window.instances_route_toolbar.append(window.route_toolbar)
-            print("WINDOW NUMBER {} IS : {}".format(index, window))
+            print("WINDOW NUMBER {}  : {}".format(index, window))
             print('window.instances_route_canvas :', window.instances_route_canvas)
             print('window.instances_route_toolbar :', window.instances_route_toolbar)
-            if len(window.instances_route_toolbar) > 1:
+            if len(window.instances_route_toolbar) > 0:
                 window.instances_route_canvas[0].hide()
                 window.instances_route_toolbar[0].hide()
                 del window.instances_route_canvas[0]

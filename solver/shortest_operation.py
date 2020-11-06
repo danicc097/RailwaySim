@@ -23,7 +23,6 @@ def run(settings):
 
     dataset_np = dataset_np.T
     time_sec = np.array(np.linspace(0, int(len(dataset_np[0][1:]) / 2), num=len(dataset_np[0][1:])))
-    print(time_sec)
     time_hours = np.array([s_to_hhmmss(a) for a in time_sec])
     distance = np.array([float(a) for a in dataset_np[3][1:] if a != ""])
     kpoint = np.cumsum(distance / 1000, dtype=float)
@@ -31,6 +30,7 @@ def run(settings):
     radius = np.array([float(a) for a in dataset_np[5][1:] if a != ""])
     speed_res = np.array([float(a) for a in dataset_np[6][1:] if a != ""])
     station_names = np.array([str(a) for a in dataset_np[12][1:]])
+    print(time_sec)
     print(distance)
     print(grade)
     print(radius[3])
