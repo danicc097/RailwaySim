@@ -189,7 +189,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #! TO BE CALLED WHEN A FILE IS LOADED
     def create_route_plot(self):
         #* Delete previous instances if any
-
         try:
             self.instances_route_canvas[0].hide()
             self.instances_route_toolbar[0].hide()
@@ -197,26 +196,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             del self.instances_route_toolbar[0]
         except:
             pass
-        self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
-        darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
-        self.route_toolbar = Toolbar_route(
-            self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
-        )  # Do not set parent on this first widget - Prevents toolbar theme update
-        self.verticalLayout_2.addWidget(self.route_canvas)
-        self.verticalLayout_2.addWidget(self.route_toolbar)
+        #* Create new instances of canvas and toolbar
+        if len(self.ProfileLoadFilename.text()) > 3:
+            self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
+            darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+            self.route_toolbar = Toolbar_route(
+                self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
+            )
+            self.verticalLayout_2.addWidget(self.route_canvas)
+            self.verticalLayout_2.addWidget(self.route_toolbar)
 
-        # ? Keep track of NavToolbar and Canvas
-        self.instances_route_canvas.append(self.route_canvas)
-        self.instances_route_toolbar.append(self.route_toolbar)
+            #* Keep track of NavToolbar and Canvas
+            self.instances_route_canvas.append(self.route_canvas)
+            self.instances_route_toolbar.append(self.route_toolbar)
 
     def setup_route_checkbuttons(self):
-        # ? Route tab checkboxes - called after each plot update
-        self.cb_r_stations.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-        self.cb_r_speedres.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-        self.cb_r_grade.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-        self.cb_r_profile.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-        self.cb_r_radii.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-        self.route_checkboxes_set += 1
+        """Route tab checkboxes. Must be called after each plot update."""
+        try:
+            if self.route_canvas is not None:
+                self.cb_r_stations.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_speedres.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_grade.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_profile.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_radii.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_legend.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+        except Exception as e:
+            self.statusBar().showMessage("Could not setup checkboxes: " + str(e))
 
     # TODO PDF - See invoice_maker
     # self.printer = qtps.QPrinter()
@@ -305,8 +322,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         "Changes now being saved to: {}".format(self.filename)
                     )
                     self.setWindowTitle(os.path.basename(self.filename))
-                    #* Update plots
-                    if self.ProfileLoadFilename.text() is not None:  # not the same as != ""
+
+                    #* Update plots if a path was loaded from settings
+                    if len(self.ProfileLoadFilename.text()) > 3:
                         try:
                             self.instances_route_canvas[0].hide()
                             self.instances_route_toolbar[0].hide()
@@ -419,7 +437,7 @@ class PlotCanvas_route(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
         # * SOURCE DATA
-        if self.parent.ProfileLoadFilename.text() is not None:  # not the same as != "" (None != "")
+        if len(self.parent.ProfileLoadFilename.text()) > 3:
             self.ROUTE_INPUT_DF = np.genfromtxt(
                 self.parent.ProfileLoadFilename.text(),
                 delimiter=',',
@@ -495,9 +513,13 @@ class PlotCanvas_route(FigureCanvas):
         # self.ax.set_title('Very nice graph')
         self.ax.set_xlabel("Distance [km]")
         self.ax.set_ylabel("Speed [km/h]")
-        self.line0, = self.ax.step(self.kpoint, self.speed_res, label="Speed [km/h]", where="pre")
 
-        #* Twin axis x 2
+        #* Plots on main axis
+        if self.parent.cb_r_speedres.isChecked():
+            self.line0, = self.ax.step(
+                self.kpoint, self.speed_res, label="Speed [km/h]", where="pre"
+            )
+
         if self.parent.cb_r_grade.isChecked():
             self.line1, = self.ax.step(self.kpoint, self.grade, label="Grade [‰]", where="pre")
 
@@ -530,9 +552,13 @@ class PlotCanvas_route(FigureCanvas):
                 self.ax2.axvline(x, color='red', ls=':', lw=1.5)
 
         #* Twin axis x - Radii
-        self.ax3 = self.ax.twinx()
-        self.ax3.set_ylabel('Radii [m]')
+
         if self.parent.cb_r_radii.isChecked():
+            self.ax3 = self.ax.twinx()
+            self.ax3.set_label('Distance - Radii [m]')
+
+            self.ax3.set_ylabel('Radii [m]')
+            self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
             self.line2, = self.ax3.step(self.kpoint, self.radii, label="Radii [m]", where="pre")
             self.line2.set_color("purple")
         # Line color has to be set during/after axis plot
@@ -541,14 +567,13 @@ class PlotCanvas_route(FigureCanvas):
         self.route_fig.text(
             0.5, 0.5, watermark, fontsize=20, color='gray', ha='center', va='center', alpha=0.6
         )
-
-        handles, labels = [], []
-        for ax in self.route_fig.axes:
-            for h, l in zip(*ax.get_legend_handles_labels()):
-                handles.append(h)
-                labels.append(l)
-
-        # self.ax.legend(handles, labels)
+        if self.parent.cb_r_legend.isChecked():
+            handles, labels = [], []
+            for ax in self.route_fig.axes:
+                for h, l in zip(*ax.get_legend_handles_labels()):
+                    handles.append(h)
+                    labels.append(l)
+            self.ax.legend(handles, labels)
         self.draw()
         self.route_fig.set_tight_layout(True)  # Tight layout on start
 
@@ -626,7 +651,7 @@ class Preferences(QWidget, Ui_Form):
             darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
             window.route_toolbar = Toolbar_route(
                 window.route_canvas, window.route_canvas, coordinates=True, darkMode=darkMode
-            )  # Do not set parent on this first widget - Prevents toolbar theme update
+            )
             window.verticalLayout_2.addWidget(window.route_canvas)
             window.verticalLayout_2.addWidget(window.route_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
