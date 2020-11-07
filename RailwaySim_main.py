@@ -156,10 +156,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def mainEdits(self):
         """MainWindow GUI changes"""
-
-        # ? Disable window resizing
-        #self.setFixedSize(self.size())
-
         # ? PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
 
@@ -183,57 +179,70 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pref_screen = Preferences(self.GUI_preferences, self)
         self.iconFixes()  # change theme after Preferences settings are restored
 
-        #? Embedded matplotlib in Route tab
-        #! TO BE CALLED WHEN A FILE IS LOADED
-    def create_route_plot(self):
-        #* Delete previous instances if any
-        try:
-            self.instances_route_canvas[0].hide()
-            self.instances_route_toolbar[0].hide()
-            del self.instances_route_canvas[0]
-            del self.instances_route_toolbar[0]
-        except:
-            pass
-        #* Create new instances of canvas and toolbar
-        if len(self.ProfileLoadFilename.text()) > 3:
-            self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
-            darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
-            self.route_toolbar = Toolbar_route(
-                self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
-            )
-            self.verticalLayout_2.addWidget(self.route_canvas)
-            self.verticalLayout_2.addWidget(self.route_toolbar)
+        #? Spacer for empty Route tab
+        self.spacerItem = qtw.QSpacerItem(
+            20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
+        )
+        self.verticalLayout_2.addItem(self.spacerItem)
 
-            #* Keep track of NavToolbar and Canvas
-            self.instances_route_canvas.append(self.route_canvas)
-            self.instances_route_toolbar.append(self.route_toolbar)
+    #! TO BE CALLED WHEN A FILE IS LOADED
+    def create_route_plot(self):
+        if self.ProfileLoadFilename.text() != "":
+            #* Delete vertical spacer
+            self.verticalLayout_2.removeItem(self.spacerItem)
+            #* Delete previous instances if any
+            try:
+                self.instances_route_canvas[0].hide()
+                self.instances_route_toolbar[0].hide()
+                del self.instances_route_canvas[0]
+                del self.instances_route_toolbar[0]
+            except:
+                pass
+            #* Create new instances of canvas and toolbar
+            if len(self.ProfileLoadFilename.text()) > 3:
+                self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
+                darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+                self.route_toolbar = Toolbar_route(
+                    self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
+                )
+                self.verticalLayout_2.addWidget(self.route_canvas)
+                self.verticalLayout_2.addWidget(self.route_toolbar)
+
+                #* Keep track of NavToolbar and Canvas
+                self.instances_route_canvas.append(self.route_canvas)
+                self.instances_route_toolbar.append(self.route_toolbar)
+                self.statusBar().showMessage("Loaded {}.".format(self.ProfileLoadFilename.text()))
+
+        else:
+            self.statusBar().showMessage("Could not plot because no data was selected.")
 
     def setup_route_checkbuttons(self):
         """Route tab checkboxes. Must be called after each plot update."""
-        try:
-            if self.route_canvas is not None:
-                self.cb_r_stations.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
+        if self.ProfileLoadFilename.text() != "":
+            try:
+                if self.route_canvas is not None:
+                    self.cb_r_stations.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+                    self.cb_r_speedres.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+                    self.cb_r_grade.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+                    self.cb_r_profile.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+                    self.cb_r_radii.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+                    self.cb_r_legend.stateChanged.connect(
+                        self.route_canvas.route_canvas_checkbox_handler
+                    )
+            except Exception as e:
+                self.statusBar().showMessage(
+                    "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
                 )
-                self.cb_r_speedres.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_grade.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_profile.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_radii.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_legend.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-        except Exception as e:
-            self.statusBar().showMessage(
-                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
-            )
 
     # TODO PDF - See invoice_maker
     # self.printer = qtps.QPrinter()
@@ -262,7 +271,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             'CSV Files (*.csv)',
             options=qtw.QFileDialog.DontResolveSymlinks
         )
-        dest.setText(my_path)
+        if my_path == "":
+            qtw.QMessageBox.critical(
+                self, "Operation aborted", "Empty filename or none selected. \n Please try again.",
+                qtw.QMessageBox.Ok
+            )
+            self.statusBar().showMessage("Select a valid CSV file")
+        else:
+            dest.setText(my_path)
 
     def csv_editor(self, path):
         """Edit CSV file located in path"""
@@ -298,7 +314,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def readFile(self):  # ? Open
         """Restores GUI user input from a config file"""
-        self.config_is_set += 1
         #* File dialog
         self.filename, _ = qtw.QFileDialog.getOpenFileName(
             self,
@@ -317,6 +332,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #* Valid file
         else:
             if self.filename.lower().endswith('.ini'):
+                self.config_is_set += 1
                 try:
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
@@ -326,7 +342,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     )
                     self.setWindowTitle(os.path.basename(self.filename))
 
-                    #* Update plots if a path was loaded from settings
+                    #* Update route plot if a path was loaded from settings
                     if len(self.ProfileLoadFilename.text()) > 3:
                         try:
                             self.instances_route_canvas[0].hide()
@@ -438,6 +454,7 @@ class PlotCanvas_route(FigureCanvas):
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.route_data_import()
+        self.counter = 0
         # * SOURCE DATA
 
     def route_data_import(self):
@@ -477,23 +494,28 @@ class PlotCanvas_route(FigureCanvas):
                 self.timetable_stations_kpoint = np.array(
                     [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
                 )
+                # * Optional timetable
                 try:
                     self.timetable_dwell_time = np.array(
                         [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
                     )
                 except:
                     self.timetable_dwell_time = None
+                # * Optional timetable
                 try:
                     self.timetable_arrival_time = np.array(
                         [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
                     )
                 except:
                     self.timetable_arrival_time = None
+
                 self.plot_route()
             except:
-                #
+                #* Attempt to replot
                 try:
-                    self.route_data_import()
+                    if self.counter == 0:
+                        self.route_data_import()
+                        self.counter += 1
                 except:
                     pass
             # except Exception as e:

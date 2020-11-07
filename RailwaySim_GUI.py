@@ -901,7 +901,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.RouteTab)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_42 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_42.setSizeConstraint(QtWidgets.QLayout.SetMaximumSize)
+        self.horizontalLayout_42.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.horizontalLayout_42.setSpacing(6)
         self.horizontalLayout_42.setObjectName("horizontalLayout_42")
         self.label_56 = QtWidgets.QLabel(self.RouteTab)
@@ -1112,7 +1112,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionCSV_Editor)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.LOCO_AXLES, self.LOCO_NUMBER)
         MainWindow.setTabOrder(self.LOCO_NUMBER, self.LOCO_MASS)
