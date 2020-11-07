@@ -6,6 +6,8 @@
   <br>
 </p>
 
+<p align="center"><img src="resources/images/RailwaySimLogo.svg" width="250"/ ></p>
+
 <font size="20"><b>WIP</b></font>
 
 # RailwaySim
