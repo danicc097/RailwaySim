@@ -12,36 +12,53 @@ solution - apply a different theme
 (some missing function prob not exec'ed plotting on first instances)
 (or function on window_list loop messing things up)
 
+# TODOs:
+    - Desktop>System tray notifications
+
+    MORE OPEN/SAVE LOGIC:
+    -  D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\recentfiles.py
+
+    PRINTING:
+    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\dockwidgets\dockwidgets.py
 
 
 """
+import os
+import random
+import ctypes
 
 import matplotlib.pyplot as plt
-from custom_mpl_toolbar import MyMplToolbar
-import custom_mpl_toolbar
-from matplotlib.ticker import FixedLocator, FixedFormatter
-
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAbstractButton, QDialog, QMainWindow, QWidget, QSizePolicy
-from RailwaySim_GUI import Ui_MainWindow
-from PyQt5 import QtCore, QtGui, QtWidgets as qtw
-import os
-from save_restore import guisave, guirestore, grab_GC
-from RailwaySim_GUI_pref import Ui_Form
-import integrated_csv_editor
-
-from solver.data_formatter import s_to_hhmmss, hhmm_to_s
+import numpy as np
+import qdarkstyle
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.pyplot import rcParams, style
-import random
-import numpy as np
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.ticker import FixedFormatter, FixedLocator
+from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets as qtw
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (
+    QAbstractButton, QDialog, QMainWindow, QSizePolicy, QWidget, QSystemTrayIcon
+)
+
+# cwd
+import integrated_csv_editor
+from custom_mpl_toolbar import MyMplToolbar
+from RailwaySim_GUI import Ui_MainWindow
+from RailwaySim_GUI_pref import Ui_Form
+from save_restore import grab_GC, guirestore, guisave
+from scaled_labels import ScaledLabel, label_grabber
+from solver.data_formatter import hhmm_to_s, s_to_hhmmss
 
 BASEDIR = os.path.dirname(__file__)
 
 #* Allow multiple MainWindow instances
 window_list = []
+SEP = os.path.sep
+
+# set icon on Windows
+myappid = 'RailwaySim.v0'
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 class NewWindow(QMainWindow):
@@ -56,6 +73,11 @@ class NewWindow(QMainWindow):
     def add_new_window(self):
         """Create now MainWindow instance"""
         window = MainWindow(self, self.GUI_preferences)
+        app_icon = QIcon()
+        app_icon_path = BASEDIR + SEP + 'resources' + SEP + 'images' + SEP + 'RailwaySimIcon.png'
+        app_icon.addFile(app_icon_path)
+        app.setWindowIcon(app_icon)
+        window.setWindowIcon(app_icon)
         window_list.append(window)
         window.show()
 
@@ -106,8 +128,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _buttonEdits(self):
         """Adds functionality to buttons"""
-        # ? CSV import buttons - anon to prevent autostart
-        # ? destination widget as arg
+        #*CSV import buttons - anon to prevent autostart
+        #*destination widget as arg
         self.E_TECurveLoadButton.clicked.connect(
             lambda: self.path_extractor(self.E_TECurveLoadFilename)
         )
@@ -132,7 +154,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.D_BECurveLoadButton.setToolTip('Import CSV file')
         self.ProfileLoadButton.setToolTip('Import CSV file')
 
-        # ? CSV edit buttons
+        #* CSV edit buttons
         self.E_TECurveEditButton.clicked.connect(
             lambda: self.csv_editor(self.E_TECurveLoadFilename.text())
         )
@@ -156,37 +178,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def mainEdits(self):
         """MainWindow GUI changes"""
-        # ? PushButtons
+        #* PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
 
-        # ? Toolbar buttons
+        #* Toolbar buttons
         self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
         self.actionAbout.triggered.connect(self.AboutInfo)
         self.actionExit.triggered.connect(self.close)
         self.actionEdit.triggered.connect(self.show_preferences)
 
-        # ? open and save triggers
+        #* open and save triggers
         # WindowShortcut context is required with multiple windows
         self.actionNew_Window.triggered.connect(self.windowManager.add_new_window)
         self.actionOpen.triggered.connect(self.readFile)
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
 
-        # ? window exit
+        #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
 
-        #? Instantiate and restore theme preferences
+        #* Instantiate and restore theme preferences on window start
         self.pref_screen = Preferences(self.GUI_preferences, self)
-        self.iconFixes()  # change theme after Preferences settings are restored
+        self.iconFixes()  # change icons after Preferences are restored
 
-        #? Spacer for empty Route tab
+        #* Spacer for empty Route tab
         self.spacerItem = qtw.QSpacerItem(
             20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
         )
         self.verticalLayout_2.addItem(self.spacerItem)
 
-    #! TO BE CALLED WHEN A FILE IS LOADED
     def create_route_plot(self):
+        """Route canvas and toolbar creator. Called when a file is loaded"""
         if self.ProfileLoadFilename.text() != "":
             #* Delete vertical spacer
             self.verticalLayout_2.removeItem(self.spacerItem)
@@ -399,16 +421,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def GitHubLink(self):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
 
-    # TODO _print_document()
-    # def export_pdf(self):
-    #     filename, _ = qtw.QFileDialog.getSaveFileName(
-    #         self, "Save to PDF", QtCore.QDir.homePath(), "PDF Files (*.pdf)"
-    #     )
-    #     if filename:
-    #         self.printer.setOutputFileName(filename)
-    #         self.printer.setOutputFormat(qtps.QPrinter.PdfFormat)
-    #         self._print_document()
-
     def closeEvent(self, event):
         """Accept or Ignore event action"""
         close = qtw.QMessageBox(qtw.QMessageBox.Question, 'Exit', 'Exit application?', parent=self)
@@ -421,19 +433,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             event.ignore()
 
     def start_simulation(self):
-        runSim = qtw.QMessageBox.question(
-            self, "Start simulation", "Start simulation?\nAll changes will be saved locally.",
-            qtw.QMessageBox.Yes | qtw.QMessageBox.No
-        )
+        """Saves changes and runs the selected solver"""
+        if not self.config_is_set:
+            runSim = qtw.QMessageBox.question(
+                self, "Start simulation",
+                "Start simulation?\nAll changes will be saved locally first.",
+                qtw.QMessageBox.Yes | qtw.QMessageBox.No
+            )
+        else:
+            runSim = qtw.QMessageBox.question(
+                self, "Start simulation",
+                "Start simulation?\nAll changes will now be saved to \n{}.".format(self.filename),
+                qtw.QMessageBox.Yes | qtw.QMessageBox.No
+            )
         if runSim == qtw.QMessageBox.Yes:
             try:
                 self.writeFile()
                 print('Changes saved')
-                # import solver.shortest_operation as s_o
-                # s_o.run(self.my_settings)
-                grab_GC(self.my_settings)
-            except:
-                print('Failed')
+
+                constants = grab_GC(self, self.my_settings)
+                from solver.shortest_operation import ShortestOperationSolver
+                # Doesn't return, simply computes and outputs a CSV
+                ShortestOperationSolver(self, constants)
+                # Change to simulation tab and plot
+            except Exception as e:
+                qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
         else:
             self.close()
 
@@ -449,15 +473,15 @@ class PlotCanvas_route(FigureCanvas):
     def __init__(self, GUI, parent, dpi=100):
         self.GUI_preferences = GUI
         self.parent = parent
-        self.route_fig = Figure(dpi=dpi)
+        self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
         FigureCanvas.__init__(self, self.route_fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.route_data_import()
-        self.counter = 0
-        # * SOURCE DATA
+        self.counter = 0  # Allow for plot retries upon exception
 
     def route_data_import(self):
+        """Route profile data import."""
         if len(self.parent.ProfileLoadFilename.text()) > 3:
             self.ROUTE_INPUT_DF = np.genfromtxt(
                 self.parent.ProfileLoadFilename.text(),
@@ -476,7 +500,11 @@ class PlotCanvas_route(FigureCanvas):
                 self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
                 self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
                 self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
-                self.profile = [0] * len(self.distance)
+
+                #* Initialize profile array
+                self.profile = np.zeros(len(self.distance), dtype=float)
+
+                #* Calculate profile height from distance steps and grade
                 for index, distance_step in enumerate(self.distance):
                     if index < 1:
                         self.profile[index] = 0
@@ -485,12 +513,11 @@ class PlotCanvas_route(FigureCanvas):
                             index] = distance_step * self.grade[index] / 1000 + self.profile[index -
                                                                                              1]
 
-                self.profile = np.array(self.profile, dtype=float)
-
                 # * Timetable
                 self.timetable_stations = np.array(
                     [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
                 )
+                # * Find station kilometric points (0 m travelled paths)
                 self.timetable_stations_kpoint = np.array(
                     [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
                 )
@@ -511,30 +538,25 @@ class PlotCanvas_route(FigureCanvas):
 
                 self.plot_route()
             except:
-                #* Attempt to replot
+                #* Attempt to replot once
                 try:
                     if self.counter == 0:
                         self.route_data_import()
                         self.counter += 1
                 except:
                     pass
-            # except Exception as e:
-            #     qtw.QMessageBox.critical(
-            #         self, "Error",
-            #         str(e) + "\nMake sure the right template has been used."
-            #     )
 
     def plot_route(self):
-
+        """Canvas and toolbar creation, deleting previous instances."""
         if len(self.parent.instances_route_toolbar) > 1:
             self.parent.instances_route_canvas[0].hide()
             self.parent.instances_route_toolbar[0].hide()
             del self.parent.instances_route_canvas[0]
             del self.parent.instances_route_toolbar[0]
 
-        self.route_fig.clear()  # clear wrong format on graph init
+        self.route_fig.clear()  # clear wrong format if any on graph init
 
-        #? Setting theme
+        #* Setting theme
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         if self.dark_mode_set:
             self.route_fig.patch.set_facecolor(
@@ -550,13 +572,12 @@ class PlotCanvas_route(FigureCanvas):
         rcParams['savefig.dpi'] = 300
         rcParams['font.family'] = 'Euclid'
 
-        #? Plot axes
+        #* Plot axes
         self.ax = self.route_fig.add_subplot(111)
-        # self.ax.set_title('Very nice graph')
         self.ax.set_xlabel("Distance [km]")
         self.ax.set_ylabel("Speed [km/h]")
 
-        #* Plots on main axis
+        #* Plotting on main axis sharing X
         if self.parent.cb_r_speedres.isChecked():
             self.line0, = self.ax.step(
                 self.kpoint, self.speed_res, label="Speed [km/h]", where="pre"
@@ -568,7 +589,7 @@ class PlotCanvas_route(FigureCanvas):
         if self.parent.cb_r_profile.isChecked():
             self.line3, = self.ax.plot(self.kpoint, self.profile, label="Profile [m]")
 
-        #* Twin axis y - station tick marks
+        #* Twin axis Y - station tick marks
         if self.parent.cb_r_stations.isChecked():
             self.ax2 = self.ax.twiny()
             self.ax2.set_xlim(self.ax.get_xlim())
@@ -589,26 +610,29 @@ class PlotCanvas_route(FigureCanvas):
                 x_locator
             )  # it's best to first set the locator and only then the formatter
             self.ax2.xaxis.set_major_formatter(x_formatter)
-            # ? optionally add vertical lines at each of the station positions
+            #* optionally add vertical lines at each of the station positions
             for x in self.timetable_stations_kpoint:
                 self.ax2.axvline(x, color='red', ls=':', lw=1.5)
 
-        #* Twin axis x - Radii
-
+        #* Twin axis X - Radii
         if self.parent.cb_r_radii.isChecked():
             self.ax3 = self.ax.twinx()
-            self.ax3.set_label('Distance - Radii [m]')
-
+            self.ax3.set_label('Distance [km] - Radii [m]')
             self.ax3.set_ylabel('Radii [m]')
             self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
             self.line2, = self.ax3.step(self.kpoint, self.radii, label="Radii [m]", where="pre")
             self.line2.set_color("purple")
-        # Line color has to be set during/after axis plot
+
+        #* Line color has to be set during/after axis plot
         if self.dark_mode_set: self.line0.set_color("white")
+
+        #* Include watermark if any
         global watermark
         self.route_fig.text(
             0.5, 0.5, watermark, fontsize=20, color='gray', ha='center', va='center', alpha=0.6
         )
+
+        #* Include chart legend if checked
         if self.parent.cb_r_legend.isChecked():
             handles, labels = [], []
             for ax in self.route_fig.axes:
@@ -616,10 +640,12 @@ class PlotCanvas_route(FigureCanvas):
                     handles.append(h)
                     labels.append(l)
             self.ax.legend(handles, labels)
+
         self.draw()
         self.route_fig.set_tight_layout(True)  # Tight layout on start
 
     def route_canvas_checkbox_handler(self):
+        """Replot on checkbox state change."""
         try:
             self.plot_route()
         except:
@@ -632,50 +658,64 @@ class PlotCanvas_route(FigureCanvas):
 
 
 class Preferences(QWidget, Ui_Form):
-    """Preferences widget screen"""
+    """Preferences widget screen. Initialized alongside window."""
     def __init__(self, GUI, parent=None):
         super().__init__()
         self.setupUi(self)
+
+        #* Optional param to access attributes
         self.parent = parent
+
+        #* Restore latest .ini GUI config
         self.GUI_preferences = GUI
         try:
             guirestore(self, self.GUI_preferences)
         except:  # Create new empty file if none found
             guisave(self, self.GUI_preferences)
+
         global watermark
         watermark = self.watermark.text()
+
         self.pushButton.clicked.connect(self.hide_preferences)
         self.cb_dark.stateChanged.connect(self.cb_dark_check)
         self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
-        self.cb_dark_check()  # Restores dark mode on start
+
+        #* Restores dark mode on start
+        self.cb_dark_check()
 
     def cb_dark_check(self):
         """Define stylesheet based on saved settings"""
+
         # * Save checkbox status after signal
         guisave(self, self.GUI_preferences)
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
-        # * Apply corresponding style
+
         try:
-            import qdarkstyle
+            # * Apply corresponding style
             if not self.dark_mode_set:
-                app.setStyleSheet("")  # Default style
+                app.setStyleSheet("")  # Default Fusion style
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
-            # * Update icons, toolbar and canvas
+
+            # * Update icons
             for window in window_list:
                 window.iconFixes()
+
+            # * Update plot
+            self.window_plot_update()
+
         except:
             qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
-        # TODO FIX CB NOT WORKING WHEN LOADING AND THEN CHANGING THEME, A
-        # AND WHEN OPENING NEW WINDOW THEN LOADING FROM IMPORT BUTTON
-        try:
-            self.window_plot_update()
-        except:
-            pass
 
     def cb_watermark_check(self):
         """Define watermark based on checkbox state and line text"""
-        self.text_watermark_check()
+        global watermark
+        if self.cb_watermark.isChecked():
+            watermark = self.watermark.text()
+        else:
+            watermark = ""
+
+        #* Redraw canvas application-wide
         for window in window_list:
             try:
                 window.route_canvas.plot_route()
@@ -683,16 +723,8 @@ class Preferences(QWidget, Ui_Form):
                 pass
         guisave(self, self.GUI_preferences)
 
-    def text_watermark_check(self):
-        """Save watermark QLineEdit text"""
-        global watermark
-        if self.cb_watermark.isChecked():
-            watermark = self.watermark.text()
-        else:
-            watermark = ""
-
     def window_plot_update(self):
-        """Update icons and replot"""
+        """Update icons and replot in all windows"""
         for index, window in enumerate(window_list):
             window.iconFixes()
             window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
@@ -704,30 +736,14 @@ class Preferences(QWidget, Ui_Form):
             window.verticalLayout_2.addWidget(window.route_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
             window.instances_route_toolbar.append(window.route_toolbar)
-            print("WINDOW NUMBER {}  : {}".format(index, window))
-            print('window.instances_route_canvas :', window.instances_route_canvas)
-            print('window.instances_route_toolbar :', window.instances_route_toolbar)
+
+            #* Keep only one canvas and toolbar in memory
+            #* Delete blank charts where no file was selected (len == 1)
             if len(window.instances_route_toolbar) > 0:
                 window.instances_route_canvas[0].hide()
                 window.instances_route_toolbar[0].hide()
                 del window.instances_route_canvas[0]
                 del window.instances_route_toolbar[0]
-
-            # TODO hide delete
-            # # ? Hide or delete previous
-            # # window.instances_route_canvas[0].setVisible(False)
-            # if len(window.instances_route_toolbar) > 1:
-            #     #     print(window.instances_route_toolbar)
-            #     del window.instances_route_canvas[0]
-            #     del window.instances_route_toolbar[0]
-            # hide previous
-            # a = window.instances_route_toolbar[-1]
-            # a.setVisible(False)
-            # a = window.instances_route_canvas[-1]
-            # a.setVisible(False)
-            #     print("after delete")
-            # print("canvas", window.instances_route_canvas)
-            # print("toolbars", window.instances_route_toolbar)
 
     def hide_preferences(self):
         """Exits Preferences window"""
@@ -758,7 +774,7 @@ if __name__ == "__main__":
     app = qtw.QApplication(sys.argv)
     w = NewWindow()  # Instantiate window factory class
 
-    # ? Exit with Ctrl + C
+    #* Exit with Ctrl + C
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)
     timer.start(100)

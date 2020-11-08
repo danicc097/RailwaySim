@@ -17,6 +17,18 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
+  <property name="iconSize">
+   <size>
+    <width>40</width>
+    <height>40</height>
+   </size>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="dockNestingEnabled">
+   <bool>true</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
@@ -51,7 +63,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -1441,10 +1453,22 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
-              <item>
+              <item alignment="Qt::AlignLeft|Qt::AlignVCenter">
                <widget class="QLabel" name="label_57">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>40</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>280</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Tractive Effort - Speed curve (.csv)</string>
+                 <string>Tractive Effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -1491,10 +1515,22 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
+              <item alignment="Qt::AlignLeft">
                <widget class="QLabel" name="label_62">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>40</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>280</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Braking effort - Speed curve (.csv)</string>
+                 <string>Braking effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -1630,10 +1666,22 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_12">
-              <item>
+              <item alignment="Qt::AlignLeft">
                <widget class="QLabel" name="label_64">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>280</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Tractive Effort - Speed curve (.csv)</string>
+                 <string>Tractive Effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -1680,10 +1728,22 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_9">
-              <item>
+              <item alignment="Qt::AlignLeft">
                <widget class="QLabel" name="label_65">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>280</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>Braking effort - Speed curve (.csv)</string>
+                 <string>Braking effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -2107,6 +2167,12 @@
    </property>
    <property name="layoutDirection">
     <enum>Qt::RightToLeft</enum>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>20</width>
+     <height>20</height>
+    </size>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>

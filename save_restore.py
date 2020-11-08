@@ -127,11 +127,10 @@ def guirestore(self, settings):
     print("{} items accessed, {} items restored.".format(counter_a, counter_s))
 
 
-def grab_GC(self, settings):
+def grab_GC(window, settings):
     """Creates a global dictionary from the values stored in the given settings file (.ini format)"""
-    global GC
     GC = dict()
-    for name, obj in inspect.getmembers(self):
+    for name, obj in inspect.getmembers(window):
 
         if isinstance(obj, QLineEdit):
             name = obj.objectName()
@@ -162,3 +161,4 @@ def grab_GC(self, settings):
             name = obj.objectName()
             value = bool(settings.value(name))
             GC[name] = value
+    return GC
