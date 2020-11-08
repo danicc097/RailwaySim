@@ -25,8 +25,8 @@
 
 
 <p align="center"><img src="resources/tabScreen.png" alt="tab" width="650"/></p>
+<p align="center">Full screen:</p>
 <p align="center"><img src="resources/tabScreenDark.png" alt="tab" width="650"/></p>
-<p align="center"><img src="resources/plotScreen.png" alt="tab" width="350"/></p>
 
 A deterministic simulation tool to perform time-driven railway route simulations. 
 ## Implemented functionality
