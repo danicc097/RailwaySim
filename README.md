@@ -1,8 +1,8 @@
 <p align="center">
   <br>
-  <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src="https://badgen.net/badge/license/GPLv3/red"></a>
-  <a ><img alt="undefined" src="https://badgen.net/badge/Download/Windows/?color=blue&icon=windows&label"></a>
-  <a ><img alt="undefined" src="https://badgen.net/badge/Download/Linux/?color=purple&icon=terminal&label"></a>
+  <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src="resources/images/GPLv3_badge.svg"></a>
+  <a ><img alt="undefined" src="resources/images/Windows_badge.svg"></a>
+  <a ><img alt="undefined" src="resources/images/Linux_badge.svg"></a>
   <br>
 </p>
 
