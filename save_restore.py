@@ -8,123 +8,148 @@ import inspect
 
 def guisave(self, settings):
     """Saves GUI values to a settings file (.ini format)"""
-    counter_a = 0
-    counter_s = 0
+    counter_accessed = 0
+    counter_saved = 0
     for name, obj in inspect.getmembers(self):
-        counter_a += 1
+        counter_accessed += 1
         if isinstance(obj, QComboBox):
             name = obj.objectName()
             index = obj.currentIndex()
             text = obj.itemText(index)
             settings.setValue(name, text)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QLineEdit):
             name = obj.objectName()
             value = obj.text()
             settings.setValue(name, value)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QCheckBox):
             name = obj.objectName()
             state = obj.checkState()
             settings.setValue(name, state)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QRadioButton):
             name = obj.objectName()
             state = obj.isChecked()
             settings.setValue(name, state)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QSpinBox):
             name = obj.objectName()
             value = obj.text()
             settings.setValue(name, value)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QDoubleSpinBox):
             name = obj.objectName()
             value = obj.text()
             settings.setValue(name, value)
-            counter_s += 1
+            counter_saved += 1
 
         if isinstance(obj, QGroupBox):
             name = obj.objectName()
             state = obj.isChecked()
             settings.setValue(name, bool(state))
-            counter_s += 1
+            counter_saved += 1
 
-    print("{} items accessed, {} items saved.".format(counter_a, counter_s))
+    print("{} items accessed, {} items saved.".format(counter_accessed, counter_saved))
     settings.sync()
 
 
 def guirestore(self, settings):
     """Restores GUI values from a settings file (.ini format)"""
-    counter_a = 0
-    counter_s = 0
+    counter_accessed = 0
+    counter_restored = 0
+    counter_failed = 0
     for name, obj in inspect.getmembers(self):
-        counter_a += 1
+        counter_accessed += 1
         if isinstance(obj, QComboBox):
-            name = obj.objectName()
-            value = str(settings.value(name))
-            if value == "":
-                continue
-            # Restore the index associated to the string
-            index = obj.findText(value)
-
-            # OPTIONAL add to list if not found
-            if index == -1:
-                obj.insertItems(0, [value])
+            try:
+                name = obj.objectName()
+                value = str(settings.value(name))
+                if value == "":
+                    continue
+                # Restore the index associated to the string
                 index = obj.findText(value)
-                obj.setCurrentIndex(index)
-            else:
-                obj.setCurrentIndex(index)
-            counter_s += 1
+                # OPTIONAL add to list if not found
+                if index == -1:
+                    obj.insertItems(0, [value])
+                    index = obj.findText(value)
+                    obj.setCurrentIndex(index)
+                else:
+                    obj.setCurrentIndex(index)
+                counter_restored += 1
+            except:
+                counter_failed += 1
 
         if isinstance(obj, QLineEdit):
-            name = obj.objectName()
-            value = str(settings.value(name))
-            obj.setText(value)
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                value = str(settings.value(name))
+                obj.setText(value)
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
         if isinstance(obj, QCheckBox):
-            name = obj.objectName()
-            value = bool(int(settings.value(name)))
-            if value:
-                obj.setChecked(True)
-            else:
-                obj.setChecked(False)
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                value = bool(int(settings.value(name)))
+                if value:
+                    obj.setChecked(True)
+                else:
+                    obj.setChecked(False)
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
         if isinstance(obj, QRadioButton):
-            name = obj.objectName()
-            value = bool(int(settings.value(name)))
-            if bool(value):
-                obj.setChecked(True)
-            else:
-                obj.setChecked(False)
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                value = bool(int(settings.value(name)))
+                if bool(value):
+                    obj.setChecked(True)
+                else:
+                    obj.setChecked(False)
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
         if isinstance(obj, QSpinBox):
-            name = obj.objectName()
-            value = settings.value(name)
-            obj.setValue(int(value))
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                value = settings.value(name)
+                obj.setValue(int(value))
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
         if isinstance(obj, QDoubleSpinBox):
-            name = obj.objectName()
-            value = settings.value(name)
-            obj.setValue(float(value))
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                value = settings.value(name)
+                obj.setValue(float(value))
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
         if isinstance(obj, QGroupBox):
-            name = obj.objectName()
-            state = bool(settings.value(name))
-            obj.setChecked(state)
-            counter_s += 1
+            try:
+                name = obj.objectName()
+                state = bool(settings.value(name))
+                obj.setChecked(state)
+                counter_restored += 1
+            except:
+                counter_failed = +1
 
-    print("{} items accessed, {} items restored.".format(counter_a, counter_s))
+    print(
+        "{} items accessed, {} restored, {} failed.".format(
+            counter_accessed, counter_restored, counter_failed
+        )
+    )
 
 
 def grab_GC(window, settings):

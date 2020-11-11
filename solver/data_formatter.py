@@ -7,12 +7,38 @@ Bisection:
 >>> [grade(score) for score in [33, 99, 77, 70, 89, 90, 100]]
 ['F', 'A', 'C', 'C', 'B', 'A', 'A']
 """
+import numpy as np
+
+
+def effort_curve_to_arrays(path):
+    """Returns speed, effort as ndarrays from a given path."""
+    if path != "" and path is not None:
+        curve = np.genfromtxt(
+            path,
+            delimiter=',',
+            dtype=str,
+            encoding='utf-8-sig',
+            autostrip=True,
+            deletechars="",
+        )
+        curve = curve.T
+        speed = np.array(curve[0][1:], dtype=float)
+        effort = np.array(curve[1][1:], dtype=float)
+        return speed, effort
+    else:
+        return None
 
 
 def hhmm_to_s(time):
     """Convert hh:mm to seconds"""
     h, m = time.split(':')
     return int(h) * 3600 + int(m) * 60
+
+
+def hhmmss_to_s(time):
+    """Convert hh:mm:ss to seconds"""
+    h, m, s = time.split(':')
+    return int(h) * 3600 + int(m) * 60 + int(s)
 
 
 def s_to_hhmmss(seconds):

@@ -7,12 +7,8 @@
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
 
 # * Known bugs → 
-Load profile, open new instance, load second profile, first profile gives error
-solution - apply a different theme 
-(some missing function prob not exec'ed plotting on first instances)
-(or function on window_list loop messing things up)
 
-# TODOs:
+# TODO:
     - Desktop>System tray notifications
 
     MORE OPEN/SAVE LOGIC:
@@ -23,6 +19,7 @@ solution - apply a different theme
 
 
 """
+
 import os
 import random
 import ctypes
@@ -49,6 +46,7 @@ from RailwaySim_GUI_pref import Ui_Form
 from save_restore import grab_GC, guirestore, guisave
 from scaled_labels import ScaledLabel, label_grabber
 from solver.data_formatter import hhmm_to_s, s_to_hhmmss
+from solver.shortest_operation import ShortestOperationSolver
 
 BASEDIR = os.path.dirname(__file__)
 
@@ -93,9 +91,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.instances_route_toolbar = []
         self.statusBar().showMessage(BASEDIR)
         self._buttonEdits()
-        self.mainEdits()
+        self._mainEdits()
 
-    def iconFixes(self):
+    def _iconFixes(self):
         '''Selects icon files for current stylesheet'''
         global darkPath
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
@@ -128,8 +126,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _buttonEdits(self):
         """Adds functionality to buttons"""
-        #*CSV import buttons - anon to prevent autostart
-        #*destination widget as arg
+        #* CSV import buttons - anon to prevent autostart
+        #* "clicked" emits a signal (checked) when pressed:
+        #* checkvoid QAbstractButton::clicked(bool checked = false)
+
         self.E_TECurveLoadButton.clicked.connect(
             lambda: self.path_extractor(self.E_TECurveLoadFilename)
         )
@@ -176,7 +176,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.D_BECurveEditButton.setToolTip('Edit CSV file')
         self.ProfileEditButton.setToolTip('Edit CSV file')
 
-    def mainEdits(self):
+    def _mainEdits(self):
         """MainWindow GUI changes"""
         #* PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
@@ -194,18 +194,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionSave.triggered.connect(self.writeFile)
         self.actionSave_as.triggered.connect(self.writeNewFile)
 
-        #* window exit
-        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
-
         #* Instantiate and restore theme preferences on window start
         self.pref_screen = Preferences(self.GUI_preferences, self)
-        self.iconFixes()  # change icons after Preferences are restored
+        self._iconFixes()  # change icons after Preferences are restored
 
         #* Spacer for empty Route tab
         self.spacerItem = qtw.QSpacerItem(
             20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
         )
         self.verticalLayout_2.addItem(self.spacerItem)
+
+        #* Loco or passenger train simulation selection
+        self.gb_locomotive.toggled.connect(
+            lambda checked: checked and self.gb_passenger.setChecked(False)
+            if self.gb_passenger.isChecked() else checked
+        )
+        self.gb_passenger.toggled.connect(
+            lambda checked: checked and self.gb_locomotive.setChecked(False)
+            if self.gb_locomotive.isChecked() else checked
+        )
+
+        #* window exit
+        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
 
     def create_route_plot(self):
         """Route canvas and toolbar creator. Called when a file is loaded"""
@@ -224,7 +234,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if len(self.ProfileLoadFilename.text()) > 3:
                 self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
                 darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
-                self.route_toolbar = Toolbar_route(
+                self.route_toolbar = MyMplToolbar(
                     self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
                 )
                 self.verticalLayout_2.addWidget(self.route_canvas)
@@ -266,7 +276,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
                 )
 
-    # TODO PDF - See invoice_maker
+    # TODO: PDF - See invoice_maker and qtdemo
     # self.printer = qtps.QPrinter()
     # self.printer.setOrientation(qtps.QPrinter.Portrait)
     # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
@@ -328,8 +338,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                 # all values will be returned as QString
                 guisave(self, self.my_settings)
-                # TODO custom settings elements (no spaces):
-                self.my_settings.setValue(str('Custom_setting_name'), bool('Tobedefined'))
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
             except Exception as e:
                 qtw.QMessageBox.critical(self, 'Error', f"Could not save settings: {e}")
@@ -358,7 +366,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 try:
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
-                    # TODO read custom settings elements in guirestore(no spaces)
                     self.statusBar().showMessage(
                         "Changes now being saved to: {}".format(self.filename)
                     )
@@ -390,25 +397,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
                 self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                 guisave(self, self.my_settings)
-                # TODO custom settings elements (no spaces):
-                self.my_settings.setValue(str('My nice setting name'), bool('Tobedefined'))
+                # self.my_settings.setValue(str('Nice_setting_name'), str('Tobedefined'))
             else:
                 self.writeNewFile()
         else:
             self.writeNewFile()
 
-    # ? capture data
-    # def ShowMessage(self):
-    #     # myNumber = self.TIME_STEP.cleanText()
-    #     # qtw.QMessageBox.information(self, 'The number is:', myNumber)
-
     def AboutInfo(self):
         """Shows license information"""
-        self.infoScreen = qtw.QMessageBox(self)  # Pass self to QMessageBox
+        self.infoScreen = qtw.QMessageBox(None)
         self.infoScreen.setWindowTitle('Legal Information')
         self.infoScreen.setText('RailwaySim is licenced under the GNU GPL.\t\t')
         self.infoScreen.setInformativeText("The complete license is available below.\t\t")
-        # self.infoScreen.closeEvent()
         try:
             self.infoScreen.setDetailedText(
                 open(os.path.join(BASEDIR, "LICENSE"), "r", encoding="utf-8").read()
@@ -448,31 +448,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         if runSim == qtw.QMessageBox.Yes:
             try:
+                #TODO:
                 self.writeFile()
-                print('Changes saved')
-
                 constants = grab_GC(self, self.my_settings)
-                from solver.shortest_operation import ShortestOperationSolver
-                # Doesn't return, simply computes and outputs a CSV
+                # Computes and outputs a CSV
                 ShortestOperationSolver(self, constants)
                 # Change to simulation tab and plot
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
         else:
-            self.close()
+            pass
 
 
-class Toolbar_route(MyMplToolbar):
-    def __init__(self, canvas, parent, coordinates, darkMode):
-        super().__init__(canvas, parent, coordinates, darkMode)
-
-
-# Need to define parent to access MainWindow widgets
 class PlotCanvas_route(FigureCanvas):
     """Route input data graph"""
     def __init__(self, GUI, parent, dpi=100):
         self.GUI_preferences = GUI
-        self.parent = parent
+        self.parent = parent  # pass MainWindow to access its widgets
         self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
         FigureCanvas.__init__(self, self.route_fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -493,6 +485,7 @@ class PlotCanvas_route(FigureCanvas):
             )
 
             self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF.T
+
             try:
                 self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
                 self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
@@ -510,9 +503,8 @@ class PlotCanvas_route(FigureCanvas):
                         self.profile[index] = 0
                     else:
                         self.profile[
-                            index] = distance_step * self.grade[index] / 1000 + self.profile[index -
-                                                                                             1]
-
+                            index] = distance_step * self.grade[index] / 1000 + \
+                                self.profile[index-1]
                 # * Timetable
                 self.timetable_stations = np.array(
                     [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
@@ -699,7 +691,7 @@ class Preferences(QWidget, Ui_Form):
 
             # * Update icons
             for window in window_list:
-                window.iconFixes()
+                window._iconFixes()
 
             # * Update plot
             self.window_plot_update()
@@ -726,10 +718,10 @@ class Preferences(QWidget, Ui_Form):
     def window_plot_update(self):
         """Update icons and replot in all windows"""
         for index, window in enumerate(window_list):
-            window.iconFixes()
+            window._iconFixes()
             window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
             darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
-            window.route_toolbar = Toolbar_route(
+            window.route_toolbar = MyMplToolbar(
                 window.route_canvas, window.route_canvas, coordinates=True, darkMode=darkMode
             )
             window.verticalLayout_2.addWidget(window.route_canvas)
@@ -756,7 +748,7 @@ class Preferences(QWidget, Ui_Form):
         self.hide()
 
 
-# TODO QMovie animation simulation
+# TODO: QMovie animation simulation
 # self.movie = QMovie("{filename}.gif")
 # self.movie.frameChanged.connect(self.repaint)
 # self.movie.start()

@@ -145,7 +145,8 @@ class MainWindow(qtw.QMainWindow):
         edit_menu.addAction('Insert Above', self.insert_above)
         edit_menu.addAction('Insert Below', self.insert_below)
         edit_menu.addAction('Remove Row(s)', self.remove_rows)
-
+        self.tableview.resizeRowsToContents()
+        self.tableview.resizeColumnsToContents()
         # End main UI code
         self.show()
 
