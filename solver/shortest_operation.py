@@ -70,7 +70,7 @@ def ShortestOperationSolver(window, constants):
     # print(constants)
     # print(constants['LOCO_AXLES'])
     dataset_np = np.genfromtxt(
-        "C:/Users/danic/MyPython/RailwaySim/Input_template - Second.csv",  # constants['ProfileLoadFilename']
+        "C:/Users/danic/MyPython/RailwaySim/Input_template - Long.csv",  # constants['ProfileLoadFilename']
         delimiter=',',
         dtype=float,
         encoding='utf-8-sig',
@@ -94,11 +94,13 @@ def ShortestOperationSolver(window, constants):
     print(dataset_np[myrow + 1])
     # * Calculate virtual speed based on rolling stock length
     # L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
-    L_train = 160
-    dataset_np_original = dataset_np
+
+    L_train = 500
+    # copy array to track, assigning to it is useless since we edit the dataset
+    dataset_np_original = np.copy(dataset_np)
 
     # @jit  # insert not supported - use concatenate and slices
-    def speed_from_length(array, row=0, length=L_train):
+    def speed_from_length(array, row=0, length=L_train, speed_to_check=0):
         """Calculates the speed which ensures that the last point in the train complies with
         the speed limit"""
         # global counter_ds_bigger, counter_ds_eq, counter_ds_smaller
@@ -106,8 +108,11 @@ def ShortestOperationSolver(window, constants):
         if row >= total_rows - 1: return array  # last executed line
         if row < total_rows - 1:
             distance_step = array[row, 0]
-            speed = array[row, 3]
+            if not speed_to_check: speed = array[row, 3]
+            else: speed = speed_to_check
             next_speed = array[row + 1, 3]
+            # define next speed_to_check right after check
+            speed_to_check = next_speed
             next_distance_step = array[row + 1, 0]
             if distance_step == 0:  # ? This is a station
                 # go to next step
@@ -118,7 +123,7 @@ def ShortestOperationSolver(window, constants):
                     # go to next step with L_train as offset
                     return speed_from_length(array, row + 1, L_train)
                 else:  # ? next_speed > speed
-                    if next_distance_step > length:  #* ✓
+                    if next_distance_step > length:
                         # array = np.insert(array, row, array[row], axis=0)
                         # ? njit: None not supported
                         # duplicate the next row
@@ -132,23 +137,40 @@ def ShortestOperationSolver(window, constants):
                         array[row + 1, 0] = length
                         array[row + 2, 0] = next_distance_step - length
                         # skip the inserted row on the next check
-                        return speed_from_length(array, row + 2, L_train)
-                    elif next_distance_step == length:  #* ✓
+                        return speed_from_length(array, row + 2, L_train, speed_to_check)
+                    elif next_distance_step == length:
                         # replace speed
+                        # speed_to_check = next_speed
                         array[row + 1, 3] = speed
-                        # check the next step
-                        return speed_from_length(array, row + 1, L_train)
+                        # check the next step but with the original speed from next row
+                        return speed_from_length(array, row + 1, L_train, speed_to_check)
                     else:  # ? next_distance_step < length
                         # replace speed, it cannot ever reach it
+                        # speed_to_check = next_speed
                         array[row + 1, 3] = speed
                         # check the next step, but # TODO include remainder
                         return speed_from_length(array, row + 1, L_train - next_distance_step)
 
     array = speed_from_length(dataset_np)
-    print(array)
+    dataset_np_original = dataset_np_original.T
+    array = array.T
+
+    dataset_np_original = np.vstack(
+        (dataset_np_original, np.cumsum(dataset_np_original[0] / 1000, dtype=float))
+    )
+    array = np.vstack((array, np.cumsum(array[0] / 1000, dtype=float)))
+
+    ax = plt.subplot(111)
+    ax.set_title(L_train)
+    ax.step(dataset_np_original[9], dataset_np_original[3], label="old array", where="pre")
+    ax2 = ax.twinx()
+    ax2.step(array[9], array[3], color='red', label="new array", where="pre")
+    ax2.legend()
+
+    dataset_np_original = dataset_np_original.T
+    array = array.T
 
     # np to pd # TODO use os paths
-
     parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     a = pd.DataFrame(data=array)
     a.to_csv(
@@ -157,21 +179,10 @@ def ShortestOperationSolver(window, constants):
         float_format='%1.8f',
         index=False,
     )
-    dataset_np_original = dataset_np_original.T
-    print(dataset_np_original)
-    array = array.T
-    print(array)
-    ax = plt.subplot(111)
-    dataset_np_original = np.vstack(
-        (dataset_np_original, np.cumsum(dataset_np_original[0] / 1000, dtype=float))
-    )
-    array = np.vstack((array, np.cumsum(array[0] / 1000, dtype=float)))
-    print("array 10: ", array[9])
-    print("dataset_np_original 9: ", dataset_np_original[9])
-    ax.step(dataset_np_original[9, :], dataset_np_original[3, :], label="old array")
-    ax.step(array[9, :], array[3, :], label="new array")
-    ax.legend()
+
     plt.show()
+
+    # bundle = np.vstack((array, dataset_np_original))
 
     # #* Maximum effort based on speed (diesel)
     # if constants['gb_diesel_engine'] == True:
