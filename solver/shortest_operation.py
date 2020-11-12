@@ -95,7 +95,7 @@ def ShortestOperationSolver(window, constants):
     # * Calculate virtual speed based on rolling stock length
     # L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
 
-    L_train = 500
+    L_train = 100
     # copy array to track, assigning to it is useless since we edit the dataset
     dataset_np_original = np.copy(dataset_np)
 
@@ -111,8 +111,6 @@ def ShortestOperationSolver(window, constants):
             if not speed_to_check: speed = array[row, 3]
             else: speed = speed_to_check
             next_speed = array[row + 1, 3]
-            # define next speed_to_check right after check
-            speed_to_check = next_speed
             next_distance_step = array[row + 1, 0]
             if distance_step == 0:  # ? This is a station
                 # go to next step
@@ -136,20 +134,21 @@ def ShortestOperationSolver(window, constants):
                         array[row + 1, 3] = speed
                         array[row + 1, 0] = length
                         array[row + 2, 0] = next_distance_step - length
+                        speed_to_check = array[row + 2, 3]
                         # skip the inserted row on the next check
                         return speed_from_length(array, row + 2, L_train, speed_to_check)
                     elif next_distance_step == length:
                         # replace speed
-                        # speed_to_check = next_speed
+                        speed_to_check = next_speed
                         array[row + 1, 3] = speed
                         # check the next step but with the original speed from next row
                         return speed_from_length(array, row + 1, L_train, speed_to_check)
                     else:  # ? next_distance_step < length
-                        # replace speed, it cannot ever reach it
-                        # speed_to_check = next_speed
+                        # replace speed if
+                        speed_to_check = next_speed
                         array[row + 1, 3] = speed
-                        # check the next step, but # TODO include remainder
-                        return speed_from_length(array, row + 1, L_train - next_distance_step)
+                        # check the next step, but using the remaining length
+                        return speed_from_length(array, row + 1, length - next_distance_step)
 
     array = speed_from_length(dataset_np)
     dataset_np_original = dataset_np_original.T
@@ -163,9 +162,8 @@ def ShortestOperationSolver(window, constants):
     ax = plt.subplot(111)
     ax.set_title(L_train)
     ax.step(dataset_np_original[9], dataset_np_original[3], label="old array", where="pre")
-    ax2 = ax.twinx()
-    ax2.step(array[9], array[3], color='red', label="new array", where="pre")
-    ax2.legend()
+    ax.step(array[9], array[3], color='red', label="new array", where="pre")
+    ax.legend()
 
     dataset_np_original = dataset_np_original.T
     array = array.T
@@ -206,7 +204,7 @@ def ShortestOperationSolver(window, constants):
     #         return qtw.QMessageBox.critical(
     #             window, "Error", "Could not load Electric traction - speed curve data: " + str(e)
     #         )
-
+    # TODO: get current max effort from curve
     # np.interp(2.5, xp, fp)
 
 
