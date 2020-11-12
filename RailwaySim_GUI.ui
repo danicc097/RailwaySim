@@ -546,6 +546,9 @@
                       <property name="suffix">
                        <string/>
                       </property>
+                      <property name="maximum">
+                       <double>9999.989999999999782</double>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -801,6 +804,9 @@
                     </property>
                     <property name="suffix">
                      <string/>
+                    </property>
+                    <property name="maximum">
+                     <double>9999.989999999999782</double>
                     </property>
                    </widget>
                   </item>

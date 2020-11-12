@@ -72,34 +72,38 @@ from numba import njit, jit, jitclass
 # a = compute()
 # print(a.test1)
 
-import random
+# import random
 
+# @jit(nopython=True)
+# def spherical_to_cartesian(r, theta, phi):
+#     '''Convert spherical coordinates (physics convention) to cartesian coordinates'''
+#     sin_theta = np.sin(theta)
+#     x = r * sin_theta * np.cos(phi)
+#     y = r * sin_theta * np.sin(phi)
+#     z = r * np.cos(theta)
 
-@jit(nopython=True)
-def spherical_to_cartesian(r, theta, phi):
-    '''Convert spherical coordinates (physics convention) to cartesian coordinates'''
-    sin_theta = np.sin(theta)
-    x = r * sin_theta * np.cos(phi)
-    y = r * sin_theta * np.sin(phi)
-    z = r * np.cos(theta)
+#     return x, y, z  # return a tuple
 
-    return x, y, z  # return a tuple
+# @jit(nopython=True)
+# def random_directions(n, r):
+#     '''Return ``n`` 3-vectors in random directions with radius ``r``'''
+#     out = np.empty(shape=(n, 3), dtype=np.float64)
 
+#     for i in range(n):
+#         # Pick directions randomly in solid angle
+#         phi = random.uniform(0, 2 * np.pi)
+#         theta = np.arccos(random.uniform(-1, 1))
+#         # unpack a tuple
+#         x, y, z = spherical_to_cartesian(r, theta, phi)
+#         out[i] = x, y, z
 
-@jit(nopython=True)
-def random_directions(n, r):
-    '''Return ``n`` 3-vectors in random directions with radius ``r``'''
-    out = np.empty(shape=(n, 3), dtype=np.float64)
+#     return out
 
-    for i in range(n):
-        # Pick directions randomly in solid angle
-        phi = random.uniform(0, 2 * np.pi)
-        theta = np.arccos(random.uniform(-1, 1))
-        # unpack a tuple
-        x, y, z = spherical_to_cartesian(r, theta, phi)
-        out[i] = x, y, z
+# print(random_directions(10, 1.0))
+row = 0
+array = np.array(([1, 2, 3], [4, 5, 6], [7, 8, 9]))
+# array = np.insert(array, row, array[row], axis=0)
+# array = np.concatenate((array[:row], array[row, None], array[row:]), axis=0)
 
-    return out
-
-
-print(random_directions(10, 1.0))
+array = np.concatenate((array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0)
+print(array)

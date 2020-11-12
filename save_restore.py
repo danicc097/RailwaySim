@@ -52,7 +52,7 @@ def guisave(self, settings):
         if isinstance(obj, QGroupBox):
             name = obj.objectName()
             state = obj.isChecked()
-            settings.setValue(name, bool(state))
+            settings.setValue(name, state)
             counter_saved += 1
 
     print("{} items accessed, {} items saved.".format(counter_accessed, counter_saved))
@@ -139,8 +139,11 @@ def guirestore(self, settings):
         if isinstance(obj, QGroupBox):
             try:
                 name = obj.objectName()
-                state = bool(settings.value(name))
-                obj.setChecked(state)
+                state = str(settings.value(name))
+                if state == 'true':
+                    obj.setChecked(True)
+                else:
+                    obj.setChecked(False)
                 counter_restored += 1
             except:
                 counter_failed = +1

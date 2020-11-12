@@ -6,10 +6,11 @@
 
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
 
-# * Known bugs → 
+# * Known/suspected bugs, nuisances → 
 
 # TODO:
-    - Desktop>System tray notifications
+    Desktop>System tray notifications:
+    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\desktop\systray
 
     MORE OPEN/SAVE LOGIC:
     -  D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\recentfiles.py
@@ -352,7 +353,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             'Configuration Files (*.ini)',
             options=qtw.QFileDialog.DontResolveSymlinks
         )
-        #* Invalid file
+        #* Invalid file or none
         if self.filename == "":
             qtw.QMessageBox.critical(
                 self, "Operation aborted", "Empty filename or none selected. \n Please try again.",

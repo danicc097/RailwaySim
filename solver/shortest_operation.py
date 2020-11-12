@@ -33,27 +33,25 @@
     Virtual speed Table based on Train length L:
     L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
     def speed_from_length(row=0, array, length=L_train):
-        distance_step=array[row,3]
+        distance_step=array[row,0]
+        grade=array[row,2]
+        speed=array[row,4]
 
         
         speed_from_length(i, l_path, L)
     
-dataset
-[['0'   '0' '0' ... '0' '0' 'Station 1'],
- ['400' '0' '0' ... '0' '0'          ''],
- ...]
-
-
-
 
 
 """
+
 from PyQt5 import QtWidgets as qtw
 import numpy as np
 import pandas as pd
 import os
 import sys
 from numba import jit, njit
+import matplotlib.pyplot as plt
+
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
@@ -63,45 +61,141 @@ from save_restore import grab_GC
 
 # ! only wrap "basic" functions around njit
 
+import sys
+print("getrecursionlimit", sys.getrecursionlimit())
+sys.setrecursionlimit(5500)
+
 
 def ShortestOperationSolver(window, constants):
     # print(constants)
     # print(constants['LOCO_AXLES'])
     dataset_np = np.genfromtxt(
-        constants['ProfileLoadFilename'],
+        "C:/Users/danic/MyPython/RailwaySim/Input_template - Second.csv",  # constants['ProfileLoadFilename']
         delimiter=',',
-        dtype=float and str,
+        dtype=float,
         encoding='utf-8-sig',
         autostrip=True,
         deletechars=""
     )
-    dataset_np = dataset_np[1:, 3:]
-    print(dataset_np)
-    print(type(constants['gb_locomotive']))
-    L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
-    print(L_train)
-    if constants['gb_diesel_engine'] == True:
-        try:
-            #* Maximum effort based on speed (diesel)
-            Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(constants['D_TELoadFilename'])
-            Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(constants['D_BELoadFilename'])
-        except Exception as e:
-            return qtw.QMessageBox.critical(
-                window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
-            )
-    #* Maximum effort based on speed (electric)
-    if constants['gb_electric_traction'] == True:
-        try:
-            Electric_T_speed, Electric_T_effort = effort_curve_to_arrays(
-                constants['E_TELoadFilename']
-            )
-            Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
-                constants['E_BELoadFilename']
-            )
-        except Exception as e:
-            return qtw.QMessageBox.critical(
-                window, "Error", "Could not load Electric traction - speed curve data: " + str(e)
-            )
+    dataset_np = dataset_np[1:, 3:-1]
+    print(dataset_np.shape)
+    myrow = 2
+    distance_step = dataset_np[myrow, 0]
+    grade = dataset_np[myrow, 1]
+    speed = dataset_np[myrow, 3]
+    next_speed = dataset_np[myrow + 1, 3]
+    # print("distance_step: ", distance_step)
+    # print("grade: ", grade)
+    # print("speed: ", speed)
+    # print("next_speed: ", next_speed)
+    # dataset_np = np.insert(dataset_np, myrow, dataset_np[myrow], axis=0)
+    print(dataset_np[myrow - 1])
+    print(dataset_np[myrow])
+    print(dataset_np[myrow + 1])
+    # * Calculate virtual speed based on rolling stock length
+    # L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
+    L_train = 160
+    dataset_np_original = dataset_np
+
+    # @jit  # insert not supported - use concatenate and slices
+    def speed_from_length(array, row=0, length=L_train):
+        """Calculates the speed which ensures that the last point in the train complies with
+        the speed limit"""
+        # global counter_ds_bigger, counter_ds_eq, counter_ds_smaller
+        total_rows, _ = array.shape
+        if row >= total_rows - 1: return array  # last executed line
+        if row < total_rows - 1:
+            distance_step = array[row, 0]
+            speed = array[row, 3]
+            next_speed = array[row + 1, 3]
+            next_distance_step = array[row + 1, 0]
+            if distance_step == 0:  # ? This is a station
+                # go to next step
+                return speed_from_length(array, row + 1, L_train)
+            else:
+                if next_speed <= speed:
+                    # braking will be handled later in code
+                    # go to next step with L_train as offset
+                    return speed_from_length(array, row + 1, L_train)
+                else:  # ? next_speed > speed
+                    if next_distance_step > length:  #* ✓
+                        # array = np.insert(array, row, array[row], axis=0)
+                        # ? njit: None not supported
+                        # duplicate the next row
+                        array = np.concatenate(
+                            (array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0
+                        )
+
+                        # keep current row as is
+                        # apply offset to next
+                        array[row + 1, 3] = speed
+                        array[row + 1, 0] = length
+                        array[row + 2, 0] = next_distance_step - length
+                        # skip the inserted row on the next check
+                        return speed_from_length(array, row + 2, L_train)
+                    elif next_distance_step == length:  #* ✓
+                        # replace speed
+                        array[row + 1, 3] = speed
+                        # check the next step
+                        return speed_from_length(array, row + 1, L_train)
+                    else:  # ? next_distance_step < length
+                        # replace speed, it cannot ever reach it
+                        array[row + 1, 3] = speed
+                        # check the next step, but # TODO include remainder
+                        return speed_from_length(array, row + 1, L_train - next_distance_step)
+
+    array = speed_from_length(dataset_np)
+    print(array)
+
+    # np to pd # TODO use os paths
+
+    parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    a = pd.DataFrame(data=array)
+    a.to_csv(
+        parentDirectory + '/Output_template_COPY.csv',
+        encoding='utf-8-sig',
+        float_format='%1.8f',
+        index=False,
+    )
+    dataset_np_original = dataset_np_original.T
+    print(dataset_np_original)
+    array = array.T
+    print(array)
+    ax = plt.subplot(111)
+    dataset_np_original = np.vstack(
+        (dataset_np_original, np.cumsum(dataset_np_original[0] / 1000, dtype=float))
+    )
+    array = np.vstack((array, np.cumsum(array[0] / 1000, dtype=float)))
+    print("array 10: ", array[9])
+    print("dataset_np_original 9: ", dataset_np_original[9])
+    ax.step(dataset_np_original[9, :], dataset_np_original[3, :], label="old array")
+    ax.step(array[9, :], array[3, :], label="new array")
+    ax.legend()
+    plt.show()
+
+    # #* Maximum effort based on speed (diesel)
+    # if constants['gb_diesel_engine'] == True:
+    #     try:
+    #         Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(constants['D_TELoadFilename'])
+    #         Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(constants['D_BELoadFilename'])
+    #     except Exception as e:
+    #         return qtw.QMessageBox.critical(
+    #             window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
+    #         )
+    # #* Maximum effort based on speed (electric)
+    # if constants['gb_electric_traction'] == True:
+    #     try:
+    #         Electric_T_speed, Electric_T_effort = effort_curve_to_arrays(
+    #             constants['E_TELoadFilename']
+    #         )
+    #         Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
+    #             constants['E_BELoadFilename']
+    #         )
+    #     except Exception as e:
+    #         return qtw.QMessageBox.critical(
+    #             window, "Error", "Could not load Electric traction - speed curve data: " + str(e)
+    #         )
+
     # np.interp(2.5, xp, fp)
 
 
@@ -187,3 +281,5 @@ def ShortestOperationSolver(window, constants):
 # # copy_csv('RailwaySim/Output_template.csv')
 
 # print('Simulation ended successfully.')
+
+ShortestOperationSolver(None, None)
