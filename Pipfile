@@ -14,6 +14,7 @@ qdarkstyle = "*"
 matplotlib = "==3.1.3"
 numba = "*"
 scipy = "*"
+fn = "*"
 
 [requires]
 python_version = "3.8"

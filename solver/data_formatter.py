@@ -1,12 +1,3 @@
-"""
-Bisection:
->>> def grade(score, breakpoints=[60, 70, 80, 90], grades='FDCBA'):
-...     i = bisect(breakpoints, score)
-...     return grades[i]
-...
->>> [grade(score) for score in [33, 99, 77, 70, 89, 90, 100]]
-['F', 'A', 'C', 'C', 'B', 'A', 'A']
-"""
 import numpy as np
 
 
@@ -24,9 +15,9 @@ def effort_curve_to_arrays(path):
         curve = curve.T
         speed = np.array(curve[0][1:], dtype=float)
         effort = np.array(curve[1][1:], dtype=float)
-        return speed, effort
+        return (speed, effort)
     else:
-        return None
+        return (None, None)
 
 
 def hhmm_to_s(time):

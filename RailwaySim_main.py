@@ -47,6 +47,7 @@ from RailwaySim_GUI_pref import Ui_Form
 from save_restore import grab_GC, guirestore, guisave
 from scaled_labels import ScaledLabel, label_grabber
 from solver.data_formatter import hhmm_to_s, s_to_hhmmss
+
 from solver.shortest_operation import ShortestOperationSolver
 
 BASEDIR = os.path.dirname(__file__)
@@ -451,10 +452,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 #TODO:
                 self.writeFile()
+                #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
-                # Computes and outputs a CSV
+                #* Compute and outputs a CSV
                 ShortestOperationSolver(self, constants)
-                # Change to simulation tab and plot
+                #* Change to simulation tab and plot
+
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
         else:

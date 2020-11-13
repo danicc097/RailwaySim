@@ -57,20 +57,20 @@ parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 
 from solver.data_formatter import s_to_hhmmss, hhmm_to_s, effort_curve_to_arrays
-from save_restore import grab_GC
-
 # ! only wrap "basic" functions around njit
 
-import sys
-print("getrecursionlimit", sys.getrecursionlimit())
-sys.setrecursionlimit(5500)
+# import sys
+# print("getrecursionlimit", sys.getrecursionlimit())
+# sys.setrecursionlimit(90000)
+
+from fn import recur
 
 
 def ShortestOperationSolver(window, constants):
     # print(constants)
     # print(constants['LOCO_AXLES'])
     dataset_np = np.genfromtxt(
-        "C:/Users/danic/MyPython/RailwaySim/Input_template - Long.csv",  # constants['ProfileLoadFilename']
+        "C:/Users/danic/MyPython/RailwaySim/Input_template - 300k rows.csv",  # constants['ProfileLoadFilename']
         delimiter=',',
         dtype=float,
         encoding='utf-8-sig',
@@ -95,17 +95,17 @@ def ShortestOperationSolver(window, constants):
     # * Calculate virtual speed based on rolling stock length
     # L_train = constants['LOCO_LENGTH'] if constants['gb_locomotive'] else constants['TRAIN_LENGTH']
 
-    L_train = 100
+    L_train = 200
     # copy array to track, assigning to it is useless since we edit the dataset
     dataset_np_original = np.copy(dataset_np)
 
-    # @jit  # insert not supported - use concatenate and slices
+    @recur.tco  # Tail-Call Optimization
     def speed_from_length(array, row=0, length=L_train, speed_to_check=0):
         """Calculates the speed which ensures that the last point in the train complies with
         the speed limit"""
-        # global counter_ds_bigger, counter_ds_eq, counter_ds_smaller
+        # TODO: remove redundancies
         total_rows, _ = array.shape
-        if row >= total_rows - 1: return array  # last executed line
+        if row >= total_rows - 1: return False, array  # last executed line
         if row < total_rows - 1:
             distance_step = array[row, 0]
             if not speed_to_check: speed = array[row, 3]
@@ -114,41 +114,37 @@ def ShortestOperationSolver(window, constants):
             next_distance_step = array[row + 1, 0]
             if distance_step == 0:  # ? This is a station
                 # go to next step
-                return speed_from_length(array, row + 1, L_train)
+                return True, (array, row + 1, L_train)
             else:
                 if next_speed <= speed:
                     # braking will be handled later in code
                     # go to next step with L_train as offset
-                    return speed_from_length(array, row + 1, L_train)
+                    return True, (array, row + 1, L_train)
                 else:  # ? next_speed > speed
                     if next_distance_step > length:
-                        # array = np.insert(array, row, array[row], axis=0)
-                        # ? njit: None not supported
+                        # array = np.insert(array, row+1, array[row+1], axis=0)
                         # duplicate the next row
                         array = np.concatenate(
                             (array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0
                         )
-
-                        # keep current row as is
-                        # apply offset to next
                         array[row + 1, 3] = speed
                         array[row + 1, 0] = length
                         array[row + 2, 0] = next_distance_step - length
                         speed_to_check = array[row + 2, 3]
                         # skip the inserted row on the next check
-                        return speed_from_length(array, row + 2, L_train, speed_to_check)
+                        return True, (array, row + 2, L_train, speed_to_check)
                     elif next_distance_step == length:
                         # replace speed
                         speed_to_check = next_speed
                         array[row + 1, 3] = speed
                         # check the next step but with the original speed from next row
-                        return speed_from_length(array, row + 1, L_train, speed_to_check)
+                        return True, (array, row + 1, L_train, speed_to_check)
                     else:  # ? next_distance_step < length
                         # replace speed if
                         speed_to_check = next_speed
                         array[row + 1, 3] = speed
                         # check the next step, but using the remaining length
-                        return speed_from_length(array, row + 1, length - next_distance_step)
+                        return True, (array, row + 1, length - next_distance_step)
 
     array = speed_from_length(dataset_np)
     dataset_np_original = dataset_np_original.T
@@ -159,11 +155,11 @@ def ShortestOperationSolver(window, constants):
     )
     array = np.vstack((array, np.cumsum(array[0] / 1000, dtype=float)))
 
-    ax = plt.subplot(111)
-    ax.set_title(L_train)
-    ax.step(dataset_np_original[9], dataset_np_original[3], label="old array", where="pre")
-    ax.step(array[9], array[3], color='red', label="new array", where="pre")
-    ax.legend()
+    # ax = plt.subplot(111)
+    # ax.set_title(L_train)
+    # ax.step(dataset_np_original[9], dataset_np_original[3], label="old array", where="pre")
+    # ax.step(array[9], array[3], color='red', label="new array", where="pre")
+    # ax.legend()
 
     dataset_np_original = dataset_np_original.T
     array = array.T
@@ -178,9 +174,14 @@ def ShortestOperationSolver(window, constants):
         index=False,
     )
 
-    plt.show()
+    # plt.show()
 
-    # bundle = np.vstack((array, dataset_np_original))
+    Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(
+        'C:/Users/danic/MyPython/RailwaySim/Input_BE.csv'
+    )
+
+    print(len(Diesel_T_speed))
+    print(len(Diesel_T_effort))
 
     # #* Maximum effort based on speed (diesel)
     # if constants['gb_diesel_engine'] == True:
@@ -240,7 +241,7 @@ def ShortestOperationSolver(window, constants):
 
 # #index_values = ['first', 'second'] # index names ("row headers")
 
-# # column names
+# # column names, (1,...,n by default)
 # column_values = [
 #     'Time [s]',
 #     'Time [hh:mm:ss]',
