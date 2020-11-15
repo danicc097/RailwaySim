@@ -97,12 +97,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _iconFixes(self):
         '''Selects icon files for current stylesheet'''
-        global darkPath
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         if not self.dark_mode_set:
-            darkPath = 'resources/images/'
-        if self.dark_mode_set:
-            darkPath = 'resources/images_dark/'
+            darkPath = 'resources' + SEP + 'images' + SEP
+        else:
+            darkPath = 'resources' + SEP + 'images_dark' + SEP
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
         self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
         self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'about.png')))

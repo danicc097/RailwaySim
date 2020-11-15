@@ -31,12 +31,17 @@
 A deterministic simulation tool to perform time-driven railway route simulations. 
 ## Implemented functionality
 
+Virtual speed calculation:
+
+To ensure that the rolling stock complies with the predefined track speed limits at all points, it is necessary to take its total length into account. It will also be essential to determine the average grade to which the system is subjected later on.
+<p align="center"><img src="resources/images/Virtual_speed_acceleration_example.svg" alt="resistances" width="450"/></p>
+<p align="center"><img src="resources/images/Virtual_speed_example.svg" alt="resistances" width="450"/></p>
+
 
 ### Rolling stock resistances
 
 
 <p align="center"><img src="resources/images/formulas/Resistances.png" alt="resistances" width="350"/></p>
-
 where <i>m</i> is the total mass in tonnes, <i>u</i> is speed in km/h and <i>g</i> is gravity in m/s<sup>2</sup>. <i>R<sub>S</sub></i> is the starting resistance, introduced manually as deemed fit for the system. Rolling resistance <i>R<sub>R</sub></i> is given by the Davis formula with coefficients <i>A</i>, <i>B</i> and <i>C</i>, which depend on the particular vehicle. Resistance due to grade, <i>R<sub>G</sub></i>, is dependent on the track slope. Finally, <i>R<sub>C</sub></i> is given by the empirical Desdovits formula and is passed the current curve radius and track gauge.       
 ## Installation
 
