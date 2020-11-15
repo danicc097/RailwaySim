@@ -50,7 +50,7 @@ def ShortestOperationSolver(window, constants):
     print(dataset_np[myrow])
     print(dataset_np[myrow + 1])
     # * Calculate virtual speed based on rolling stock length
-    L_TRAIN = 50
+    L_TRAIN = 290
 
     def rolling_R(speed):
         """Returns the current Rolling resistance. Args: Speed [km/h], Static mass [t]"""
@@ -100,14 +100,23 @@ def ShortestOperationSolver(window, constants):
         Used to determine the minimum speed when step=L_TRAIN"""
         kpoint = np.cumsum(array[row, 0] / 1000, dtype=float)
         limit = kpoint + step
-        speed_list = []
+        speed_set = set()
+        speed_set.add(array[row, 3])
         total_rows, _ = array.shape
-        if step == 0: return array[row, 3]
-        while (kpoint < limit) and (row < total_rows - 1):
-            kpoint += array[row, 0]
-            if array[row, 3] != 0: speed_list.append(array[row, 3])
-            row += 1
-        return speed_list
+        if step > 0:
+            while (kpoint < limit) and (row < total_rows - 1):
+                if array[row + 1, 3] < array[row, 3]: break  # braking applies
+                if array[row, 3] != 0: speed_set.add(array[row, 3])
+                kpoint += array[row, 0]
+                row += 1
+        elif step < 0:
+            while (kpoint > limit) and (row > 0):
+                if array[row, 3] != 0: speed_set.add(array[row, 3])
+                kpoint -= array[row, 0]
+                row -= 1
+        else:
+            return array[row, 3]
+        return speed_set
 
     @recur.tco  # Tail-Call Optimization
     def speed_from_length(array, row=0, length=L_TRAIN, speed_accum=None, distance_accum=None):
@@ -138,7 +147,7 @@ def ShortestOperationSolver(window, constants):
                             (array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0
                         )
                         # speed_accum = array[row, 3]
-                        min_speed = min(speed_grabber(array, row, L_TRAIN))
+                        min_speed = min(speed, *speed_grabber(array, row, length))
                         array[row + 1, 3] = min_speed
                         array[row + 1, 0] = length
                         array[row + 2, 0] = next_distance_step - length
@@ -151,17 +160,20 @@ def ShortestOperationSolver(window, constants):
                             array[row + 2, 0] = distance_accum
                             array[row + 3, 0] -= distance_accum
                             # skip the 2 inserted rows
-                            return True, (array, row + 3, L_TRAIN)
+                            return True, (array, row + 3, L_TRAIN, speed_accum)
                         # skip the inserted row
-                        return True, (array, row + 2, L_TRAIN)
+                        return True, (array, row + 2, L_TRAIN, speed_accum)
                     else:  # ? next_distance_step < length
-                        min_speed = min(speed_grabber(array, row, L_TRAIN))
-                        speed_accum = np.copy(array)[row + 1, 3]  # keep ref to previous speed
+                        min_speed = min(speed_grabber(array, row, length))
+                        if not speed_accum or speed_accum is None:
+                            speed_accum = np.copy(array)[row + 1, 3]  # keep ref to previous speed
                         distance_accum = next_distance_step
                         # Assign the minimum speed
                         array[row + 1, 3] = min_speed
                         # check the next step, but using the remaining length
-                        return True, (array, row + 1, L_TRAIN, speed_accum, distance_accum)
+                        return True, (
+                            array, row + 1, length - distance_accum, speed_accum, distance_accum
+                        )
 
     array = speed_from_length(dataset_np)
     dataset_np_original = dataset_np_original.T
@@ -321,13 +333,13 @@ def ShortestOperationSolver(window, constants):
 #     'Time [hh:mm:ss]',
 #     'Distance step [m]',
 #     'KP [km]',
+#     'Speed [km/h]',
+#     'Acceleration [m/s²]',
 #     'Grade [‰]',
 #     'Profile [m]',
 #     'Radius [m]',
 #     'Speed restriction [km/h]',
-#     'Speed [km/h]',
 #     'Virtual speed limit [km/h]',
-#     'Acceleration [m/s²]',
 #     'Tractive Effort [kN]',
 #     'Braking Effort [kN]',
 #     'Resistance [kN]',
