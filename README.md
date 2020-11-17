@@ -33,10 +33,12 @@ A deterministic simulation tool to perform time-driven railway route simulations
 
 Virtual speed calculation:
 
-To ensure that the rolling stock complies with the predefined track speed limits at all points, it is necessary to take its total length into account. It will also be essential to determine the average grade to which the system is subjected later on.
-<p align="center"><img src="resources/images/Virtual_speed_acceleration_example.svg" alt="resistances" width="450"/></p>
-<p align="center"><img src="resources/images/Virtual_speed_example.svg" alt="resistances" width="450"/></p>
+To ensure that the rolling stock complies with the predefined track speed limits at all points, it is necessary to take its total length into account. In a nutshell, this algorithm will offset the original speed limit by the train length when a target is encountered, <i>i.e.</i> when the next speed is higher than the preceding one, splitting the original array while preserving the rest of the track's parameters (grade, curve radius, etc.). The simulation point is set to be in the front of the train for further calculations.
 
+<p align="center"><img src="resources/images/Virtual_speed_acceleration_example.svg" alt="resistances" width="750"/></p>
+<p align="center"><img src="resources/images/Virtual_speed_example.svg" alt="resistances" width="750"/></p>
+
+Train length is equally essential to determine the average grade to which the system is subjected. An equivalent grade can be obtained based on train length and weighing one step backwards at a time up until the total length.
 
 ### Rolling stock resistances
 

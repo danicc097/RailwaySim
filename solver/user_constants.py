@@ -1,3 +1,13 @@
+x = 0
+y = 0
+row = 0
+while row < 5:
+    spam = [2, 3, 4, 5, 6, 7]
+    twospam = spam[row]
+    print(twospam)
+    row += 1
+
+
 class GC():
     """User input constants"""
     def __init__(self, constants):
