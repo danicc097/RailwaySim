@@ -97,14 +97,14 @@ class CsvTableModel(qtc.QAbstractTableModel):
     def insertRows(self, position, rows, parent):
         self.beginInsertRows(parent or qtc.QModelIndex(), position, position + rows - 1)
 
-        for i in range(rows):
+        for _ in range(rows):
             default_row = [''] * len(self._headers)
             self._data.insert(position, default_row)
         self.endInsertRows()
 
     def removeRows(self, position, rows, parent):
         self.beginRemoveRows(parent or qtc.QModelIndex(), position, position + rows - 1)
-        for i in range(rows):
+        for _ in range(rows):
             del (self._data[position])
         self.endRemoveRows()
 
@@ -186,7 +186,7 @@ class MainWindow(qtw.QMainWindow):
         # not the number of *rows* selected.
 
         # correct approach would look like this:
-        num_rows = len(set(index.row() for index in selected))
+        num_rows = len({index.row() for index in selected})
         if selected:
             self.model.removeRows(selected[0].row(), num_rows, None)
 

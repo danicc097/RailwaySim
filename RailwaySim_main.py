@@ -65,7 +65,7 @@ class NewWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         #* Preferences load on program start
-        GUI_preferences_path = os.path.join(BASEDIR, 'resources/GUI_preferences.ini')
+        GUI_preferences_path = os.path.join(BASEDIR, 'resources', 'GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
 
@@ -73,7 +73,7 @@ class NewWindow(QMainWindow):
         """Create now MainWindow instance"""
         window = MainWindow(self, self.GUI_preferences)
         app_icon = QIcon()
-        app_icon_path = BASEDIR + SEP + 'resources' + SEP + 'images' + SEP + 'RailwaySimIcon.png'
+        app_icon_path = os.path.join(BASEDIR, 'resources', 'images', 'RailwaySimIcon.png')
         app_icon.addFile(app_icon_path)
         app.setWindowIcon(app_icon)
         window.setWindowIcon(app_icon)
@@ -250,31 +250,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def setup_route_checkbuttons(self):
         """Route tab checkboxes. Must be called after each plot update."""
-        if self.ProfileLoadFilename.text() != "":
-            try:
-                if self.route_canvas is not None:
-                    self.cb_r_stations.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-                    self.cb_r_speedres.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-                    self.cb_r_grade.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-                    self.cb_r_profile.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-                    self.cb_r_radii.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-                    self.cb_r_legend.stateChanged.connect(
-                        self.route_canvas.route_canvas_checkbox_handler
-                    )
-            except Exception as e:
-                self.statusBar().showMessage(
-                    "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
+        if self.ProfileLoadFilename.text() == "":
+            return
+        try:
+            if self.route_canvas is not None:
+                self.cb_r_stations.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
                 )
+                self.cb_r_speedres.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_grade.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_profile.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_radii.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_legend.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+        except Exception as e:
+            self.statusBar().showMessage(
+                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
+            )
 
     # TODO: PDF - See invoice_maker and qtdemo
     # self.printer = qtps.QPrinter()
@@ -392,14 +393,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def writeFile(self):  # ? Save
         """Saves GUI user input to the previously opened config file"""
-        if self.config_is_set:
-            if self.filename != "":
-                self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
-                self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
-                guisave(self, self.my_settings)
-                # self.my_settings.setValue(str('Nice_setting_name'), str('Tobedefined'))
-            else:
-                self.writeNewFile()
+        if self.config_is_set and self.filename != "":
+            self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
+            self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
+            guisave(self, self.my_settings)
+            # self.my_settings.setValue(str('Nice_setting_name'), str('Tobedefined'))
         else:
             self.writeNewFile()
 
@@ -458,8 +456,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
-        else:
-            pass
 
 
 class PlotCanvas_route(FigureCanvas):
@@ -476,69 +472,70 @@ class PlotCanvas_route(FigureCanvas):
 
     def route_data_import(self):
         """Route profile data import."""
-        if len(self.parent.ProfileLoadFilename.text()) > 3:
-            self.ROUTE_INPUT_DF = np.genfromtxt(
-                self.parent.ProfileLoadFilename.text(),
-                delimiter=',',
-                dtype=str,
-                encoding='utf-8-sig',
-                autostrip=True,
-                deletechars="",
+        if len(self.parent.ProfileLoadFilename.text()) <= 3:
+            return
+        self.ROUTE_INPUT_DF = np.genfromtxt(
+            self.parent.ProfileLoadFilename.text(),
+            delimiter=',',
+            dtype=str,
+            encoding='utf-8-sig',
+            autostrip=True,
+            deletechars="",
+        )
+
+        self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF.T
+
+        try:
+            self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
+            self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
+            self.grade = np.array(self.ROUTE_INPUT_DF[4][1:], dtype=float)
+            self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
+            self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
+            self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
+
+            #* Initialize profile array
+            self.profile = np.zeros(len(self.distance), dtype=float)
+
+            #* Calculate profile height from distance steps and grade
+            for index, distance_step in enumerate(self.distance):
+                if index < 1:
+                    self.profile[index] = 0
+                else:
+                    self.profile[
+                        index] = distance_step * self.grade[index] / 1000 + \
+                            self.profile[index-1]
+            # * Timetable
+            self.timetable_stations = np.array(
+                [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
             )
-
-            self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF.T
-
+            # * Find station kilometric points (0 m travelled paths)
+            self.timetable_stations_kpoint = np.array(
+                [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
+            )
+            # * Optional timetable
             try:
-                self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
-                self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
-                self.grade = np.array(self.ROUTE_INPUT_DF[4][1:], dtype=float)
-                self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
-                self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
-                self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
-
-                #* Initialize profile array
-                self.profile = np.zeros(len(self.distance), dtype=float)
-
-                #* Calculate profile height from distance steps and grade
-                for index, distance_step in enumerate(self.distance):
-                    if index < 1:
-                        self.profile[index] = 0
-                    else:
-                        self.profile[
-                            index] = distance_step * self.grade[index] / 1000 + \
-                                self.profile[index-1]
-                # * Timetable
-                self.timetable_stations = np.array(
-                    [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
+                self.timetable_dwell_time = np.array(
+                    [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
                 )
-                # * Find station kilometric points (0 m travelled paths)
-                self.timetable_stations_kpoint = np.array(
-                    [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
-                )
-                # * Optional timetable
-                try:
-                    self.timetable_dwell_time = np.array(
-                        [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
-                    )
-                except:
-                    self.timetable_dwell_time = None
-                # * Optional timetable
-                try:
-                    self.timetable_arrival_time = np.array(
-                        [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
-                    )
-                except:
-                    self.timetable_arrival_time = None
-
-                self.plot_route()
             except:
-                #* Attempt to replot once
-                try:
-                    if self.counter == 0:
-                        self.route_data_import()
-                        self.counter += 1
-                except:
-                    pass
+                self.timetable_dwell_time = None
+            # * Optional timetable
+            try:
+                self.timetable_arrival_time = np.array(
+                    [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
+                )
+            except:
+                self.timetable_arrival_time = None
+
+            self.plot_route()
+        except:
+            #* Attempt to replot once
+            try:
+                if self.counter == 0:
+                    self.route_data_import()
+                    self.counter += 1
+            except:
+                pass
 
     def plot_route(self):
         """Canvas and toolbar creation, deleting previous instances."""
@@ -704,11 +701,7 @@ class Preferences(QWidget, Ui_Form):
     def cb_watermark_check(self):
         """Define watermark based on checkbox state and line text"""
         global watermark
-        if self.cb_watermark.isChecked():
-            watermark = self.watermark.text()
-        else:
-            watermark = ""
-
+        watermark = self.watermark.text() if self.cb_watermark.isChecked() else ""
         #* Redraw canvas application-wide
         for window in window_list:
             try:
@@ -749,19 +742,6 @@ class Preferences(QWidget, Ui_Form):
             pass
         self.hide()
 
-
-# TODO: QMovie animation simulation
-# self.movie = QMovie("{filename}.gif")
-# self.movie.frameChanged.connect(self.repaint)
-# self.movie.start()
-
-# def paintEvent(self, event):
-#     currentFrame = self.movie.currentPixmap()
-#     frameRect = currentFrame.rect()
-#     frameRect.moveCenter(self.rect().center())
-#     if frameRect.intersects(event.rect()):
-#         painter = QPainter(self)
-#         painter.drawPixmap(frameRect.left(), frameRect.top(), currentFrame)
 
 if __name__ == "__main__":
     import sys

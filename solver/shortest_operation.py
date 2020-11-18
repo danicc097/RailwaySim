@@ -37,481 +37,352 @@ from numba import jit, njit
 from fn import recur
 
 
-def ShortestOperationSolver(window, constants):
-    # print(constants)
-    # print(constants['LOCO_AXLES'])
-    dataset_np = np.genfromtxt(
-        constants['ProfileLoadFilename'],
-        delimiter=',',
-        dtype=float,
-        encoding='utf-8-sig',
-        autostrip=True,
-        deletechars=""
-    )
-    dataset_np = dataset_np[1:, 3:-1]
-    print(dataset_np.shape)
-    myrow = 2
-    distance_step = dataset_np[myrow, 0]
-    grade = dataset_np[myrow, 1]
-    speed = dataset_np[myrow, 3]
-    next_speed = dataset_np[myrow + 1, 3]
-    # print("distance_step: ", distance_step)
-    # print("grade: ", grade)
-    # print("speed: ", speed)
-    # print("next_speed: ", next_speed)
-    # dataset_np = np.insert(dataset_np, myrow, dataset_np[myrow], axis=0)
-    print(dataset_np[myrow - 1])
-    print(dataset_np[myrow])
-    print(dataset_np[myrow + 1])
-    # * Calculate virtual speed based on rolling stock length
-    L_TRAIN = 550
+# TODO: Refactor inner functions for readability
+class ShortestOperationSolver():
+    def __init__(self, window, constants):
 
-    def rolling_R(speed):
-        """Returns the current Rolling resistance. Args: Speed [km/h], Static mass [t]"""
-        R = constants['ROLLING_R_A'] * MASS_STATIC * 9.81 + \
-            constants['ROLLING_R_B'] * MASS_STATIC * 9.81 * speed + \
-            constants['ROLLING_R_C'] * speed**2
-        return R
+        # print(constants)
+        # print(constants['LOCO_AXLES'])
+        dataset_np = np.genfromtxt(
+            constants['ProfileLoadFilename'],
+            delimiter=',',
+            dtype=float,
+            encoding='utf-8-sig',
+            autostrip=True,
+            deletechars=""
+        )
+        dataset_np = dataset_np[1:, 3:-1]
+        print(dataset_np.shape)
+        myrow = 2
+        distance_step = dataset_np[myrow, 0]
+        grade = dataset_np[myrow, 1]
+        speed = dataset_np[myrow, 3]
+        next_speed = dataset_np[myrow + 1, 3]
+        # print("distance_step: ", distance_step)
+        # print("grade: ", grade)
+        # print("speed: ", speed)
+        # print("next_speed: ", next_speed)
+        # dataset_np = np.insert(dataset_np, myrow, dataset_np[myrow], axis=0)
+        print(dataset_np[myrow - 1])
+        print(dataset_np[myrow])
+        print(dataset_np[myrow + 1])
+        L_TRAIN = 550
 
-    # TODO: use grade_equiv() instead of grade
-    def grade_R(grade):
-        """Returns the current Grade resistance. Args: Grade [‰]"""
-        R = MASS_STATIC * 9.81 + grade / 1000
-        return R
+        def rolling_R(speed):
+            """Returns the current Rolling resistance. Args: Speed [km/h], Static mass [t]"""
+            return constants['ROLLING_R_A'] * MASS_STATIC * 9.81 + \
+                constants['ROLLING_R_B'] * MASS_STATIC * 9.81 * speed + \
+                constants['ROLLING_R_C'] * speed**2
 
-    def curve_R(radius):
-        """Returns the current Curve resistance. Args: Radius [m]"""
-        R = 0 if not radius else MASS_STATIC * 4.9 * constants['TRACK_GAUGE'] / abs(radius)
-        return R
+        # TODO: use grade_equiv() instead of grade
+        def grade_R(grade):
+            """Returns the current Grade resistance. Args: Grade [‰]"""
+            return MASS_STATIC * 9.81 + grade / 1000
 
-    # TODO: resistance based on current distance step
-    def R_i(row):
-        speed = row
-        radius = row
-        grade = row
-        r_0 = constants['STARTING_R'] if speed == 0 else 0
-        return r_0 + curve_R(radius) + grade_R(grade) + rolling_R(speed)
+        def curve_R(radius):
+            """Returns the current Curve resistance. Args: Radius [m]"""
+            return (0 if not radius else MASS_STATIC * 4.9 * constants['TRACK_GAUGE'] / abs(radius))
 
-    #* Locomotive simulation
-    if constants['gb_locomotive']:
-        L_TRAIN = constants['LOCO_LENGTH']
-        MASS_STATIC_LOCO = constants['LOCO_NUMBER'] * constants['LOCO_MASS']
-        MASS_STATIC_WAG = constants['WAG_NUMBER'] * constants['WAG_MASS']
-        MASS_STATIC = MASS_STATIC_WAG + MASS_STATIC_LOCO
-        MASS_EQUIV = constants['MASS_STATIC_LOCO'] * (1 + constants['LOCO_ROT_MASS']) + constants[
-            'MASS_STATIC_WAG'] * (1 + constants['WAG_ROT_MASS'])
+        # TODO: resistance based on current distance step and length of train
+        def R_i(row):
+            speed = row
+            radius = row
+            grade = row
+            r_0 = constants['STARTING_R'] if speed == 0 else 0
+            return r_0 + curve_R(radius) + grade_R(grade) + rolling_R(speed)
 
-    #* Passenger train simulation
-    if constants['gb_passenger']:
-        L_TRAIN = constants['TRAIN_LENGTH']
-        MASS_STATIC = constants['TRAIN_MASS']
-        MASS_EQUIV = constants['TRAIN_MASS'] * (1 + constants['TRAIN_ROT_MASS'])
-    # copy array to track, assigning to it is useless since we edit the dataset
-    dataset_np_original = np.copy(dataset_np)
+        #* Locomotive simulation
+        if constants['gb_locomotive']:
+            L_TRAIN = constants['LOCO_LENGTH']
+            MASS_STATIC_LOCO = constants['LOCO_NUMBER'] * constants['LOCO_MASS']
+            MASS_STATIC_WAG = constants['WAG_NUMBER'] * constants['WAG_MASS']
+            MASS_STATIC = MASS_STATIC_WAG + MASS_STATIC_LOCO
+            MASS_EQUIV = constants['MASS_STATIC_LOCO'] * (
+                1 + constants['LOCO_ROT_MASS']
+            ) + constants['MASS_STATIC_WAG'] * (1 + constants['WAG_ROT_MASS'])
 
-    def d_same_or_higher_speed(array, row, max_step):
-        """Returns the distance value (up to 'step' meters) during which speed is the same or higher."""
-        distance = array[row, 0]
-        total_rows, _ = array.shape
-        if max_step > 0:
-            while row < total_rows - 1:
-                if array[row + 1, 3] >= array[row, 3]:
+        #* Passenger train simulation
+        if constants['gb_passenger']:
+            L_TRAIN = constants['TRAIN_LENGTH']
+            MASS_STATIC = constants['TRAIN_MASS']
+            MASS_EQUIV = constants['TRAIN_MASS'] * (1 + constants['TRAIN_ROT_MASS'])
+        # copy array to track, assigning to it is useless since we edit the dataset
+        dataset_np_original = np.copy(dataset_np)
+
+        def d_same_or_higher_speed(array, row, max_step):
+            """Returns the distance value (up to 'step' meters) during which speed is the same or higher."""
+            distance = array[row, 0]
+            if max_step > 0:
+                total_rows, _ = array.shape
+                while row < total_rows - 1:
+                    if array[row + 1, 3] < array[row, 3]:
+                        break
                     distance += array[row + 1, 0]
                     row += 1
-                else:
-                    break
-        elif max_step < 0:
-            while row > 0:
-                if array[row, 3] >= array[row - 1, 3]:
+            elif max_step < 0:
+                while row > 0:
+                    if array[row, 3] < array[row - 1, 3]:
+                        break
                     distance += array[row - 1, 0]
                     row -= 1
-                else:
-                    break
-        return distance
+            return distance
 
-    def d_same_speed(array, row, max_step):
-        """Returns the distance value (up to 'step' meters) ahead during which speed is constant"""
-        distance = array[row, 0]
-        total_rows, _ = array.shape
-        if max_step > 0:
-            while row < total_rows - 1:
-                if array[row + 1, 3] == array[row, 3]:
+        def d_same_speed(array, row, max_step):
+            """Returns the distance value (up to 'step' meters) ahead during which speed is constant"""
+            distance = array[row, 0]
+            if max_step > 0:
+                total_rows, _ = array.shape
+                while row < total_rows - 1:
+                    if array[row + 1, 3] != array[row, 3]:
+                        break
                     distance += array[row + 1, 0]
                     row += 1
-                else:
-                    break
-        elif max_step < 0:
-            while row > 0:
-                if array[row, 3] == array[row - 1, 3]:
+            elif max_step < 0:
+                while row > 0:
+                    if array[row, 3] != array[row - 1, 3]:
+                        break
                     distance += array[row - 1, 0]
                     row -= 1
-                else:
-                    break
-        return distance
+            return distance
 
-    def speed_grabber(array, row, step):
-        """Returns a list of speeds contained in [kpoint(row), kpoint(row)+step] meters.
-        Used to determine the minimum speed when step=L_TRAIN"""
-        kpoint = np.cumsum(array[row, 0] / 1000, dtype=float)
-        limit = kpoint + step
-        speed_set = set()
-        speed_set.add(array[row, 3])
-        total_rows, _ = array.shape
-        if step > 0:
-            while (kpoint < limit) and (row < total_rows - 1):
-                if array[row + 1, 3] < array[row, 3]: break  # braking applies
-                if array[row, 3] != 0: speed_set.add(array[row, 3])
-                kpoint += array[row, 0]
-                row += 1
-        elif step < 0:
-            while (kpoint > limit) and (row > 0):
-                if array[row, 3] != 0: speed_set.add(array[row, 3])
-                kpoint -= array[row, 0]
-                row -= 1
-        return speed_set if speed_set is not None else 99999
+        def speed_grabber(array, row, step):
+            """Returns a list of speeds contained in [kpoint(row), kpoint(row)+step] meters.
+            Used to determine the minimum speed when step=L_TRAIN"""
+            kpoint = np.cumsum(array[row, 0] / 1000, dtype=float)
+            limit = kpoint + step
+            speed_set = {array[row, 3]}
+            if step > 0:
+                total_rows, _ = array.shape
+                while (kpoint < limit) and (row < total_rows - 1):
+                    if array[row + 1, 3] < array[row, 3]: break  # braking applies
+                    if array[row, 3] != 0: speed_set.add(array[row, 3])
+                    kpoint += array[row, 0]
+                    row += 1
+            elif step < 0:
+                while (kpoint > limit) and (row > 0):
+                    if array[row, 3] != 0: speed_set.add(array[row, 3])
+                    kpoint -= array[row, 0]
+                    row -= 1
+            return speed_set if speed_set is not None else 99999
 
-    def split_row(array, row, distance=None, speed=None):
-        """Splits a row and assigns a given distance and speed to the first part."""
-        array = np.concatenate((array[:row], array[row, None], array[row:]), axis=0)
-        if distance and speed:
-            array[row, 3] = speed
-            array[row, 0] = distance
-        return array
+        def split_row(array, row, distance=None, speed=None):
+            """Splits a row and assigns a given distance and speed to the first part."""
+            array = np.concatenate((array[:row], array[row, None], array[row:]), axis=0)
+            if distance and speed:
+                array[row, 3] = speed
+                array[row, 0] = distance
+            return array
 
-    stacked_steps = list()
-
-    def speed_from_length(array, row=0, length=L_TRAIN):
-        """Calculates the speed which ensures that the last point in the train complies with
-        the speed limit. Returns the modified array."""
-        total_rows, _ = array.shape
-        speed_to_check = 0
-        while row < total_rows - 1:
+        # TODO: refactor
+        def speed_from_length(array, row=0):
+            """Calculates the speed which ensures that the last point in the train complies with
+            the speed limit. Returns a modified array."""
+            stacked_steps = list()
             total_rows, _ = array.shape
-            speed = np.copy(array)[row, 3]
-            distance_step = np.copy(array)[row, 0]
-            next_speed = array[row + 1, 3]
-            next_distance_step = array[row + 1, 0]
-            distance_same_or_higher_speed = d_same_or_higher_speed(array, row + 1, L_TRAIN)
-            distance_same_speed = d_same_speed(array, row + 1, L_TRAIN)
-            # print("distance_same_or_higher_speed: ", distance_same_or_higher_speed)
-            # print("row: ", row + 1, "with ", distance_same_speed, "m going at ", next_speed, "km/h")
-            if array[row, 0] == 0 or next_speed <= speed:
-                #? Current step is a station OR next_speed <= speed
-                row += 1
-                stacked_steps.clear()
-            elif next_speed == speed_to_check:
-                row += 1
-                stacked_steps.clear()
-                speed_to_check = 0
-            else:
-                print("Row where next speed > current speed: ", row)
-                #* If there's an equal or higher speed for more than L_TRAIN,
-                #* override speed and split last row
-                #// Double check in the morning ↓↓
-                # ! Don't write another block with distance_same_speed, since
-                # ! the outcome will be the same
-                # ! (in distance_same_or_higher_speed, if the speed is the same then
-                # !  speed is already overwritten with the same speed by default! )
-                if distance_same_or_higher_speed >= L_TRAIN:
-                    # ? Turn while into function. Return to break inner nested while loop
-
-                    if len(stacked_steps) > 0:
-                        i = 0
-                        accum_offset = 0
-                        while i < len(stacked_steps) and \
-                            accum_offset < L_TRAIN:
-                            print(colored(("ACCUM_OFFSET: ", accum_offset), "red"))
-                            stacked_distance, stacked_speed = stacked_steps.pop(i)
-                            print(
-                                colored((stacked_distance, " m, and speed", stacked_speed), "red")
+            speed_to_check = 0
+            while row < total_rows - 1:
+                total_rows, _ = array.shape
+                speed = np.copy(array)[row, 3]
+                next_distance = np.copy(array)[row + 1, 3]
+                next_speed = array[row + 1, 3]
+                distance_same_or_higher_speed = d_same_or_higher_speed(array, row + 1, L_TRAIN)
+                if array[row, 0] == 0 or next_speed <= speed or next_speed == speed_to_check:
+                    row += 1
+                    stacked_steps.clear()
+                    speed_to_check = 0
+                else:
+                    #* If there's an equal or higher speed for more than L_TRAIN,
+                    #* override speed and split last row
+                    if distance_same_or_higher_speed >= L_TRAIN:
+                        # ? Refactor into separate function.
+                        if len(stacked_steps) > 0:
+                            array, row = _apply_offset_array(stacked_steps, array, row, L_TRAIN)
+                        else:
+                            #* Loop and replace speed in all rows until accumulated length = L_TRAIN, but
+                            #* saving original (distance, speed) pairs, to be applied after the L_TRAIN offset
+                            array, row, speed_to_check = _create_offset_array(
+                                array, row, speed, next_speed, stacked_steps
                             )
-                            if array[row + 1, 0] > stacked_distance:
-                                print(
-                                    colored(
-                                        (
-                                            "next step is :", array[row + 1, 0],
-                                            'with stacked d of ', stacked_distance
-                                        ), "magenta"
-                                    )
-                                )
-                                array = split_row(array, row + 1, stacked_distance, stacked_speed)
-                                array[row + 2, 0] -= stacked_distance
-                                # accum_offset += stacked_distance  #!  necessary???
-                                i += 1  # keep applying offset
-                                row += 1  # skip the newly created row as well
-                                speed_to_check = next_speed
-                            else:  #* array[row + 1, 0] < stacked_distance
-                                array[row + 1, 3] = stacked_speed
-                                accum_offset += array[row + 1, 0]
-                                # TODO: the remaining (distance-stacked_distance), with speed = stacked_speed
-                                # TODO: has to be kept for the next loop!
-                                updated_step = [stacked_distance - array[row + 1, 0], stacked_speed]
-                                stacked_steps.insert(0, updated_step)
-                                i += 1
-                        row += 1
-                        stacked_steps.clear()
+
+                    #* Once L_TRAIN has been offset, override the following rows with
+                    #* the original values, saved in stacked_steps
                     else:
-                        # There's no offset speed to apply:
-                        # loop and replace speed in all rows until accumulated length = L_TRAIN, but
-                        # saving original (distance, speed) pairs, to be applied after the L_TRAIN offset
-                        accum_steps = 0
-                        remaining_length = 9999
-                        while accum_steps < L_TRAIN and remaining_length > 0:
-                            print(colored(("distance_same_or_higher_speed >= L_TRAIN"), "yellow"))
-                            print(colored(("stacked_steps: ", stacked_steps), "yellow"))
-                            print("next_distance_step: ", array[row + 1, 0])
-                            remaining_length = L_TRAIN - accum_steps
-                            print("remaining_length: ", remaining_length)
-
-                            #* When the next step is larger than the remaining length to be overridden,
-                            #* split this next row and assign the previous speed to the first slice
-                            if array[row + 1, 0] > remaining_length:
-                                array = split_row(array, row + 1, remaining_length, speed)
-                                array[row + 2, 0] -= remaining_length
-                                # TODO: What to do with next speed???
-                                accum_steps = L_TRAIN + 9999  # break out of inner loop
-                                row += 1  # skip the newly created row as well
-                                speed_to_check = next_speed
-                            #* If the next step is smaller or equal, assign previous speed and accumulate distance
-                            else:
-                                stacked_steps.append(
-                                    [np.copy(array)[row + 1, 0],
-                                     np.copy(array)[row + 1, 3]]
-                                )
-                                array[row + 1, 3] = speed
-                                accum_steps += array[row + 1, 0]
-                                print("accum_steps: ", accum_steps)
-                                row += 1
-
-                #* Once L_TRAIN has been offset, override the following rows with
-                #* the original values, saved in stacked_steps
-                else:  # ? distance_same_or_higher_speed < L_TRAIN
-                    print(colored(("distance_same_or_higher_speed < L_TRAIN"), "cyan"))
-                    #* Check if there's accumulated (distance,speed) pairs,
-                    #* i.e. an offset was applied
-                    # TODO: THE STACKED STEPS CODE BLOCK HAS T0 BE ACCESSED RIGHT AFTER APPLYING AN OFFSET,
-                    # TODO: NOT ONLY WHEN distance_same_or_higher_speed < L_TRAIN
-                    if len(stacked_steps) > 0:
-                        i = 0
-                        accum_offset = 0
-                        while i < len(stacked_steps) and \
-                            accum_offset < distance_same_or_higher_speed:
-                            print(colored(("stacked_steps: ", stacked_steps), "cyan"))
-                            stacked_distance, stacked_speed = stacked_steps.pop(i)
-                            print(
-                                colored(
-                                    (stacked_distance, " m, and speed", stacked_speed), "yellow"
-                                )
+                        #* Check if there's accumulated (distance,speed) pairs,
+                        #* i.e. an offset was applied
+                        if len(stacked_steps) > 0:
+                            array, row = _apply_offset_array(
+                                stacked_steps, array, row, next_distance
                             )
-                            print(colored(("stacked_steps: ", stacked_steps), "cyan"))
-                            if array[row + 1, 0] > stacked_distance:
-                                print(
-                                    "next step is :", array[row + 1, 0], 'with stacked d of ',
-                                    stacked_distance
-                                )
-                                array = split_row(array, row + 1, stacked_distance, stacked_speed)
-                                array[row + 2, 0] -= stacked_distance
-                                i += 1  # keep applying offset
-                                row += 1  # skip the newly created row as well
-                            else:
-                                print('accessssssssssssssssssssss')
-                                array[row + 1, 3] = stacked_speed
-                                accum_offset += array[row + 1, 0]
-                                # TODO: the remaining (distance-stacked_distance), with speed = stacked_speed
-                                # TODO: has to be kept for the next loop!
-                                updated_step = [stacked_distance - array[row + 1, 0], stacked_speed]
-                                stacked_steps.insert(0, updated_step)
-                                i += 1
-                        row += 1
-                        stacked_steps.clear()
-                    else:
-                        array[row + 1, 3] = array[row, 3]
-                        row += 1
-        return array
-
-    """
-    @recur.tco  # Tail-Call Optimization
-    def speed_from_length(array, row=0, length=L_TRAIN, speed_accum=None, distance_accum=None):
-        Calculates the speed which ensures that the last point in the train complies with
-        the speed limit
-        total_rows, _ = array.shape
-        if row >= total_rows - 1: return False, array  # last executed line
-        if row < total_rows - 1:
-            speed = np.copy(array)[row, 3]
-            distance_step = np.copy(array)[row, 0]
-            next_speed = array[row + 1, 3]
-            next_distance_step = array[row + 1, 0]
-            stacked_steps.append((distance_step, speed))
-            d_same_speed = distance_with_same_speed(array, row + 1, L_TRAIN)
-            print("row: ", row + 1, "with ", d_same_speed, "m going at ", next_speed, "km/h")
-            if array[row, 0] == 0 or next_speed <= speed:
-                #? Station OR braking (will be handled later in code)
-                return True, (array, row + 1, L_TRAIN)
-            else:
-                print("row: ", row + 1)
-                if d_same_speed >= length:
-                    # loop and replace speed in all rows for length = L_TRAIN
-                    accum_steps = 0
-                    while (accum_steps < L_TRAIN):  # and (array[row + 1, 3] <= array[row + 2, 3])
-                        # when next step is larger than the remaining length,
-                        # split and assign what's left of the distance with previous speed
-                        # use speed_grabber to assign the lowest speed in case there's braking in front
-                        print("next_distance_step: ", next_distance_step)
-                        if next_distance_step > (L_TRAIN -
-                                                 accum_steps) and (L_TRAIN - accum_steps) > 0:
-                            array = np.concatenate(
-                                (array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0
-                            )
-                            accum_row_step = np.copy(array)[row + 1, 0]
-                            accum_row_speed = np.copy(array)[row + 1, 3]
-                            array[row + 1, 3] = speed_accum
-                            array[row + 1, 0] = L_TRAIN - accum_steps
-                            array[row + 2, 0] -= L_TRAIN - accum_steps
-                            # Skip the inserted row
-                            return True, (array, row + 2, L_TRAIN)
-                        else:  # next_distance_step <= length
-                            array[row + 1, 3] = speed
-                            accum_steps += next_distance_step
-                            print("accum_steps: ", accum_steps)
+                        #* If the following distance (with equal or higher speed) and
+                        #* without accumulated offset is smaller than L_TRAIN, it is simply replaced
+                        #* and there's no need to accumulate this change creating an offset array
+                        else:
+                            array[row + 1, 3] = array[row, 3]
                             row += 1
-                    # return True, (array, row + 1, L_TRAIN)
-                    # if distance_accum and distance_accum < next_distance_step:
-                    #         print("distance_accum", distance_accum, "in row ", row)
-                    #         array = np.concatenate(
-                    #             (array[:row + 1], array[row + 1, None], array[row + 1:]), axis=0
-                    #         )
-                    #         array[row + 1, 3] = speed_accum
-                    #         array[row + 1, 0] = distance_accum
-                    #         array[row + 2, 0] -= distance_accum
-                    #         # skip the inserted row
-                    #         return True, (array, row + 2, L_TRAIN)
-                    # return True, (array, row + 1, L_TRAIN, speed_accum)
-                else:  # ? d_same_speed < length
-                    if not speed_accum or speed_accum is None:
-                        speed_accum = np.copy(array)[row + 1, 3]  # keep ref to previous speed
-                    min_speed = min(speed_grabber(array, row, length))
-                    distance_accum = d_same_speed
-                    # Assign the minimum speed
-                    array[row + 1, 3] = min_speed
-                    # check the next step, but using the remaining length
-                    return True, (
-                        array, row + 1, L_TRAIN - d_same_speed, speed_accum, distance_accum
-                    )
-    """
+            return array
 
-    array = speed_from_length(dataset_np)
-    dataset_np_original = dataset_np_original.T
-    array = array.T
+        def _create_offset_array(array, row, speed, next_speed, stacked_steps):
+            """Offsets an array based on train length and stores the original array slices."""
+            accum_steps = 0
+            remaining_length = 9999
+            speed_to_check = 0
+            while accum_steps < L_TRAIN and remaining_length > 0:
+                remaining_length = L_TRAIN - accum_steps
+                #* When the next step is larger than the remaining length to be overridden,
+                #* split this next row and assign the previous speed to the first slice
+                if array[row + 1, 0] > remaining_length:
+                    array = split_row(array, row + 1, remaining_length, speed)
+                    array[row + 2, 0] -= remaining_length
+                    accum_steps = L_TRAIN + 9999  # break out of inner loop
+                    row += 1  # skip the newly created row as well
+                    speed_to_check = next_speed  # the next loop will check the original speed
+                #* If the next step is smaller or equal, assign previous speed and accumulate distance
+                else:
+                    stacked_steps.append([np.copy(array)[row + 1, 0], np.copy(array)[row + 1, 3]])
+                    array[row + 1, 3] = speed
+                    accum_steps += array[row + 1, 0]
+                    row += 1
+            return array, row, speed_to_check
 
-    dataset_np_original = np.vstack(
-        (dataset_np_original, np.cumsum(dataset_np_original[0] / 1000, dtype=float))
-    )
-    kpoint = np.cumsum(array[0] / 1000, dtype=float)
-    array = np.vstack((array, kpoint))  # appends to last column (along vertical axis)
+        def _apply_offset_array(stacked_steps, array, row, stop_cond):
+            """Applies the stacked steps and corresponding speed until the stop
+            distance is reached or the steps have been completely offset."""
+            i = 0
+            accum_offset = 0
+            while i < len(stacked_steps) and accum_offset < stop_cond:
+                stacked_distance, stacked_speed = stacked_steps.pop(i)
+                if array[row + 1, 0] > stacked_distance:
+                    array = split_row(array, row + 1, stacked_distance, stacked_speed)
+                    array[row + 2, 0] -= stacked_distance
+                    row += 1  # skip the newly created row as well
+                else:
+                    array[row + 1, 3] = stacked_speed
+                    accum_offset += array[row + 1, 0]
+                    updated_step = [stacked_distance - array[row + 1, 0], stacked_speed]
+                    stacked_steps.insert(i + 1, updated_step)
+                i += 1
+            row += 1
+            stacked_steps.clear()
+            return array, row
 
-    ax = plt.subplot(111)
-    ax.set_title(f"Length of train: {L_TRAIN} m")
-    ax.step(array[9], array[3], color='red', label="Revised speed", where="pre")
-    ax.step(array[9], array[1], color='green', label="Revised grade", where="pre")
-    ax.step(
-        dataset_np_original[9],
-        dataset_np_original[1],
-        color='black',
-        label="Original grade",
-        where="pre"
-    )
-    ax.step(
-        dataset_np_original[9],
-        dataset_np_original[3],
-        label="Original speed",
-        where="pre",
-    )
-    ax.set_xlabel('Distance [km]')
-    ax.set_ylabel('Speed [km/h]')
-    ax.legend()
+        array = speed_from_length(dataset_np)
+        dataset_np_original = dataset_np_original.T
+        array = array.T
 
-    dataset_np_original = dataset_np_original.T
-    array = array.T
+        dataset_np_original = np.vstack(
+            (dataset_np_original, np.cumsum(dataset_np_original[0] / 1000, dtype=float))
+        )
+        kpoint = np.cumsum(array[0] / 1000, dtype=float)
+        array = np.vstack((array, kpoint))  # appends to last column (along vertical axis)
 
-    # np to pd # TODO use os paths
-    parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    a = pd.DataFrame(data=array)
-    a.to_csv(
-        parentDirectory + '/Output_template_COPY.csv',
-        encoding='utf-8-sig',
-        float_format='%1.8f',
-        index=False,
-    )
+        ax = plt.subplot(111)
+        ax.set_title(f"Length of train: {L_TRAIN} m")
+        ax.step(array[9], array[3], color='red', label="Revised speed", where="pre")
+        ax.step(array[9], array[1], color='green', label="Revised grade", where="pre")
+        ax.step(
+            dataset_np_original[9],
+            dataset_np_original[1],
+            color='black',
+            label="Original grade",
+            where="pre"
+        )
+        ax.step(
+            dataset_np_original[9],
+            dataset_np_original[3],
+            label="Original speed",
+            where="pre",
+        )
+        ax.set_xlabel('Distance [km]')
+        ax.set_ylabel('Speed [km/h]')
+        ax.legend()
 
-    plt.show()
+        dataset_np_original = dataset_np_original.T
+        array = array.T
 
-    #* Maximum effort based on speed (diesel)
-    if constants['gb_diesel_engine'] == True:
-        try:
-            Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(constants['D_TELoadFilename'])
-            Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(constants['D_BELoadFilename'])
-        except Exception as e:
-            return qtw.QMessageBox.critical(
-                window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
-            )
-    #* Maximum effort based on speed (electric)
-    if constants['gb_electric_traction'] == True:
-        try:
-            Electric_T_speed, Electric_T_effort = effort_curve_to_arrays(
-                constants['E_TELoadFilename']
-            )
-            Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
-                constants['E_BELoadFilename']
-            )
-        except Exception as e:
-            return qtw.QMessageBox.critical(
-                window, "Error", "Could not load Electric traction - speed curve data: " + str(e)
-            )
+        # np to pd # TODO use os paths
+        parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+        a = pd.DataFrame(data=array)
+        a.to_csv(
+            parentDirectory + '/Output_template_COPY.csv',
+            encoding='utf-8-sig',
+            float_format='%1.8f',
+            index=False,
+        )
 
-    def target_brake():
-        """Determines where the braking algorithm should be called, 
-        to avoid continuous execution.
-        Returns a list containing kpoints and corresponding steps."""
+        plt.show()
 
-    def grade_equiv(current_kpoint):
-        """
-        Backwards search to define the equivalent grade based on train length.
-        current_kpoint: accumulated distance until front of train.
-        row: current distance_step
+        #* Maximum effort based on speed (diesel)
+        if constants['gb_diesel_engine'] == True:
+            try:
+                Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(
+                    constants['D_TELoadFilename']
+                )
+                Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(
+                    constants['D_BELoadFilename']
+                )
+            except Exception as e:
+                return qtw.QMessageBox.critical(
+                    window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
+                )
+        #* Maximum effort based on speed (electric)
+        if constants['gb_electric_traction'] == True:
+            try:
+                Electric_T_speed, Electric_T_effort = effort_curve_to_arrays(
+                    constants['E_TELoadFilename']
+                )
+                Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
+                    constants['E_BELoadFilename']
+                )
+            except Exception as e:
+                return qtw.QMessageBox.critical(
+                    window, "Error",
+                    "Could not load Electric traction - speed curve data: " + str(e)
+                )
 
-        #* The current kpoint has to be retrieved from the output array based
-        #* on the actual simulation accumulated distance.
+        def target_brake():
+            """Determines where the braking algorithm should be called, 
+            to avoid continuous execution.
+            Returns a list containing kpoints and corresponding steps."""
 
-        """
-        """
-        row=
-        grade_steps = []
-        accum_length = 0
-        current_grade = array[row, 1]
-        previous_kpoint = array[row, -1]
-        distance_step = current_kpoint - previous_kpoint
-        if L_TRAIN <= distance_step:
-            return current_grade
-        else:
-            grade_steps.append(distance_step * current_grade)
-        while accum_length < L_TRAIN:
-            # update with previous row
-            row -= 1
-            distance_step = array[row, 0]
-            if distance_step + accum_length <= L_TRAIN:
-                accum_length += distance_step
+        def grade_equiv(current_kpoint):
+            """
+            Backwards search to define the equivalent grade based on train length.
+            current_kpoint: accumulated distance until front of train.
+            row: current distance_step
 
+            #* The current kpoint has to be retrieved from the output array based
+            #* on the actual simulation accumulated distance.
+
+            """
+            """
+            row=
+            grade_steps = []
+            accum_length = 0
             current_grade = array[row, 1]
             previous_kpoint = array[row, -1]
-            previous_distance_step = array[row - 1, 0]
-            previous_grade = array[row - 1, 1]
-            grade_steps.append(distance_step * current_grade)
+            distance_step = current_kpoint - previous_kpoint
+            if L_TRAIN <= distance_step:
+                return current_grade
+            else:
+                grade_steps.append(distance_step * current_grade)
+            while accum_length < L_TRAIN:
+                # update with previous row
+                row -= 1
+                distance_step = array[row, 0]
+                if distance_step + accum_length <= L_TRAIN:
+                    accum_length += distance_step
 
-        return sum(grade_steps) / L_TRAIN
-        """
+                current_grade = array[row, 1]
+                previous_kpoint = array[row, -1]
+                previous_distance_step = array[row - 1, 0]
+                previous_grade = array[row - 1, 1]
+                grade_steps.append(distance_step * current_grade)
 
-    def total_time():
-        """"""
+            return sum(grade_steps) / L_TRAIN
+            """
+
+        def total_time():
+            """"""
 
     # Initialize solution array
     # output_array = np.zeros()

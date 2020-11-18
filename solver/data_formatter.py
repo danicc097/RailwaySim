@@ -3,21 +3,21 @@ import numpy as np
 
 def effort_curve_to_arrays(path):
     """Returns speed, effort as ndarrays from a given path."""
-    if path != "" and path is not None:
-        curve = np.genfromtxt(
-            path,
-            delimiter=',',
-            dtype=str,
-            encoding='utf-8-sig',
-            autostrip=True,
-            deletechars="",
-        )
-        curve = curve.T
-        speed = np.array(curve[0][1:], dtype=float)
-        effort = np.array(curve[1][1:], dtype=float)
-        return (speed, effort)
-    else:
+    if path == "" or path is None:
         return (None, None)
+
+    curve = np.genfromtxt(
+        path,
+        delimiter=',',
+        dtype=str,
+        encoding='utf-8-sig',
+        autostrip=True,
+        deletechars="",
+    )
+    curve = curve.T
+    speed = np.array(curve[0][1:], dtype=float)
+    effort = np.array(curve[1][1:], dtype=float)
+    return (speed, effort)
 
 
 def hhmm_to_s(time):
