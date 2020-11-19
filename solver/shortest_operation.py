@@ -79,6 +79,7 @@ class ShortestOperationSolver():
             """Returns the current Grade resistance. Args: Grade [‰]"""
             return MASS_STATIC * 9.81 + grade / 1000
 
+        # TODO: use radii_equiv() instead of grade
         def curve_R(radius):
             """Returns the current Curve resistance. Args: Radius [m]"""
             return (0 if not radius else MASS_STATIC * 4.9 * constants['TRACK_GAUGE'] / abs(radius))

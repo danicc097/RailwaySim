@@ -38,6 +38,7 @@ L_TRAIN = 100
 def grade_equiv(current_kpoint, row):
     """
     Backwards search to define the equivalent grade based on train length.
+    :parameters:
     current_kpoint: accumulated distance until front of train.
     row: current distance_step
     """

@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FixedLocator, FixedFormatter
 from matplotlib.widgets import CheckButtons
+from adjustText import adjust_text
 x_axis1 = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 5.5, 6.0, 10.5, 15.0, 15.5]
 y_axis1 = [60.0, 80.0, 70.0, 60.0, 70.0, 50.0, 80.0, 100.0, 80.0, 60.0, 50.0]
-x_axis2 = [0.0, 2.8, 10.4, 15.6]
-y_axis2 = ['First Station', 'Second Station', 'Third Station', 'Last station']
-x_axis3 = [1.0, 1.8, 5.4, 12.6]
-y_axis3 = ['First fake Station', 'Second fake Station', 'Third fake Station', 'Last fake station']
+x_axis2 = [0.0, 0.3, 0.6, 0.9]
+y_axis2_labels = ['First Station', 'Second Station', 'Third Station', 'Last station']
+max_y = max(y_axis1)
+y_axis2 = [max_y for i in range(len(x_axis2))]
 fig, ax = plt.subplots()
 
 ax.set_xlabel("Distance [km]")
@@ -17,6 +18,9 @@ l0, = ax.step(x_axis1, y_axis1, label="Speed", where="post")
 ax2 = ax.twiny()
 ax2.set_xlim(ax.get_xlim())
 ax2.set_label('Stations')
+plt.xticks([])
+
+# See https://matplotlib.org/3.3.3/api/text_api.html#matplotlib.text.Text
 ax2.tick_params(
     axis="x",
     which='major',
@@ -25,44 +29,31 @@ ax2.tick_params(
     length=7,
     labelsize=10,
     color="red",
-    rotation=60
+    rotation=60,
+    # linespacing=2.4,
 )
+
 x_locator = FixedLocator(x_axis2)
 x_formatter = FixedFormatter(y_axis2)
-ax2.xaxis.set_major_locator(
-    x_locator
-)  # it's best to first set the locator and only then the formatter
-ax2.xaxis.set_major_formatter(x_formatter)
+# ax2.xaxis.set_major_locator(
+#     x_locator
+# )  # it's best to first set the locator and only then the formatter
+# ax2.xaxis.set_major_formatter(x_formatter)
 # ? optionally add vertical lines at each of the station positions
 for x in x_axis2:
     ax2.axvline(x, color='red', ls=':', lw=1.5)
 
-#* Twin axis 3
-ax3 = ax.twiny()
-ax3.set_xlim(ax.get_xlim())
-ax3.set_label('Stations')
-ax3.tick_params(
-    axis="x",
-    which='major',
-    direction="in",
-    width=1.5,
-    length=7,
-    labelsize=10,
-    color="red",
-    rotation=60
-)
-x_locator = FixedLocator(x_axis3)
-x_formatter = FixedFormatter(y_axis3)
-ax3.xaxis.set_major_locator(
-    x_locator
-)  # it's best to first set the locator and only then the formatter
-ax3.xaxis.set_major_formatter(x_formatter)
-# ? optionally add vertical lines at each of the station positions
-for x in x_axis3:
-    ax3.axvline(x, color='red', ls=':', lw=1.5)
+locs, labels = plt.xticks()
+print(locs)
+print(labels)
+texts = [
+    plt.text(x_axis2[i], y_axis2[i], y_axis2_labels[i], ha='center', va='center', rotation=60)
+    for i in range(len(x_axis2))
+]
+adjust_text(texts, ha="right", arrowprops=dict(arrowstyle='->', color='red'))
 
 # * Edit lines for each new axis
-lines = [l0, ax2, ax3]
+lines = [l0, ax2]
 rax = plt.axes([0, 0, 0.12, 0.1])
 labels = [str(line.get_label()) for line in lines]
 visibility = [line.get_visible() for line in lines]

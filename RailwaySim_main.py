@@ -53,6 +53,7 @@ BASEDIR = os.path.dirname(__file__)
 
 #* Allow multiple MainWindow instances
 window_list = []
+
 SEP = os.path.sep
 
 # set icon on Windows
@@ -214,8 +215,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.gb_locomotive.isChecked() else checked
         )
 
+        #* Dials
+        self.dial_label_size.valueChanged.connect(self.dial_refresh)
+        self.dial_stroke_size.valueChanged.connect(self.dial_refresh)
+
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+    def dial_refresh(self):
+        """Update route plot line width."""
+        try:
+            # self.route_canvas.flush_events()
+            self.linewidth = self.dial_stroke_size.value() / 2.5
+            self.labelsize = 5 + self.dial_label_size.value()
+            self.route_canvas.plot_route(self.linewidth, self.labelsize)
+        except:
+            pass
 
     def create_route_plot(self):
         """Route canvas and toolbar creator. Called when a file is loaded"""
@@ -537,7 +552,7 @@ class PlotCanvas_route(FigureCanvas):
             except:
                 pass
 
-    def plot_route(self):
+    def plot_route(self, linewidth=2.5, labelsize=10):
         """Canvas and toolbar creation, deleting previous instances."""
         if len(self.parent.instances_route_toolbar) > 1:
             self.parent.instances_route_canvas[0].hide()
@@ -571,14 +586,18 @@ class PlotCanvas_route(FigureCanvas):
         #* Plotting on main axis sharing X
         if self.parent.cb_r_speedres.isChecked():
             self.line0, = self.ax.step(
-                self.kpoint, self.speed_res, label="Speed [km/h]", where="pre"
+                self.kpoint, self.speed_res, linewidth=linewidth, label="Speed [km/h]", where="pre"
             )
 
         if self.parent.cb_r_grade.isChecked():
-            self.line1, = self.ax.step(self.kpoint, self.grade, label="Grade [‰]", where="pre")
+            self.line1, = self.ax.step(
+                self.kpoint, self.grade, linewidth=linewidth, label="Grade [‰]", where="pre"
+            )
 
         if self.parent.cb_r_profile.isChecked():
-            self.line3, = self.ax.plot(self.kpoint, self.profile, label="Profile [m]")
+            self.line3, = self.ax.plot(
+                self.kpoint, self.profile, linewidth=linewidth, label="Profile [m]"
+            )
 
         #* Twin axis Y - station tick marks
         if self.parent.cb_r_stations.isChecked():
@@ -591,9 +610,9 @@ class PlotCanvas_route(FigureCanvas):
                 direction="in",
                 width=1.5,
                 length=7,
-                labelsize=10,
+                labelsize=labelsize,
                 color="red",
-                rotation=20
+                rotation=40
             )
             x_locator = FixedLocator(self.timetable_stations_kpoint)
             x_formatter = FixedFormatter(self.timetable_stations)
@@ -604,6 +623,9 @@ class PlotCanvas_route(FigureCanvas):
             #* optionally add vertical lines at each of the station positions
             for x in self.timetable_stations_kpoint:
                 self.ax2.axvline(x, color='red', ls=':', lw=1.5)
+
+            # station_locs, station_labels = plt.xticks()
+            # print(station_locs, station_labels)
 
         #* Twin axis X - Radii
         if self.parent.cb_r_radii.isChecked():
@@ -638,14 +660,9 @@ class PlotCanvas_route(FigureCanvas):
     def route_canvas_checkbox_handler(self):
         """Replot on checkbox state change."""
         try:
-            self.plot_route()
+            self.plot_route(self.parent.linewidth, self.parent.labelsize)
         except:
             pass
-        # except Exception as e:
-        #     qtw.QMessageBox.critical(
-        #         self, "Error",
-        #         str(e) + "\nCould not plot, please reload the data."
-        #     )
 
 
 class Preferences(QWidget, Ui_Form):
@@ -684,7 +701,7 @@ class Preferences(QWidget, Ui_Form):
         try:
             # * Apply corresponding style
             if not self.dark_mode_set:
-                app.setStyleSheet("")  # Default Fusion style
+                app.setStyleSheet("")  # Default style
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
 
@@ -746,6 +763,7 @@ class Preferences(QWidget, Ui_Form):
 if __name__ == "__main__":
     import sys
     app = qtw.QApplication(sys.argv)
+    app.setStyle('Fusion')  # ['windowsvista', 'Windows', 'Fusion']
     w = NewWindow()  # Instantiate window factory class
 
     #* Exit with Ctrl + C
