@@ -1,4 +1,22 @@
 """
+                 _-====-__-======-__-========-_____-============-__
+                (                                                 _)
+               (    _ __           _                  __,           )
+             o (_  ( /  )      o  //                 (    o         _)
+            OO(_    /--<  __, ,  // , , , __,  __  ,  `. ,  _ _ _    )
+           oO (_   /   \_(_/(_(_(/_(_(_/_(_/(_/ (_/_(___)(_/ / / /   )
+          O    (_                              __/                 _)
+         Oo     (_                                                 )
+        o         '=-___-===-_____-========-_______=___-===--==-='
+      .o                                 
+     . ______          ______________ ______________ ______________
+   _()_||__|| ________ |            | |            | |            | 
+  (         | |      | |  ________  | |  ________  | |  ________  | 
+ /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
+#####################################################################
+"""
+"""
+
 ! pipenv run python RailwaySim_main.py
 ! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py 
 ! pyuic5 -x RailwaySim_GUI_pref.ui -o RailwaySim_GUI_pref.py
@@ -24,13 +42,14 @@ import os
 import random
 import ctypes
 
+import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 import numpy as np
 import qdarkstyle
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.pyplot import rcParams, style
-from matplotlib.ticker import FixedFormatter, FixedLocator
+from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter
 from PyQt5 import QtCore, QtGui
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
@@ -45,7 +64,7 @@ from RailwaySim_GUI import Ui_MainWindow
 from RailwaySim_GUI_pref import Ui_Form
 from save_restore import grab_GC, guirestore, guisave
 from scaled_labels import ScaledLabel, label_grabber
-from solver.data_formatter import hhmm_to_s, s_to_hhmmss
+from solver.data_formatter import hhmm_to_s, s_to_hhmmss, get_text_positions, text_plotter
 
 from solver.shortest_operation import ShortestOperationSolver
 
@@ -224,13 +243,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def dial_refresh(self):
         """Update route plot line width."""
-        try:
+        if len(self.ProfileLoadFilename.text()) > 3:
             # self.route_canvas.flush_events()
             self.linewidth = self.dial_stroke_size.value() / 2.5
-            self.labelsize = 5 + self.dial_label_size.value()
+            self.labelsize = 8 + self.dial_label_size.value()
             self.route_canvas.plot_route(self.linewidth, self.labelsize)
-        except:
-            pass
+            self.route_canvas.route_fig.set_tight_layout(True)
 
     def create_route_plot(self):
         """Route canvas and toolbar creator. Called when a file is loaded"""
@@ -398,6 +416,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             pass
                         self.create_route_plot()
                         self.setup_route_checkbuttons()
+                        self.dial_refresh()
 
                 except Exception or TypeError as e:
                     qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
@@ -465,7 +484,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.writeFile()
                 #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
-                #* Compute and outputs a CSV
+                #* Compute and output
                 ShortestOperationSolver(self, constants)
                 #* Change to simulation tab and plot
 
@@ -485,7 +504,7 @@ class PlotCanvas_route(FigureCanvas):
         self.route_data_import()
         self.counter = 0  # Allow for plot retries upon exception
 
-    def route_data_import(self):
+    def route_data_import(self, linewidth=2.5):
         """Route profile data import."""
         if len(self.parent.ProfileLoadFilename.text()) <= 3:
             return
@@ -508,10 +527,8 @@ class PlotCanvas_route(FigureCanvas):
             self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
             self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
 
-            #* Initialize profile array
-            self.profile = np.zeros(len(self.distance), dtype=float)
-
             #* Calculate profile height from distance steps and grade
+            self.profile = np.zeros(len(self.distance), dtype=float)
             for index, distance_step in enumerate(self.distance):
                 if index < 1:
                     self.profile[index] = 0
@@ -519,7 +536,7 @@ class PlotCanvas_route(FigureCanvas):
                     self.profile[
                         index] = distance_step * self.grade[index] / 1000 + \
                             self.profile[index-1]
-            # * Timetable
+            # * Main timetable
             self.timetable_stations = np.array(
                 [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
             )
@@ -527,14 +544,13 @@ class PlotCanvas_route(FigureCanvas):
             self.timetable_stations_kpoint = np.array(
                 [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
             )
-            # * Optional timetable
+            # * Optional timetables
             try:
                 self.timetable_dwell_time = np.array(
                     [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
                 )
             except:
                 self.timetable_dwell_time = None
-            # * Optional timetable
             try:
                 self.timetable_arrival_time = np.array(
                     [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
@@ -542,7 +558,8 @@ class PlotCanvas_route(FigureCanvas):
             except:
                 self.timetable_arrival_time = None
 
-            self.plot_route()
+            self.plot_route(self.parent.linewidth, self.parent.labelsize)
+
         except:
             #* Attempt to replot once
             try:
@@ -552,7 +569,7 @@ class PlotCanvas_route(FigureCanvas):
             except:
                 pass
 
-    def plot_route(self, linewidth=2.5, labelsize=10):
+    def plot_route(self, linewidth=2.5, labelsize=13):
         """Canvas and toolbar creation, deleting previous instances."""
         if len(self.parent.instances_route_toolbar) > 1:
             self.parent.instances_route_canvas[0].hide()
@@ -604,28 +621,53 @@ class PlotCanvas_route(FigureCanvas):
             self.ax2 = self.ax.twiny()
             self.ax2.set_xlim(self.ax.get_xlim())
             self.ax2.set_label('Stations')
-            self.ax2.tick_params(
-                axis="x",
-                which='major',
-                direction="in",
-                width=1.5,
-                length=7,
-                labelsize=labelsize,
-                color="red",
-                rotation=40
-            )
-            x_locator = FixedLocator(self.timetable_stations_kpoint)
-            x_formatter = FixedFormatter(self.timetable_stations)
-            self.ax2.xaxis.set_major_locator(
-                x_locator
-            )  # it's best to first set the locator and only then the formatter
-            self.ax2.xaxis.set_major_formatter(x_formatter)
-            #* optionally add vertical lines at each of the station positions
-            for x in self.timetable_stations_kpoint:
-                self.ax2.axvline(x, color='red', ls=':', lw=1.5)
 
-            # station_locs, station_labels = plt.xticks()
-            # print(station_locs, station_labels)
+            # self.ax2.tick_params(
+            #     axis="x",
+            #     which='major',
+            #     direction="in",
+            #     width=1.5,
+            #     length=7,
+            #     labelsize=labelsize,
+            #     color="red",
+            #     rotation=40
+            # )
+
+            # x_locator = FixedLocator(self.timetable_stations_kpoint)
+            # # stations = [l+"\n" * (i % 2) for i, l in enumerate(self.timetable_stations)]
+            # x_formatter = FixedFormatter(self.timetable_stations)
+            # self.ax2.xaxis.set_major_locator(
+            #     x_locator
+            # )  # it's best to first set the locator and only then the formatter
+            # self.ax2.xaxis.set_major_formatter(x_formatter)
+            # #* optionally add vertical lines at each of the station positions
+            for x in self.timetable_stations_kpoint:
+                self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
+
+            # ? Offset tick labels alternative
+            txt_height = max(self.ax.get_ylim()) / (7.5)
+            txt_width = max(self.ax.get_xlim()) / (110)
+            # + 0.005 * labelsize
+            # # Get the corrected text positions, then write the text.
+            y_height = [max(self.ax.get_ylim())] * len(self.timetable_stations_kpoint)
+            text_positions = get_text_positions(
+                self.timetable_stations_kpoint,
+                y_height,
+                txt_width,
+                txt_height,
+            )
+            text_plotter(
+                self.timetable_stations_kpoint, self.timetable_stations, y_height, text_positions,
+                self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
+            )
+            # plt.ylim(0, max(y_height))
+            # plt.xlim(0, 1)
+
+            self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
+            self.ax2.xaxis.set_major_locator(ticker.NullLocator())
+
+        plt.xticks([])
+        # plt.subplots_adjust(top=0.2)  # manual adjustment
 
         #* Twin axis X - Radii
         if self.parent.cb_r_radii.isChecked():
@@ -633,7 +675,13 @@ class PlotCanvas_route(FigureCanvas):
             self.ax3.set_label('Distance [km] - Radii [m]')
             self.ax3.set_ylabel('Radii [m]')
             self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
-            self.line2, = self.ax3.step(self.kpoint, self.radii, label="Radii [m]", where="pre")
+            self.line2, = self.ax3.step(
+                self.kpoint,
+                self.radii,
+                linewidth=self.parent.linewidth,
+                label="Radii [m]",
+                where="pre"
+            )
             self.line2.set_color("purple")
 
         #* Line color has to be set during/after axis plot
@@ -642,10 +690,18 @@ class PlotCanvas_route(FigureCanvas):
         #* Include watermark if any
         global watermark
         self.route_fig.text(
-            0.5, 0.5, watermark, fontsize=20, color='gray', ha='center', va='center', alpha=0.6
+            0.5,
+            0.5,
+            watermark,
+            fontsize=20,
+            color='gray',
+            ha='center',
+            va='center',
+            alpha=0.6,
+            transform=self.ax.transAxes
         )
 
-        #* Include chart legend if checked
+        #* Chart legend
         if self.parent.cb_r_legend.isChecked():
             handles, labels = [], []
             for ax in self.route_fig.axes:
@@ -654,8 +710,8 @@ class PlotCanvas_route(FigureCanvas):
                     labels.append(l)
             self.ax.legend(handles, labels)
 
+        self.route_fig.tight_layout()
         self.draw()
-        self.route_fig.set_tight_layout(True)  # Tight layout on start
 
     def route_canvas_checkbox_handler(self):
         """Replot on checkbox state change."""
@@ -722,7 +778,7 @@ class Preferences(QWidget, Ui_Form):
         #* Redraw canvas application-wide
         for window in window_list:
             try:
-                window.route_canvas.plot_route()
+                window.route_canvas.plot_route(self.parent.linewidth, self.parent.labelsize)
             except:
                 pass
         guisave(self, self.GUI_preferences)
