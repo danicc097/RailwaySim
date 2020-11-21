@@ -1,14 +1,19 @@
 ﻿Station name,Dwell time [s],Arrival [hh:mm],Distance [m],Grade [‰],Radius [m],Speed restriction [km/h],Regeneration max power [kW],AC line,DC line,Diesel mode,Battery mode,Station name
 Cadiz,0,0,0,0,0,0,0,1,0,0,0,Cadiz
 Jerez,0,0,400,0,0,75,0,1,0,0,0,
-Sevilla,0,0,200,15,0,75,0,1,0,0,0,
-,,,400,15,0,100,0,1,0,0,0,
-,,,20,0,0,100,0,1,0,0,0,
-,,,20,0,0,110,0,1,0,0,0,
+A very long text,,,0,0,0,0,0,0,0,0,0,Jerez
+Jerez,0,0,200,15,0,75,0,1,0,0,0,
+A very long text,,,400,15,0,100,0,1,0,0,0,
+Jerez,0,0,0,0,0,0,0,0,0,0,0,A very long text
+A very long text,,,20,0,0,100,0,1,0,0,0,
+Sevilla,0,0,20,0,0,110,0,1,0,0,0,
 ,,,600,0,0,120,0,1,0,0,0,
+,,,0,0,0,0,0,0,0,0,0,A very long text
 ,,,20,0,0,130,0,1,0,0,0,
+,,,0,0,0,0,0,0,0,0,0,Jerez
 ,,,20,0,0,140,0,1,0,0,0,
 ,,,20,0,0,150,0,1,0,0,0,
+,,,0,0,0,0,0,0,0,0,0,A very long text
 ,,,20,0,0,160,0,1,0,0,0,
 ,,,20,0,0,170,0,1,0,0,0,
 ,,,100,-8,0,100,0,1,0,0,0,

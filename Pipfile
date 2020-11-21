@@ -12,9 +12,6 @@ pyqt5-tools = "*"
 numpy = "==1.19.3"
 qdarkstyle = "*"
 matplotlib = "==3.1.3"
-numba = "*"
-scipy = "*"
-fn = "*"
 
 [requires]
 python_version = "3.8"

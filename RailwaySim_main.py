@@ -41,6 +41,7 @@
 import os
 import random
 import ctypes
+import sys
 
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
@@ -76,8 +77,9 @@ window_list = []
 SEP = os.path.sep
 
 # set icon on Windows
-myappid = 'RailwaySim.v0'
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+if sys.platform == 'win32':
+    myappid = 'RailwaySim.v0'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 class NewWindow(QMainWindow):
@@ -645,7 +647,7 @@ class PlotCanvas_route(FigureCanvas):
                 self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
 
             # ? Offset tick labels alternative
-            txt_height = max(self.ax.get_ylim()) / (7.5)
+            txt_height = max(self.ax.get_ylim()) / (8.5)
             txt_width = max(self.ax.get_xlim()) / (110)
             # + 0.005 * labelsize
             # # Get the corrected text positions, then write the text.
@@ -660,14 +662,10 @@ class PlotCanvas_route(FigureCanvas):
                 self.timetable_stations_kpoint, self.timetable_stations, y_height, text_positions,
                 self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
             )
-            # plt.ylim(0, max(y_height))
-            # plt.xlim(0, 1)
-
             self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
             self.ax2.xaxis.set_major_locator(ticker.NullLocator())
 
-        plt.xticks([])
-        # plt.subplots_adjust(top=0.2)  # manual adjustment
+        plt.xticks([])  # remove secondary ticks
 
         #* Twin axis X - Radii
         if self.parent.cb_r_radii.isChecked():

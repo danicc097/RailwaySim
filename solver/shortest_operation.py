@@ -27,15 +27,6 @@ sys.path.append(parentdir)
 
 from solver.data_formatter import s_to_hhmmss, hhmm_to_s, effort_curve_to_arrays
 
-# ! only wrap "basic" functions around njit
-from numba import jit, njit
-
-# import sys
-# print("getrecursionlimit", sys.getrecursionlimit())
-# sys.setrecursionlimit(90000)
-
-from fn import recur
-
 
 # TODO: Refactor inner functions for readability
 class ShortestOperationSolver():
@@ -214,9 +205,10 @@ class ShortestOperationSolver():
                             array, row = _apply_offset_array(
                                 stacked_steps, array, row, next_distance
                             )
-                        #* If the following distance (with equal or higher speed) and
-                        #* without accumulated offset is smaller than L_TRAIN, it is simply replaced
+                        #* If the following distance (with equal or higher speed) has no
+                        #* accumulated offset, speed is simply replaced
                         #* and there's no need to accumulate this change creating an offset array
+                        #* since there's a smaller speed ahead and everything gets reset
                         else:
                             array[row + 1, 3] = array[row, 3]
                             row += 1
