@@ -282,46 +282,90 @@ class ShortestOperationSolver():
                 )
 
         ########## Virtual speed based on length #############
-        ##########    Equivalent grade array     #############
         ######################################################
+        a = speed_from_length(dataset_np)
+        #* append kilometric points to a new column
         kpoint = np.cumsum(dataset_np_original[:, 0] / 1000, dtype=float)
         dataset_np_original = np.hstack((dataset_np_original, kpoint.reshape(kpoint.size, 1)))
-        a = speed_from_length(dataset_np)
         kpoint = np.cumsum(a[:, 0] / 1000, dtype=float)
         a = np.hstack((a, kpoint.reshape(kpoint.size, 1)))
         virtual_speed_array = np.copy(a)
-
-        #* Array to calculate average grade, without 0 m steps
-        b = dataset_np
-        b = b[~(b == 0).all(1)]
-        kpoint = np.cumsum(b[:, 0] / 1000, dtype=float)
-        b = np.hstack((b, kpoint.reshape(kpoint.size, 1)))
-        # assume previous route conditions as the station's
-        grade_array = np.concatenate((b[0, None], b[0:]), axis=0)
-        grade_array[0, 0] = L_TRAIN
+        grade_array = a[~(a == 0).all(1)]
+        kpoint = np.cumsum(grade_array[:, 0] / 1000, dtype=float)
+        grade_array = np.hstack((grade_array, kpoint.reshape(kpoint.size, 1)))
+        print("what should be grade_array", grade_array)
 
         ######################################################
 
+        def distance_same_grade(array, current_kpoint, max_step, lookup_column):
+            """d_same_grade, grade = distance_same_grade(
+                    lookup_grade_array, current_kpoint, -L_TRAIN, 1
+                )"""
+            lookup_kpoint = array[:, -1]
+            row = np.searchsorted(lookup_kpoint, current_kpoint, side="right")
+            initial_row = copy.deepcopy(row)
+            distance_accum = 0
+            value = 0
+            if max_step > 0:
+                distance_accum = (current_kpoint - array[row, -1]) * 1000
+                total_rows, _ = array.shape
+                while row < total_rows - 1 and distance_accum < max_step:
+                    if array[row + 1, lookup_column] != array[row, lookup_column]:
+                        break
+                    if distance_accum + array[row + 1, 0] > max_step:
+                        distance_accum += max_step - distance_accum
+                        break
+                    distance_accum += array[row + 1, 0]
+                    row += 1
+                value = array[initial_row, lookup_column]
+            elif max_step < 0:
+                distance_accum = (current_kpoint - array[row, -1]) * 1000
+                print(grade_array)
+                print("LAST distance_accum: ", distance_accum)
+                print("step: in ", row, " is ", array[row, 0])
+                # sys.exit()
+                print("array[row + 1, -1] : ", array[row + 1, -1])
+                print("current_kpoint : ", current_kpoint)
+                print("distance_same_grade's accum initial length: ", distance_accum)
+                while row > 0 and distance_accum < max_step:
+                    if array[row, lookup_column] != array[row - 1, lookup_column]:
+                        break
+                    if distance_accum + array[row - 1, 0] > max_step:
+                        distance_accum += max_step - distance_accum
+                        break
+                    distance_accum += array[row - 1, 0]
+                    row -= 1
+                value = array[initial_row - 1, lookup_column]
+            return distance_accum, value
+
         def grade_equiv(lookup_grade_array, current_kpoint):
-            """Backward search to define the equivalent grade based on train length.\n
-            ``current_kpoint``: simulation point on the front of the train.
+            """
+            Backward search to define the equivalent grade based on train length.
+            ``current_kpoint``: accumulated distance until front of train.
             """
             lookup_kpoint = lookup_grade_array[:, -1]
             row = np.searchsorted(lookup_kpoint, current_kpoint, side="right")
+            print("i ngrade_equiv we got row and step of ", row, lookup_grade_array[row, 0])
             grade_steps = []
-            accum_length = (current_kpoint - lookup_kpoint[row - 1]) * 1000
-            grade_steps.append(accum_length * lookup_grade_array[row, 1])
-            row -= 1
+            accum_length = 0
             while accum_length < L_TRAIN:
-                d_same_grade, grade = lookup_grade_array[row, 0], lookup_grade_array[row, 1]
+                print(colored(("accum_length before: ", accum_length), "green"))
+                d_same_grade, grade = distance_same_grade(
+                    lookup_grade_array, current_kpoint, -L_TRAIN, 1
+                )
                 if d_same_grade > (L_TRAIN - accum_length):
                     # Last remaining section
                     grade_steps.append((L_TRAIN - accum_length) * grade)
+                    print("(L_TRAIN - accum_length), grade: ", (L_TRAIN - accum_length), grade)
                     break
                 else:
                     grade_steps.append(d_same_grade * grade)
                     accum_length += d_same_grade
-                    row -= 1
+                    print("d_same_grade, grade: ", d_same_grade, grade)
+                    current_kpoint -= d_same_grade / 1000
+                    if d_same_grade < 0.001: current_kpoint -= 0.001
+                print(colored(("accum_length after: ", accum_length), "green"))
+            print("average grade: ", sum(grade_steps) / L_TRAIN)
             return sum(grade_steps) / L_TRAIN
 
         def max_effort(current_speed, mode=1):
@@ -366,7 +410,11 @@ class ShortestOperationSolver():
                         continue
             """
             array = np.zeros(8, dtype=float)
-            print(grade_equiv(grade_lookup_array, 3.98))
+            grade_lookup_array = np.concatenate(
+                (grade_lookup_array[0, None], grade_lookup_array[0:]), axis=0
+            )
+            grade_lookup_array[0, 0] = L_TRAIN  # assume previous route conditions as the station's
+            print(grade_equiv(grade_lookup_array, 2.14))
             return array
 
         main_simulation(virtual_speed_array, grade_array)

@@ -11,15 +11,14 @@ def effort_curve_to_arrays(path):
     curve = np.genfromtxt(
         path,
         delimiter=',',
-        dtype=str,
+        dtype=float,
         encoding='utf-8-sig',
         autostrip=True,
         deletechars="",
+        skip_header=1,
     )
     curve = curve.T
-    speed = np.array(curve[0][1:], dtype=float)
-    effort = np.array(curve[1][1:], dtype=float)
-    return (speed, effort)
+    return (curve[0, :], curve[1, :])
 
 
 def hhmm_to_s(time):

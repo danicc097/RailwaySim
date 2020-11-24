@@ -5,6 +5,7 @@ __pycache__/
 TODO/
 
 pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py/
-
+Untitled-1.py
 Rail tests.py
+**/shortest_operation_old.py
 

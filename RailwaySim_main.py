@@ -57,6 +57,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
     QAbstractButton, QDialog, QMainWindow, QSizePolicy, QWidget, QSystemTrayIcon
 )
+from termcolor import colored
 
 # cwd
 import integrated_csv_editor
@@ -74,6 +75,9 @@ BASEDIR = os.path.dirname(__file__)
 #* Allow multiple MainWindow instances
 window_list = []
 
+#* Dot separated values enforcement with "C"
+QtCore.QLocale.setDefault(QtCore.QLocale(1))
+
 SEP = os.path.sep
 
 # set icon on Windows
@@ -86,7 +90,6 @@ class NewWindow(QMainWindow):
     """MainWindow factory"""
     def __init__(self):
         super().__init__()
-        #* Preferences load on program start
         GUI_preferences_path = os.path.join(BASEDIR, 'resources', 'GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
         self.add_new_window()
@@ -133,6 +136,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionGitHub_Homepage.setIcon(
             QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'github.png'))
         )
+
         icon_edit = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
         icon_import = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
         self.E_TECurveEditButton.setIcon(icon_edit)
@@ -149,8 +153,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _buttonEdits(self):
         """Adds functionality to buttons"""
         #* CSV import buttons - anon to prevent autostart
-        #* "clicked" emits a signal (checked) when pressed:
-        #* checkvoid QAbstractButton::clicked(bool checked = false)
+        #? "clicked" emits a signal (checked) when pressed:
+        #? checkvoid QAbstractButton::clicked(bool checked = false)
 
         self.E_TECurveLoadButton.clicked.connect(
             lambda: self.path_extractor(self.E_TECurveLoadFilename)
@@ -167,8 +171,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ProfileLoadButton.clicked.connect(
             lambda: self.path_extractor(self.ProfileLoadFilename)
         )
+
+        #* Draw route canvas after import
         self.ProfileLoadButton.clicked.connect(self.create_route_plot)
         self.ProfileLoadButton.clicked.connect(self.setup_route_checkbuttons)
+        self.ProfileLoadButton.clicked.connect(self.dial_refresh)
 
         self.E_TECurveLoadButton.setToolTip('Import CSV file')
         self.E_BECurveLoadButton.setToolTip('Import CSV file')
@@ -486,8 +493,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.writeFile()
                 #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
-                #* Compute and output
-                ShortestOperationSolver(self, constants)
+                #* Compute anod output
+                try:
+                    ShortestOperationSolver(self, constants)
+                except Exception as e:
+                    print(colored(('ERROR ::::', str(e)), "yellow"))
                 #* Change to simulation tab and plot
 
             except Exception as e:

@@ -63,7 +63,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -2509,43 +2509,43 @@
   </action>
  </widget>
  <tabstops>
-  <tabstop>tabWidget</tabstop>
-  <tabstop>gb_onboard_storage</tabstop>
+  <tabstop>LOCO_AXLES</tabstop>
+  <tabstop>LOCO_NUMBER</tabstop>
+  <tabstop>LOCO_MASS</tabstop>
+  <tabstop>LOCO_ROT_MASS</tabstop>
+  <tabstop>LOCO_AREA</tabstop>
+  <tabstop>LOCO_MAX_SPEED</tabstop>
+  <tabstop>LOCO_MAX_A</tabstop>
+  <tabstop>WAG_AXLES</tabstop>
+  <tabstop>WAG_NUMBER</tabstop>
+  <tabstop>WAG_MASS</tabstop>
+  <tabstop>WAG_ROT_MASS</tabstop>
+  <tabstop>LOCO_LENGTH</tabstop>
+  <tabstop>TRAIN_MASS</tabstop>
+  <tabstop>BOGIES</tabstop>
+  <tabstop>MOTOR_BOGIES</tabstop>
+  <tabstop>TRAIN_ROT_MASS</tabstop>
+  <tabstop>TRAIN_AREA</tabstop>
+  <tabstop>TRAIN_MAX_SPEED</tabstop>
+  <tabstop>TRAIN_LENGTH</tabstop>
+  <tabstop>TRAIN_MAX_A</tabstop>
+  <tabstop>ROLLING_R_A</tabstop>
+  <tabstop>ROLLING_R_B</tabstop>
+  <tabstop>ROLLING_R_C</tabstop>
+  <tabstop>STARTING_R</tabstop>
+  <tabstop>TRACK_GAUGE</tabstop>
   <tabstop>BATT_NUMBER</tabstop>
   <tabstop>BATT_CAPACITY</tabstop>
   <tabstop>BATT_CHARG_RATE</tabstop>
-  <tabstop>BATT_DISCHARG_RATE</tabstop>
-  <tabstop>gb_diesel_engine</tabstop>
-  <tabstop>D_TECurveEditButton</tabstop>
-  <tabstop>D_TECurveLoadButton</tabstop>
-  <tabstop>D_BECurveEditButton</tabstop>
-  <tabstop>D_BECurveLoadButton</tabstop>
-  <tabstop>D_AUX_CONS</tabstop>
-  <tabstop>D_MAX_RATE</tabstop>
-  <tabstop>gb_eff</tabstop>
   <tabstop>TRAFO_EFF</tabstop>
   <tabstop>RECT_EFF</tabstop>
   <tabstop>INV_EFF</tabstop>
   <tabstop>MOTOR_EFF</tabstop>
   <tabstop>AUX_EFF</tabstop>
-  <tabstop>gb_electric_traction</tabstop>
-  <tabstop>E_TECurveEditButton</tabstop>
-  <tabstop>E_TECurveLoadButton</tabstop>
-  <tabstop>E_BECurveEditButton</tabstop>
-  <tabstop>E_BECurveLoadButton</tabstop>
+  <tabstop>D_AUX_CONS</tabstop>
+  <tabstop>D_MAX_RATE</tabstop>
   <tabstop>E_AUX_CONS</tabstop>
   <tabstop>E_MAX_RATE</tabstop>
-  <tabstop>D_TECurveLoadFilename</tabstop>
-  <tabstop>D_BECurveLoadFilename</tabstop>
-  <tabstop>E_TECurveLoadFilename</tabstop>
-  <tabstop>E_BECurveLoadFilename</tabstop>
-  <tabstop>ProfileEditButton</tabstop>
-  <tabstop>ProfileLoadFilename</tabstop>
-  <tabstop>ProfileLoadButton</tabstop>
-  <tabstop>cb_InvertRoute</tabstop>
-  <tabstop>combo_solver</tabstop>
-  <tabstop>TIME_STEP</tabstop>
-  <tabstop>StartSimButton</tabstop>
   <tabstop>cb_r_stations</tabstop>
   <tabstop>cb_r_speedres</tabstop>
   <tabstop>cb_r_grade</tabstop>
@@ -2553,32 +2553,36 @@
   <tabstop>cb_r_radii</tabstop>
   <tabstop>cb_r_legend</tabstop>
   <tabstop>gb_passenger</tabstop>
-  <tabstop>TRAIN_MASS</tabstop>
-  <tabstop>TRAIN_ROT_MASS</tabstop>
-  <tabstop>TRAIN_AREA</tabstop>
-  <tabstop>TRAIN_MAX_SPEED</tabstop>
+  <tabstop>combo_solver</tabstop>
+  <tabstop>E_BECurveLoadFilename</tabstop>
+  <tabstop>ProfileEditButton</tabstop>
+  <tabstop>ProfileLoadFilename</tabstop>
   <tabstop>gb_locomotive</tabstop>
-  <tabstop>TRAIN_LENGTH</tabstop>
-  <tabstop>TRAIN_MAX_A</tabstop>
-  <tabstop>LOCO_AXLES</tabstop>
-  <tabstop>ROLLING_R_A</tabstop>
-  <tabstop>ROLLING_R_C</tabstop>
-  <tabstop>LOCO_AREA</tabstop>
-  <tabstop>LOCO_MAX_SPEED</tabstop>
-  <tabstop>WAG_AXLES</tabstop>
-  <tabstop>WAG_MASS</tabstop>
-  <tabstop>WAG_ROT_MASS</tabstop>
-  <tabstop>LOCO_NUMBER</tabstop>
-  <tabstop>LOCO_MASS</tabstop>
-  <tabstop>LOCO_ROT_MASS</tabstop>
-  <tabstop>MOTOR_BOGIES</tabstop>
-  <tabstop>STARTING_R</tabstop>
-  <tabstop>LOCO_MAX_A</tabstop>
-  <tabstop>TRACK_GAUGE</tabstop>
-  <tabstop>WAG_NUMBER</tabstop>
-  <tabstop>ROLLING_R_B</tabstop>
-  <tabstop>BOGIES</tabstop>
-  <tabstop>LOCO_LENGTH</tabstop>
+  <tabstop>ProfileLoadButton</tabstop>
+  <tabstop>gb_electric_traction</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>E_TECurveEditButton</tabstop>
+  <tabstop>E_BECurveEditButton</tabstop>
+  <tabstop>D_BECurveLoadFilename</tabstop>
+  <tabstop>BATT_DISCHARG_RATE</tabstop>
+  <tabstop>D_TECurveEditButton</tabstop>
+  <tabstop>D_BECurveEditButton</tabstop>
+  <tabstop>D_BECurveLoadButton</tabstop>
+  <tabstop>gb_onboard_storage</tabstop>
+  <tabstop>StartSimButton</tabstop>
+  <tabstop>D_TECurveLoadFilename</tabstop>
+  <tabstop>E_TECurveLoadFilename</tabstop>
+  <tabstop>E_BECurveLoadButton</tabstop>
+  <tabstop>gb_diesel_engine</tabstop>
+  <tabstop>TIME_STEP</tabstop>
+  <tabstop>D_TECurveLoadButton</tabstop>
+  <tabstop>E_TECurveLoadButton</tabstop>
+  <tabstop>gb_eff</tabstop>
+  <tabstop>cb_InvertRoute</tabstop>
+  <tabstop>BRAKE_DELAY</tabstop>
+  <tabstop>spinBox_2</tabstop>
+  <tabstop>dial_stroke_size</tabstop>
+  <tabstop>dial_label_size</tabstop>
  </tabstops>
  <resources/>
  <connections/>

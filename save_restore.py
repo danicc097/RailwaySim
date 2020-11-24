@@ -40,13 +40,13 @@ def guisave(self, settings):
         if isinstance(obj, QSpinBox):
             name = obj.objectName()
             value = obj.text()
-            settings.setValue(name, value)
+            settings.setValue(name, int(value))
             counter_saved += 1
 
         if isinstance(obj, QDoubleSpinBox):
             name = obj.objectName()
             value = obj.text()
-            settings.setValue(name, value)
+            settings.setValue(name, float(value.replace(",", ".")))
             counter_saved += 1
 
         if isinstance(obj, QGroupBox):
@@ -131,7 +131,7 @@ def guirestore(self, settings):
             try:
                 name = obj.objectName()
                 value = settings.value(name)
-                obj.setValue(float(value))
+                obj.setValue(float(value.replace(",", ".")))
                 counter_restored += 1
             except:
                 counter_failed = +1
