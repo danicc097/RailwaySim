@@ -1,8 +1,8 @@
 ﻿Station name,Dwell time [s],Arrival [hh:mm],Distance [m],Grade [‰],Radius [m],Speed restriction [km/h],Regeneration max power [kW],AC line,DC line,Diesel mode,Battery mode,Station name
 Station 1,0,0,0,0,0,0,0,1,0,0,0,Station 1
-Station 2,0,0,400,0,0,75,0,1,0,0,0,
-Station 3,0,0,170,15,0,75,0,1,0,0,0,
-Station 4,0,0,400,15,0,100,0,1,0,0,0,
+Station 2,0,0,400,0,0,120,0,1,0,0,0,
+Station 3,0,0,170,15,0,120,0,1,0,0,0,
+Station 4,0,0,400,15,0,120,0,1,0,0,0,
 Station 5,0,0,400,0,0,100,0,1,0,0,0,
 Station 6,0,0,100,-8,0,100,0,1,0,0,0,
 Station 7,0,0,170,-8,0,100,0,1,0,0,0,

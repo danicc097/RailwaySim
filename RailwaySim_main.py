@@ -69,6 +69,15 @@ from scaled_labels import ScaledLabel, label_grabber
 from solver.data_formatter import hhmm_to_s, s_to_hhmmss, get_text_positions, text_plotter
 
 from solver.shortest_operation import ShortestOperationSolver
+import traceback, sys
+
+# # if QtCore.QT_VERSION >= 0x50501:
+# def excepthook(exc_type, exc_value, exc_tb):
+#     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+#     print("error catched!:")
+#     print("error message:\n", tb)
+#     qtw.QApplication.quit()
+# sys.excepthook = excepthook
 
 BASEDIR = os.path.dirname(__file__)
 
@@ -314,6 +323,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.cb_r_legend.stateChanged.connect(
                     self.route_canvas.route_canvas_checkbox_handler
                 )
+                self.cb_InvertRoute.stateChanged.connect(
+                    self.route_canvas.route_canvas_invert_route
+                )
+
         except Exception as e:
             self.statusBar().showMessage(
                 "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
@@ -493,11 +506,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.writeFile()
                 #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
+                print(constants)
                 #* Compute anod output
                 try:
                     ShortestOperationSolver(self, constants)
                 except Exception as e:
-                    print(colored(('ERROR ::::', str(e)), "yellow"))
+                    error_type, error, tb = sys.exc_info()
+                    print(
+                        colored((traceback.format_list(traceback.extract_tb(tb)[-1:])[-1]), "red")
+                    )
+                    print(colored(error_type, "yellow"))
+                    print(colored(error, "red"))
                 #* Change to simulation tab and plot
 
             except Exception as e:
@@ -506,22 +525,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 class PlotCanvas_route(FigureCanvas):
     """Route input data graph"""
-    def __init__(self, GUI, parent, dpi=100):
+    def __init__(self, GUI, ref_parent, dpi=100):
         self.GUI_preferences = GUI
-        self.parent = parent  # pass MainWindow to access its widgets
+        self.ref_parent = ref_parent  # pass MainWindow to access its widgets
         self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
         FigureCanvas.__init__(self, self.route_fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.route_data_import()
+        self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
         self.counter = 0  # Allow for plot retries upon exception
 
-    def route_data_import(self, linewidth=2.5):
+    def route_data_import(self, linewidth=2.5, invert=False):
         """Route profile data import."""
-        if len(self.parent.ProfileLoadFilename.text()) <= 3:
+        if len(self.ref_parent.ProfileLoadFilename.text()) <= 3:
             return
         self.ROUTE_INPUT_DF = np.genfromtxt(
-            self.parent.ProfileLoadFilename.text(),
+            self.ref_parent.ProfileLoadFilename.text(),
             delimiter=',',
             dtype=str,
             encoding='utf-8-sig',
@@ -529,15 +548,16 @@ class PlotCanvas_route(FigureCanvas):
             deletechars="",
         )
 
-        self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF.T
-
+        self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF[1:, :].T
+        if invert:
+            self.ROUTE_INPUT_DF = np.flip(self.ROUTE_INPUT_DF, axis=1)
         try:
-            self.distance = np.array(self.ROUTE_INPUT_DF[3][1:], dtype=float)
+            self.distance = np.array(self.ROUTE_INPUT_DF[3][:], dtype=float)
             self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
-            self.grade = np.array(self.ROUTE_INPUT_DF[4][1:], dtype=float)
-            self.radii = np.array(self.ROUTE_INPUT_DF[5][1:], dtype=float)
-            self.speed_res = np.array(self.ROUTE_INPUT_DF[6][1:], dtype=float)
-            self.station_names = np.array(self.ROUTE_INPUT_DF[12][1:], dtype=str)
+            self.grade = np.array(self.ROUTE_INPUT_DF[4][:], dtype=float)
+            self.radii = np.array(self.ROUTE_INPUT_DF[5][:], dtype=float)
+            self.speed_res = np.array(self.ROUTE_INPUT_DF[6][:], dtype=float)
+            self.station_names = np.array(self.ROUTE_INPUT_DF[12][:], dtype=str)
 
             #* Calculate profile height from distance steps and grade
             self.profile = np.zeros(len(self.distance), dtype=float)
@@ -550,7 +570,7 @@ class PlotCanvas_route(FigureCanvas):
                             self.profile[index-1]
             # * Main timetable
             self.timetable_stations = np.array(
-                [str(a) for a in self.ROUTE_INPUT_DF[0][1:] if a != ""]
+                [str(a) for a in self.ROUTE_INPUT_DF[0][:] if a != ""]
             )
             # * Find station kilometric points (0 m travelled paths)
             self.timetable_stations_kpoint = np.array(
@@ -559,35 +579,35 @@ class PlotCanvas_route(FigureCanvas):
             # * Optional timetables
             try:
                 self.timetable_dwell_time = np.array(
-                    [int(a) for a in self.ROUTE_INPUT_DF[1][1:] if a != ""]
+                    [int(a) for a in self.ROUTE_INPUT_DF[1][:] if a != ""]
                 )
             except:
                 self.timetable_dwell_time = None
             try:
                 self.timetable_arrival_time = np.array(
-                    [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][1:] if a != ""]
+                    [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][:] if a != ""]
                 )
             except:
                 self.timetable_arrival_time = None
 
-            self.plot_route(self.parent.linewidth, self.parent.labelsize)
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
 
         except:
             #* Attempt to replot once
             try:
                 if self.counter == 0:
-                    self.route_data_import()
+                    self.route_data_import(invert=self.cb_InvertRoute.isChecked())
                     self.counter += 1
             except:
                 pass
 
     def plot_route(self, linewidth=2.5, labelsize=13):
         """Canvas and toolbar creation, deleting previous instances."""
-        if len(self.parent.instances_route_toolbar) > 1:
-            self.parent.instances_route_canvas[0].hide()
-            self.parent.instances_route_toolbar[0].hide()
-            del self.parent.instances_route_canvas[0]
-            del self.parent.instances_route_toolbar[0]
+        if len(self.ref_parent.instances_route_toolbar) > 1:
+            self.ref_parent.instances_route_canvas[0].hide()
+            self.ref_parent.instances_route_toolbar[0].hide()
+            del self.ref_parent.instances_route_canvas[0]
+            del self.ref_parent.instances_route_toolbar[0]
 
         self.route_fig.clear()  # clear wrong format if any on graph init
 
@@ -613,23 +633,23 @@ class PlotCanvas_route(FigureCanvas):
         self.ax.set_ylabel("Speed [km/h]")
 
         #* Plotting on main axis sharing X
-        if self.parent.cb_r_speedres.isChecked():
+        if self.ref_parent.cb_r_speedres.isChecked():
             self.line0, = self.ax.step(
                 self.kpoint, self.speed_res, linewidth=linewidth, label="Speed [km/h]", where="pre"
             )
 
-        if self.parent.cb_r_grade.isChecked():
+        if self.ref_parent.cb_r_grade.isChecked():
             self.line1, = self.ax.step(
                 self.kpoint, self.grade, linewidth=linewidth, label="Grade [‰]", where="pre"
             )
 
-        if self.parent.cb_r_profile.isChecked():
+        if self.ref_parent.cb_r_profile.isChecked():
             self.line3, = self.ax.plot(
                 self.kpoint, self.profile, linewidth=linewidth, label="Profile [m]"
             )
 
         #* Twin axis Y - station tick marks
-        if self.parent.cb_r_stations.isChecked():
+        if self.ref_parent.cb_r_stations.isChecked():
             self.ax2 = self.ax.twiny()
             self.ax2.set_xlim(self.ax.get_xlim())
             self.ax2.set_label('Stations')
@@ -678,7 +698,7 @@ class PlotCanvas_route(FigureCanvas):
         plt.xticks([])  # remove secondary ticks
 
         #* Twin axis X - Radii
-        if self.parent.cb_r_radii.isChecked():
+        if self.ref_parent.cb_r_radii.isChecked():
             self.ax3 = self.ax.twinx()
             self.ax3.set_label('Distance [km] - Radii [m]')
             self.ax3.set_ylabel('Radii [m]')
@@ -686,7 +706,7 @@ class PlotCanvas_route(FigureCanvas):
             self.line2, = self.ax3.step(
                 self.kpoint,
                 self.radii,
-                linewidth=self.parent.linewidth,
+                linewidth=self.ref_parent.linewidth,
                 label="Radii [m]",
                 where="pre"
             )
@@ -710,7 +730,7 @@ class PlotCanvas_route(FigureCanvas):
         )
 
         #* Chart legend
-        if self.parent.cb_r_legend.isChecked():
+        if self.ref_parent.cb_r_legend.isChecked():
             handles, labels = [], []
             for ax in self.route_fig.axes:
                 for h, l in zip(*ax.get_legend_handles_labels()):
@@ -724,19 +744,27 @@ class PlotCanvas_route(FigureCanvas):
     def route_canvas_checkbox_handler(self):
         """Replot on checkbox state change."""
         try:
-            self.plot_route(self.parent.linewidth, self.parent.labelsize)
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+        except:
+            pass
+
+    def route_canvas_invert_route(self):
+        """Replot on checkbox state change."""
+        try:
+            self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
         except:
             pass
 
 
 class Preferences(QWidget, Ui_Form):
     """Preferences widget screen. Initialized alongside window."""
-    def __init__(self, GUI, parent=None):
+    def __init__(self, GUI, ref_parent=None):
         super().__init__()
         self.setupUi(self)
 
         #* Optional param to access attributes
-        self.parent = parent
+        self.ref_parent = ref_parent
 
         #* Restore latest .ini GUI config
         self.GUI_preferences = GUI
@@ -786,7 +814,7 @@ class Preferences(QWidget, Ui_Form):
         #* Redraw canvas application-wide
         for window in window_list:
             try:
-                window.route_canvas.plot_route(self.parent.linewidth, self.parent.labelsize)
+                window.route_canvas.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
             except:
                 pass
         guisave(self, self.GUI_preferences)
