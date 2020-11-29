@@ -480,15 +480,15 @@ class ShortestOperationSolver():
             the main forward calculations."""
             #* Initialize table (last station):
             k = 0
-            dx = 5  # braking distance step accuracy #TODO: user-defined
+            dx_braking = 5  # braking distance step accuracy #TODO: user-defined
             braking = [np.zeros((2, 11), dtype=float)]
             braking[k][1, 0] = kpoint = lookup_array[-1, -1]
             lookup_kpoint = lookup_array[:, -1]
             u_lim_not_reached = False  # Override initial braking speed with the simulated one if the speed limit wasn't reached
             speed_accum = 0
-            min_d = dx / 1000 * 3
+            min_d = dx_braking / 1000 * 3
             while kpoint > min_d:
-                print(colored(kpoint, "green"))
+                # print(colored(kpoint, "green"))
                 row = np.searchsorted(lookup_kpoint, kpoint, side="left")
                 if row < 2: break
                 speed_limit = lookup_array[row, 3]
@@ -506,8 +506,8 @@ class ShortestOperationSolver():
                     run_loop = True
                     while run_loop:  # and kpoint > end_of_target
                         kpoint, u_lim_not_reached, run_loop, speed_accum, k = _compute_braking_curve(
-                            braking, k, dx, lookup_grade_array, speed_limit, kpoint, end_of_target,
-                            lookup_kpoint, lookup_array
+                            braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint,
+                            end_of_target, lookup_kpoint, lookup_array
                         )
                 else:
                     #* Not a possible target → Skip
@@ -515,14 +515,16 @@ class ShortestOperationSolver():
                     row -= 1
                     kpoint = lookup_array[row, -1]
 
-            return _clean_braking(braking, dx)
+            return _clean_braking(braking, dx_braking), dx_braking
 
         def _compute_braking_curve(
-            braking, k, dx, lookup_grade_array, speed_limit, kpoint, end_of_target, lookup_kpoint,
-            lookup_array
+            braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint, end_of_target,
+            lookup_kpoint, lookup_array
         ):
             """Inserts an array of a single braking curve to `braking`."""
-            kpoint = _new_brake_step(braking, k, dx, lookup_grade_array, speed_limit, kpoint)
+            kpoint = _new_brake_step(
+                braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint
+            )
             u_lim_not_reached = False
             run_loop = True
             speed_accum = 0
@@ -548,7 +550,7 @@ class ShortestOperationSolver():
             return kpoint, u_lim_not_reached, run_loop, speed_accum, k
 
         #TODO: SAME LOGIC TO APPEND CURVE slice TO FORWARD CALC
-        def _clean_braking(braking, dx):
+        def _clean_braking(braking, dx_braking):
             """Remove unnecessary empty rows and singularities 
             from the braking list of arrays."""
             braking = np.concatenate(braking, axis=0)
@@ -562,7 +564,7 @@ class ShortestOperationSolver():
                 speed = braking[row, 3]
                 if (
                     next_kpoint - kpoint
-                ) * 1000 < dx * 2 and next_speed - speed < 0:  # it's a braking curve
+                ) * 1000 < dx_braking * 2 and next_speed - speed < 0:  # it's a braking curve
                     accum_brake_steps += 1
                 else:
                     if accum_brake_steps < 2:
@@ -570,96 +572,162 @@ class ShortestOperationSolver():
                     accum_brake_steps = 0
             return braking
 
-        def _new_brake_step(braking, k, dx, lookup_grade_array, speed_limit, kpoint):
+        def _new_brake_step(braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint):
             """Simulates one braking step of `dx` meters based on previous state."""
-            braking[k][0, 0] = kpoint = braking[k][1, 0] - dx / 1000
-            braking[k][0, 1] = dx
+            braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
+            braking[k][0, 1] = dx_braking
             braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
             braking[k][0, 6] = radius(lookup_grade_array, kpoint)
             braking[k][0, 7] = speed_limit
             braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
             braking[k][0, 4], braking[k][
                 0, 9] = accel_i(braking[k][1, 3], MAX_SPEED, braking[k][0, 10], mode=2)
-            braking[k][0, 3] = sqrt((braking[k][1, 3] / 3.6)**2 - 2 * braking[k][0, 4] * dx) * 3.6
-            braking[k][0, 2] = dx / ((braking[k][0, 3] + braking[k][1, 3]) / 3.6 / 2)
+            braking[k][
+                0, 3] = sqrt((braking[k][1, 3] / 3.6)**2 - 2 * braking[k][0, 4] * dx_braking) * 3.6
+            braking[k][0, 2] = dx_braking / ((braking[k][0, 3] + braking[k][1, 3]) / 3.6 / 2)
             return kpoint
 
-        def new_powering_step(output, k, dx, lookup_grade_array, speed_limit, kpoint):
+        def new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint):
             """Simulates one powering step of `dx` meters based on previous state."""
-            output[k][1, 0] = kpoint = output[k][0, 0] + dx / 1000
-            output[k][1, 1] = dx
-            output[k][1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
-            output[k][1, 6] = radius(lookup_grade_array, kpoint)
-            output[k][1, 7] = speed_limit
-            output[k][1, 8] = max_effort(output[k][0, 3], MAX_SPEED, mode=1)
-            output[k][1, 10] = R_i(output[k][0, 3], output[k][1, 5], output[k][1, 6])
-            output[k][1, 4] = accel_i(output[k][0, 3], MAX_SPEED, output[k][1, 10], mode=1)
-            output[k][1, 3] = sqrt((output[k][0, 3] / 3.6)**2 - 2 * output[k][1, 4] * dx) * 3.6
-            output[k][1, 2] = dx / ((output[k][1, 3] + output[k][0, 3]) / 3.6 / 2)
-            return kpoint
+            output = np.concatenate((output, np.zeros((1, 11))), axis=0)
+            output[-1, 0] = kpoint = output[-2, 0] + dx / 1000
+            output[-1, 1] = dx
+            output[-1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1, 6] = radius(lookup_grade_array, kpoint)
+            output[-1, 7] = speed_limit
+            output[-1, 8] = max_effort(output[-2, 3], MAX_SPEED, mode=1)
+            output[-1, 10] = R_i(output[-2, 3], output[-1, 5], output[-1, 6])
+            output[-1, 4] = accel_i(output[-2, 3], MAX_SPEED, output[-1, 10], mode=1)
+            output[-1, 3] = sqrt((output[-2, 3] / 3.6)**2 + 2 * output[-1, 4] * dx) * 3.6
+            output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
+            if output[-1, 3] > speed_limit: output[-1, 3] == speed_limit
+            if output[-1, 3] == 0: print('NOPE. output[-1, 3] == 0')
+            return kpoint, output
 
-        # TODO:
-        def new_cruising_step(output, k, dx, lookup_grade_array, speed_limit, kpoint):
+        def new_cruising_step(
+            output, dx, lookup_grade_array, speed_limit, kpoint, curve_appended=None
+        ):
             """Simulates one cruising step of `dx` meters based on previous state."""
-            output[k][1, 0] = kpoint = output[k][0, 0] + dx / 1000
-            output[k][1, 1] = dx
-            output[k][1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
-            output[k][1, 6] = radius(lookup_grade_array, kpoint)
-            output[k][1, 7] = speed_limit
-            output[k][1, 10] = R_i(output[k][0, 3], output[k][1, 5], output[k][1, 6])
-            output[k][1, 4], output[k][
-                1, 8] = accel_i(output[k][0, 3], MAX_SPEED, output[k][1, 10], mode=3)
-            output[k][1, 3] = speed_limit
-            output[k][1, 2] = dx / ((output[k][1, 3] + output[k][0, 3]) / 3.6 / 2)
-            return kpoint
+            output = np.concatenate((output, np.zeros((1, 11))), axis=0)
+            output[-1, 0] = kpoint = output[-2, 0] + dx / 1000
+            output[-1, 1] = dx
+            output[-1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1, 6] = radius(lookup_grade_array, kpoint)
+            output[-1, 7] = speed_limit
+            output[-1, 10] = R_i(output[-2, 3], output[-1, 5], output[-1, 6])
+            output[-1, 4], output[-1, 8] = accel_i(output[-2, 3], MAX_SPEED, output[-1, 10], mode=3)
+            output[-1, 3] = speed_limit
+            output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
+            if output[-1, 3] > speed_limit: output[-1, 3] == speed_limit
+            if output[-1, 3] == 0: print('NOPE. output[-1, 3] == 0')
+            return kpoint, output
+
+        def _get_braking_curve(braking, dx_braking, kpoint):
+            """Return a complete braking curve from the array at the specified `kpoint`."""
+            # initial_row = np.searchsorted(braking[:, 0], kpoint, side="right")
+            # print("initial_row is :", initial_row)
+            stacked_rows = 0
+            total_rows, _ = braking.shape
+            for row in range(total_rows - 1):
+                next_kpoint = braking[row + 1, 0]
+                kpoint = braking[row, 0]
+                next_speed = braking[row + 1, 3]
+                speed = braking[row, 3]
+                # ! might give trouble, check if error
+                if (
+                    next_kpoint - kpoint
+                ) * 1000 < dx_braking * 2 and next_speed - speed < 0:  # it's a braking curve
+                    stacked_rows += 1
+                else:
+                    break
+            return braking[0:stacked_rows + 1], stacked_rows
 
         def main_simulation(lookup_array, lookup_grade_array):
             """
             """
-            # braking table calculation
-            braking = some_cool_braking_function(lookup_array, lookup_grade_array)
-            if braking is not None:
-                print(braking)
-                return braking
-            output = np.zeros((2, 11), dtype=float)
+            #* Braking table calculation
+            braking, dx_braking = some_cool_braking_function(lookup_array, lookup_grade_array)
+            # if braking is not None:
+            #     print(braking)
+            #     return braking
+            output = np.zeros((1, 11), dtype=float)
             ROUTE_LENGTH = lookup_array[-1, -1]
             #* Initialize train start up:
             output[0, 0] = kpoint = 0
-            output[0, 1] = distance_step = 0
-            output[0, 2] = total_time = 0
             output[0, 3] = speed = 0
-            output[0, 10] = resistance = R_i(speed, output[0, 6], output[0, 8])
-            output[0, 4] = accel_i(speed, MAX_SPEED, resistance, mode=1)
-            output[0, 5] = grade_equiv(lookup_grade_array, kpoint, 'right')
-            output[0, 6] = radius(lookup_grade_array, kpoint)
+            output[0, 5] = grade_equiv(lookup_grade_array, output[0, 0], 'right')
+            output[0, 6] = radius(lookup_grade_array, output[0, 0])
+            output[0, 10] = resistance = R_i(output[0, 3], output[0, 5], output[0, 6])
+            output[0, 4] = accel_i(output[0, 3], MAX_SPEED, resistance, mode=1)
             output[0, 7] = speed_limit = lookup_array[1, 3]
-            output[0, 8] = max_effort(speed, speed_limit, mode=1)
-            print(output)
-            k = 0  # check against the upcoming "k" brake array
-            print("output : ", output)
-            lookup_kpoint = lookup_grade_array[:, -1]
-            print("lookup_kpoint: ", lookup_kpoint)
-            while kpoint < ROUTE_LENGTH:
-                kpoint = output[-1, 0]
-                print("kpoint: ", kpoint)
-                row = np.searchsorted(lookup_kpoint, kpoint, side="right")
-                print("row: ", row)
-                # use array without stations to get speed limit
-                speed_limit = lookup_grade_array[row, 3]
-                #* Every brake array has the same format as output !!
-                if kpoint < braking[k][0, 0]:  # still not a target for braking
-                    powering_or_cruising(output, speed, speed_limit, row)
-                else:  # inside brake target array limits
-                    if kpoint > braking[k][0, -1]:
-                        # passed the last kpoint in the current brake array
-                        if speed < braking[k][0, 3]:
-                            continue
-                        else:
-                            #! slice at searchsorted row
-                            #! append the slice
-                            #! recalculate previous accel so that speed = brtable speed
+            output[0, 8] = max_effort(output[0, 3], speed_limit, mode=1)
 
-                            k += 1
+            lookup_kpoint = lookup_array[:, -1]
+            dx = 10  # distance step accuracy
+            kpoint, output = new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint)
+            k = 0
+            curve_appended = False
+            station_start = False
+            while kpoint < (ROUTE_LENGTH - (dx / 1000)):
+                row = np.searchsorted(lookup_kpoint, kpoint, side="left")
+                #* Use array without stations to get speed limit
+                speed_limit = lookup_array[row, 3]
+                speed = output[-1, 3]
+                ######
+                if curve_appended and station_start:
+                    kpoint, output = new_powering_step(
+                        output, dx, lookup_grade_array, speed_limit, kpoint
+                    )
+                    curve_appended = False
+                    station_start = False
+                    #* Remove past braking rows
+                    current_k = np.searchsorted(braking[:, 0], kpoint, side="left")
+                    braking = np.delete(braking, range(current_k), axis=0)
+
+                elif curve_appended:
+                    speed_limit = lookup_array[row + 1, 3]
+                    # output[-1, 3] = speed_limit
+                    kpoint, output = new_cruising_step(
+                        output, dx, lookup_grade_array, speed_limit, kpoint, curve_appended
+                    )
+                    curve_appended = False
+                    #* Remove past braking rows
+                    current_k = np.searchsorted(braking[:, 0], kpoint, side="left")
+                    braking = np.delete(braking, range(current_k), axis=0)
+
+                if kpoint < braking[0, 0]:  # still not a target for braking
+                    if speed < speed_limit:
+                        kpoint, output = new_powering_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        )
+                    else:
+                        output[-1, 3] = speed_limit
+                        kpoint, output = new_cruising_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        )
+                    curve_appended = False
+                else:  # inside brake target array limits
+                    #* Remove past braking rows
+                    current_k = np.searchsorted(braking[:, 0], kpoint, side="left")
+                    braking = np.delete(braking, range(current_k), axis=0)
+
+                    curve_to_append, stacked_rows = _get_braking_curve(braking, dx_braking, kpoint)
+                    end_of_brake_curve = braking[stacked_rows, 0]
+                    if speed < braking[0, 3]:
+                        #* Continue powering
+                        kpoint, output = new_powering_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        )
+                    else:
+                        curve_to_append, stacked_rows = _get_braking_curve(
+                            braking, dx_braking, kpoint
+                        )
+                        size, _ = curve_to_append.shape
+                        output = np.concatenate((output[:-1], curve_to_append), axis=0)
+                        #! recompute previous accel so that speed = brtable speed
+                        kpoint = output[-1, 0]
+                        curve_appended = True
+                        station_start = True if output[-1, 3] == 0 else False
 
                 # 'KP [km]', 0
                 # 'Distance step [m]', 1
@@ -691,27 +759,27 @@ class ShortestOperationSolver():
                 label="Revised speed",
                 where="pre",
             )
-            ax.scatter(
+            ax.plot(
                 output[0],
                 output[3],
                 color='red',
-                s=3,
+                # s=3,
                 label="Braking speed",
             )
-            # ax.step(
-            #     virtual_speed_array[9],
-            #     virtual_speed_array[1],
-            #     color='green',
-            #     label="Revised grade",
-            #     where="pre",
-            # )
-            # ax.step(
-            #     dataset_np_original[9],
-            #     dataset_np_original[1],
-            #     color='black',
-            #     label="Original grade",
-            #     where="pre",
-            # )
+            ax.step(
+                virtual_speed_array[9],
+                virtual_speed_array[1],
+                color='green',
+                label="Revised grade",
+                where="pre",
+            )
+            ax.step(
+                dataset_np_original[9],
+                dataset_np_original[1],
+                color='black',
+                label="Original grade",
+                where="pre",
+            )
             ax.step(
                 dataset_np_original[9],
                 dataset_np_original[3],
