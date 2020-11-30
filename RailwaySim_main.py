@@ -15,29 +15,7 @@
  /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
 #####################################################################
 """
-"""
 
-! pipenv run python RailwaySim_main.py
-! pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py 
-! pyuic5 -x RailwaySim_GUI_pref.ui -o RailwaySim_GUI_pref.py
-! pipenv run pyinstaller --onefile RailwaySim_main.py
-
-# * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
-
-# * Known/suspected bugs, nuisances → 
-
-# TODO:
-    Desktop>System tray notifications:
-    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\desktop\systray
-
-    MORE OPEN/SAVE LOGIC:
-    -  D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\recentfiles.py
-
-    PRINTING:
-    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\dockwidgets\dockwidgets.py
-
-
-"""
 import os
 import random
 import ctypes
@@ -70,6 +48,10 @@ from solver.data_formatter import hhmm_to_s, s_to_hhmmss, get_text_positions, te
 
 from solver.shortest_operation import ShortestOperationSolver
 import traceback, sys
+
+import warnings
+import matplotlib.cbook
+warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
 
 # # if QtCore.QT_VERSION >= 0x50501:
 # def excepthook(exc_type, exc_value, exc_tb):
@@ -241,6 +223,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
         )
         self.verticalLayout_2.addItem(self.spacerItem)
+
+        #* Hide simulation tab. Results will for now be shown in route tab
+        # self.verticalLayout_6.addItem(self.spacerItem)
+        self.tabWidget.removeTab(3)
 
         #* Loco or passenger train simulation selection
         self.gb_locomotive.toggled.connect(
@@ -506,8 +492,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.writeFile()
                 #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
-                print(constants)
-                #* Compute anod output
+                #* Compute and output
                 try:
                     ShortestOperationSolver(self, constants)
                 except Exception as e:
@@ -518,9 +503,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     print(colored(error_type, "yellow"))
                     print(colored(error, "red"))
                 #* Change to simulation tab and plot
-
+                # show_results()
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
+
+
+def show_results():
+    """"""
 
 
 class PlotCanvas_route(FigureCanvas):
@@ -864,3 +853,18 @@ if __name__ == "__main__":
     timer.start(100)
 
     sys.exit(app.exec_())
+"""
+# * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
+
+# TODO:
+
+    Desktop>System tray notifications:
+    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\desktop\systray
+
+    MORE OPEN/SAVE LOGIC:
+    -  D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\recentfiles.py
+
+    PRINTING:
+    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\dockwidgets\dockwidgets.py
+
+"""
