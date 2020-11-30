@@ -59,7 +59,7 @@ Train length is equally essential to determine the average grade to which the sy
 
 To determine the actual braking curve, whenever any intersection is found (A) between the powering/cruising and braking matrices, the braking curve that follows is appended.
 
-<p align="center"><img src="resources/images/braking_example.svg"/></p>
+<p align="center"><img src="resources/images/Braking_example.svg"/></p>
 
 
 ##### Rolling stock resistance
