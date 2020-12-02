@@ -1,3 +1,7 @@
+"""
+Modified matplotlib navigation toolbar to use dark theme icons.
+"""
+
 import functools
 import os
 import re

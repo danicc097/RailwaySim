@@ -16,24 +16,28 @@
 #####################################################################
 """
 
-import os
-import random
 import ctypes
+import os
 import sys
+import traceback
+import warnings
+from PyQt5.QtCore import Qt, pyqtSlot
 
-import matplotlib.ticker as ticker
+import matplotlib.cbook
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import qdarkstyle
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.pyplot import rcParams, style
-from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter
+# from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter
 from PyQt5 import QtCore, QtGui
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (
-    QAbstractButton, QDialog, QMainWindow, QSizePolicy, QWidget, QSystemTrayIcon
+    QAbstractButton, QDialog, QMainWindow, QSizePolicy, QSystemTrayIcon, QWidget
 )
 from termcolor import colored
 
@@ -43,28 +47,12 @@ from custom_mpl_toolbar import MyMplToolbar
 from RailwaySim_GUI import Ui_MainWindow
 from RailwaySim_GUI_pref import Ui_Form
 from save_restore import grab_GC, guirestore, guisave
-from scaled_labels import ScaledLabel, label_grabber
-from solver.data_formatter import hhmm_to_s, s_to_hhmmss, get_text_positions, text_plotter
-
+from solver.data_formatter import (get_text_positions, hhmm_to_s, s_to_hhmmss, text_plotter)
 from solver.shortest_operation import ShortestOperationSolver
-import traceback, sys
 
-import warnings
-import matplotlib.cbook
 warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
 
-# # if QtCore.QT_VERSION >= 0x50501:
-# def excepthook(exc_type, exc_value, exc_tb):
-#     tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-#     print("error catched!:")
-#     print("error message:\n", tb)
-#     qtw.QApplication.quit()
-# sys.excepthook = excepthook
-
 BASEDIR = os.path.dirname(__file__)
-
-#* Allow multiple MainWindow instances
-window_list = []
 
 #* Dot separated values enforcement with "C"
 QtCore.QLocale.setDefault(QtCore.QLocale(1))
@@ -83,17 +71,19 @@ class NewWindow(QMainWindow):
         super().__init__()
         GUI_preferences_path = os.path.join(BASEDIR, 'resources', 'GUI_preferences.ini')
         self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
+        #* Allow multiple MainWindow instances
+        self.window_list = []
         self.add_new_window()
 
     def add_new_window(self):
         """Create now MainWindow instance"""
-        window = MainWindow(self, self.GUI_preferences)
-        app_icon = QIcon()
+        self.app_icon = QIcon()
         app_icon_path = os.path.join(BASEDIR, 'resources', 'images', 'RailwaySimIcon.png')
-        app_icon.addFile(app_icon_path)
-        app.setWindowIcon(app_icon)
-        window.setWindowIcon(app_icon)
-        window_list.append(window)
+        self.app_icon.addFile(app_icon_path)
+        app.setWindowIcon(self.app_icon)
+        window = MainWindow(self, self.GUI_preferences)
+        window.setWindowIcon(self.app_icon)
+        self.window_list.append(window)
         window.show()
 
 
@@ -223,9 +213,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
         )
         self.verticalLayout_2.addItem(self.spacerItem)
+        self.verticalLayout_6.addItem(self.spacerItem)
 
         #* Hide simulation tab. Results will for now be shown in route tab
-        # self.verticalLayout_6.addItem(self.spacerItem)
         self.tabWidget.removeTab(3)
 
         #* Loco or passenger train simulation selection
@@ -242,8 +232,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dial_label_size.valueChanged.connect(self.dial_refresh)
         self.dial_stroke_size.valueChanged.connect(self.dial_refresh)
 
+        #* System tray
+        self.createTrayIcon()
+        self.trayIcon.setIcon(self.windowManager.app_icon)
+        self.trayIcon.messageClicked.connect(self.showMaximized)  # click on end of sim popup
+
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+    def changeEvent(self, event):
+        """Hides the system tray icon when the main window is visible, and viceversa."""
+        if event.type() == QtCore.QEvent.WindowStateChange and self.windowState(
+        ) and Qt.WindowMinimized:
+            print('MINIMIZED')
+            self.trayIcon.show()
+            event.accept()
+        else:
+            try:
+                self.trayIcon.setVisible(False)
+            except:
+                pass
 
     def dial_refresh(self):
         """Update route plot line width."""
@@ -318,15 +326,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
             )
 
-    # TODO: PDF - See invoice_maker and qtdemo
-    # self.printer = qtps.QPrinter()
-    # self.printer.setOrientation(qtps.QPrinter.Portrait)
-    # self.printer.setPageSize(QtGui.QPageSize(QtGui.QPageSize.A4))
-    # self.actionPrintToPDF.triggered.connect(self.export_pdf)
+    def createTrayIcon(self):
+        self.restoreAction = qtw.QAction("&Restore", self, triggered=self.showNormal)
+        self.quitAction = qtw.QAction("&Quit", self, triggered=qtw.QApplication.instance().quit)
+        self.trayIconMenu = qtw.QMenu(self)
+        self.trayIconMenu.addAction(self.restoreAction)
+        self.trayIconMenu.addAction(self.quitAction)
 
-    #!######################################################################
-    #! Non-__init__ methods below
-    #!######################################################################
+        self.trayIcon = QSystemTrayIcon(self)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+
+    #!#################   Methods out of init   ####################
+    #!##############################################################
 
     def show_preferences(self):
         """Shows the Preferences widget"""
@@ -426,7 +437,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.setup_route_checkbuttons()
                         self.dial_refresh()
 
-                except Exception or TypeError as e:
+                except Exception as e:
                     qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
             else:
                 qtw.QMessageBox.critical(
@@ -439,7 +450,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
             self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
             guisave(self, self.my_settings)
-            # self.my_settings.setValue(str('Nice_setting_name'), str('Tobedefined'))
+            # Possible custom settings
+            # self.my_settings.setValue(str('setting_name'), str('valuetobedefined'))
         else:
             self.writeNewFile()
 
@@ -468,9 +480,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         close_accept = close.addButton('Yes', qtw.QMessageBox.AcceptRole)
         close.exec()  # Necessary for property-based API
         if close.clickedButton() == close_accept:
+            self.trayIcon.setVisible(False)
             event.accept()
         else:
             event.ignore()
+
+    def showSuccess(self):
+        """System tray notification."""
+        self.trayIcon.showMessage(
+            "Simulation ended successfully!", "Click here to see the results",
+            self.windowManager.app_icon, 1200 * 1000
+        )  # milliseconds default
 
     def start_simulation(self):
         """Saves changes and runs the selected solver"""
@@ -488,7 +508,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         if runSim == qtw.QMessageBox.Yes:
             try:
-                #TODO:
                 self.writeFile()
                 #* Save current window's user input to dict
                 constants = grab_GC(self, self.my_settings)
@@ -503,13 +522,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     print(colored(error_type, "yellow"))
                     print(colored(error, "red"))
                 #* Change to simulation tab and plot
+                self.showSuccess()
+                #TODO: show sim tab and plot results
                 # show_results()
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
-
-
-def show_results():
-    """"""
 
 
 class PlotCanvas_route(FigureCanvas):
@@ -787,7 +804,7 @@ class Preferences(QWidget, Ui_Form):
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
 
             # * Update icons
-            for window in window_list:
+            for window in self.ref_parent.windowManager.window_list:
                 window._iconFixes()
 
             # * Update plot
@@ -801,7 +818,7 @@ class Preferences(QWidget, Ui_Form):
         global watermark
         watermark = self.watermark.text() if self.cb_watermark.isChecked() else ""
         #* Redraw canvas application-wide
-        for window in window_list:
+        for window in self.ref_parent.windowManager.window_list:
             try:
                 window.route_canvas.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
             except:
@@ -810,7 +827,7 @@ class Preferences(QWidget, Ui_Form):
 
     def window_plot_update(self):
         """Update icons and replot in all windows"""
-        for index, window in enumerate(window_list):
+        for index, window in enumerate(self.ref_parent.windowManager.window_list):
             window._iconFixes()
             window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
             darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
@@ -834,7 +851,7 @@ class Preferences(QWidget, Ui_Form):
         """Exits Preferences window"""
         self.cb_watermark_check()
         try:
-            for window in window_list:
+            for window in self.ref_parent.windowManager.window_list:
                 window.setup_route_checkbuttons()  # Must be called every replot
         except:
             pass
@@ -855,16 +872,4 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 """
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
-
-# TODO:
-
-    Desktop>System tray notifications:
-    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\desktop\systray
-
-    MORE OPEN/SAVE LOGIC:
-    -  D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\recentfiles.py
-
-    PRINTING:
-    - D:\OneDrive\Coding\Python\GUIs\examples-_\examples-_\src\pyqt-official\mainwindows\dockwidgets\dockwidgets.py
-
 """

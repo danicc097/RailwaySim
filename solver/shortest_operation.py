@@ -12,7 +12,7 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
 
-from solver.data_formatter import s_to_hhmmss, hhmm_to_s, effort_curve_to_arrays
+from solver.data_formatter import s_to_hhmmss, effort_curve_to_arrays
 
 import time
 
@@ -43,12 +43,14 @@ class ShortestOperationSolver():
                                              100) + MASS_STATIC_WAG * (1 + C['WAG_ROT_MASS'] / 100)
             MAX_SPEED = C['LOCO_MAX_SPEED']
             MAX_ACCEL = C['LOCO_MAX_A']
+            MAX_DECEL = C['LOCO_MAX_D']
         elif C['gb_passenger']:
             L_TRAIN = C['TRAIN_LENGTH']
             MASS_STATIC = C['TRAIN_MASS']
             MASS_EQUIV = C['TRAIN_MASS'] * (1 + C['TRAIN_ROT_MASS'] / 100)
             MAX_SPEED = C['TRAIN_MAX_SPEED']
             MAX_ACCEL = C['TRAIN_MAX_A']
+            MAX_DECEL = C['TRAIN_MAX_D']
         else:
             return qtw.QMessageBox.critical(window, "Error", "Select a type of rolling stock.")
 
@@ -363,6 +365,7 @@ class ShortestOperationSolver():
         STARTING_R = C['STARTING_R']
         TRACK_GAUGE = C['TRACK_GAUGE']
 
+        #TODO: nice to have eval() for custom user input on GUI
         # * Validated
         def R_i(speed, grade, radius, braking=None):
             """Compute instantaneous rolling resistance.
@@ -395,9 +398,9 @@ class ShortestOperationSolver():
                 if accel > MAX_ACCEL: accel = MAX_ACCEL
                 return accel
             elif mode == 2:
-                #* Max regenerative braking without losses
-                reg_effort = max_effort(speed, speed_limit, mode=2)
-                accel = -MAX_ACCEL
+                #* TODO: Max regenerative braking without losses
+                regen_effort = max_effort(speed, speed_limit, mode=2)
+                accel = -MAX_DECEL
                 total_braking_effort = resistance + MASS_EQUIV * abs(accel)
                 return accel, total_braking_effort
             elif mode == 3:  # cruising
@@ -681,7 +684,7 @@ class ShortestOperationSolver():
                         station_start = True if output[-1, 3] == 0 else False
                         #TODO: / nice to have: recompute previous accel so that speed = brtable speed
 
-                #? Output columns
+                #? Base simulation columns
                 # 'KP [km]', 0
                 # 'Distance step [m]', 1
                 # 'Time [s]', 2
@@ -693,7 +696,8 @@ class ShortestOperationSolver():
                 # 'Tractive Effort [kN]', 8
                 # 'Braking Effort [kN]', 9
                 # 'Resistance [kN]', 10
-            print("Simulation completed in %s seconds ---" % (time.time() - start_time))
+
+            print("Simulation completed in %s seconds." % (time.time() - start_time))
             return output
 
         def plot_virtual_speed(output):
@@ -701,6 +705,7 @@ class ShortestOperationSolver():
             nonlocal dataset_np_original, virtual_speed_array
             dataset_np_original = dataset_np_original.T
             virtual_speed_array = virtual_speed_array.T
+
             output = output.T
 
             ax = plt.subplot(111)
@@ -745,15 +750,21 @@ class ShortestOperationSolver():
 
             dataset_np_original = dataset_np_original.T
             virtual_speed_array = virtual_speed_array.T
+
             output = output.T
 
             plt.show()
 
-        # TODO:
+        # TODO: column pandas
         #? SWAP COLUMNS WHEN WRITING TO PANDAS, DON'T CHANGE FUNCTION ORDER
         #? columns: TIME ACCUM. TIME ACCUM hh:mm:ss (vectorize). ORIGINAL u_lim.
+        #? columns: Power calculations
         #? replace speed res with ORIGINAL. adjacent column with VIRTUAL SPEED LIMIT
-        #?
+
+        # !!!!!!!!!!!!!!
+        #? SAVE RESULTS IN MAINWINDOW BASED ON USER PATH SELECTION
+        #? (ANOTHER QLINEEDIT IN SIM TAB - EXACTLY AS ROUTE!)
+        #? SO THAT THEY'RE RESTORED AFTER OPENING THAT SAME RESULTS FILE
 
         column_values = [
             'KP [km]',
@@ -771,7 +782,8 @@ class ShortestOperationSolver():
 
         output = main_simulation(virtual_speed_array, grade_array)
         output = np.vstack(output)
-        plot_virtual_speed(output)
+
+        # plot_virtual_speed(output)
 
         ##########     ndarray to dataframe      #############
         ######################################################

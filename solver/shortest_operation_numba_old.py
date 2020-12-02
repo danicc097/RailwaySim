@@ -1,3 +1,10 @@
+"""
+OUTDATED SOLVER. STORED FOR FUTURE REFERENCE.
+
+IN THIS PARTICULAR SCENARIO, THERE IS NO PERFORMANCE IMPROVEMENT WITH NUMBA, 
+EVEN WITH NOPYTHON MODE (DETRIMENTAL, IN FACT).
+"""
+
 from math import sqrt
 from termcolor import colored
 import copy
@@ -17,81 +24,7 @@ from solver.data_formatter import s_to_hhmmss, hhmm_to_s, effort_curve_to_arrays
 import time
 start_time = time.time()
 
-C = {
-    'AUX_EFF': 0.0,
-    'BATT_CAPACITY': 0,
-    'BATT_CHARG_RATE': 0.0,
-    'BATT_DISCHARG_RATE': 0.0,
-    'BATT_NUMBER': 0,
-    'BOGIES': 4,
-    'BRAKE_DELAY': 0,
-    'D_AUX_CONS': 0,
-    'D_BECurveLoadFilename': '',
-    'D_MAX_RATE': 0,
-    'D_TECurveLoadFilename': '',
-    'E_AUX_CONS': 0,
-    'E_BECurveLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_TE.csv',
-    'E_MAX_RATE': 0,
-    'E_TECurveLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_TE.csv',
-    'INV_EFF': 0.0,
-    'LOCO_AREA': 6.0,
-    'LOCO_AXLES': 2,
-    'LOCO_LENGTH': 550.0,
-    'LOCO_MASS': 120.0,
-    'LOCO_MAX_A': 1.5,
-    'LOCO_MAX_SPEED': 200,
-    'LOCO_NUMBER': 1,
-    'LOCO_ROT_MASS': 5.0,
-    'MOTOR_BOGIES': 4,
-    'MOTOR_EFF': 0.0,
-    'ProfileLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_template - Long.csv',
-    'RECT_EFF': 0.0,
-    'ROLLING_R_A': 1.919,
-    'ROLLING_R_B': 0.03611,
-    'ROLLING_R_C': 0.00049,
-    'STARTING_R': 30.0,
-    'TIME_STEP': 1.5,
-    'TRACK_GAUGE': 1.668,
-    'TRAFO_EFF': 0.0,
-    'TRAIN_AREA': 0.0,
-    'TRAIN_LENGTH': 88.0,
-    'TRAIN_MASS': 194.0,
-    'TRAIN_MAX_A': 1.5,
-    'TRAIN_MAX_SPEED': 200,
-    'TRAIN_ROT_MASS': 5.84,
-    'WAG_AXLES': 4,
-    'WAG_MASS': 35.0,
-    'WAG_NUMBER': 10,
-    'WAG_ROT_MASS': 4.0,
-    'cb_InvertRoute': True,
-    'cb_r_grade': True,
-    'cb_r_legend': True,
-    'cb_r_profile': False,
-    'cb_r_radii': False,
-    'cb_r_speedres': True,
-    'cb_r_stations': True,
-    'gb_diesel_engine': False,
-    'gb_eff': False,
-    'gb_electric_traction': True,
-    'gb_locomotive': False,
-    'gb_onboard_storage': False,
-    'gb_passenger': True,
-    'groupBox': False,
-    'groupBox_13': False,
-    'groupBox_14': False,
-    'groupBox_15': False,
-    'groupBox_17': False,
-    'groupBox_2': False,
-    'groupBox_3': False,
-    'groupBox_4': False,
-    'groupBox_5': False,
-    'groupBox_6': False,
-    'groupBox_7': False,
-    'spinBox_2': 0
-}
 
-
-# TODO: Refactor inner functions for readability
 class ShortestOperationSolver():
     def __init__(self, window, constants):
         C = constants
@@ -392,7 +325,6 @@ class ShortestOperationSolver():
             row = np.searchsorted(lookup_kpoint, kpoint, side="left")  # left for backwards
             return lookup_grade_array[row, 2]
 
-        #!TODO: SAME LOGIC TO FIND CURRENT RADIUS, ELECTRIFICATION, ETC
         @njit
         def grade_equiv(lookup_grade_array, kpoint, offset=0):
             """Backward search to define the equivalent grade based on train length.\n
@@ -498,7 +430,7 @@ class ShortestOperationSolver():
             the main forward calculations."""
             #* Initialize table (last station):
             k = 0
-            dx_braking = 5  # braking distance step accuracy #TODO: user-defined
+            dx_braking = 5  # braking distance step accuracy
             braking = [np.zeros((2, 11), dtype=float)]
             braking[k][1, 0] = kpoint = lookup_array[-1, -1]
             lookup_kpoint = lookup_array[:, -1]
@@ -567,7 +499,6 @@ class ShortestOperationSolver():
                 run_loop = False
             return kpoint, u_lim_not_reached, run_loop, speed_accum, k
 
-        #TODO: SAME LOGIC TO APPEND CURVE slice TO FORWARD CALC
         def _clean_braking(braking, dx_braking):
             """Remove unnecessary empty rows and singularities 
             from the braking list of arrays."""
@@ -889,7 +820,6 @@ class ShortestOperationSolver():
 ##########     ndarray to dataframe      #############
 ######################################################
 
-# # TODO: REPLACE WITH output
 # myarray = np.empty((0, len(column_values)), dtype=float)
 # myarray = np.vstack((myarray, np.linspace(0, 40, len(column_values))))
 # myarray = np.vstack((myarray, 2 * myarray))

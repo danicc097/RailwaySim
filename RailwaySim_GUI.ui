@@ -12,7 +12,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>RailwaySim</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -178,13 +178,10 @@
                 <string/>
                </property>
                <layout class="QGridLayout" name="gridLayout">
-                <property name="sizeConstraint">
-                 <enum>QLayout::SetMaximumSize</enum>
-                </property>
                 <item row="0" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_11">
                   <item>
-                   <widget class="QLabel" name="label_9">
+                   <widget class="QLabel" name="label_TRAIN_MASS">
                     <property name="text">
                      <string>Train mass [t]</string>
                     </property>
@@ -214,7 +211,7 @@
                 <item row="1" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_17">
                   <item>
-                   <widget class="QLabel" name="label_18">
+                   <widget class="QLabel" name="label_BOGIES">
                     <property name="text">
                      <string>Bogies [u]</string>
                     </property>
@@ -241,7 +238,7 @@
                 <item row="2" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_16">
                   <item>
-                   <widget class="QLabel" name="label_17">
+                   <widget class="QLabel" name="label_MOTOR_BOGIES">
                     <property name="text">
                      <string>Motorized bogies [u]</string>
                     </property>
@@ -268,7 +265,7 @@
                 <item row="3" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_12">
                   <item>
-                   <widget class="QLabel" name="label_12">
+                   <widget class="QLabel" name="label_TRAIN_ROT_MASS">
                     <property name="text">
                      <string>Rotational mass [%]</string>
                     </property>
@@ -295,7 +292,7 @@
                 <item row="4" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <item>
-                   <widget class="QLabel" name="label_13">
+                   <widget class="QLabel" name="label_TRAIN_AREA">
                     <property name="text">
                      <string>Frontal area [m²]</string>
                     </property>
@@ -322,7 +319,7 @@
                 <item row="5" column="0">
                  <layout class="QHBoxLayout" name="horizontalLaya_2">
                   <item>
-                   <widget class="QLabel" name="label_16">
+                   <widget class="QLabel" name="label_TRAIN_MAX_SPEED">
                     <property name="text">
                      <string>Maximum speed [km/h]</string>
                     </property>
@@ -349,7 +346,7 @@
                 <item row="6" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_32">
                   <item>
-                   <widget class="QLabel" name="label_25">
+                   <widget class="QLabel" name="label_TRAIN_LENGTH">
                     <property name="text">
                      <string>Train length [m]</string>
                     </property>
@@ -379,7 +376,7 @@
                 <item row="7" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_14">
                   <item>
-                   <widget class="QLabel" name="label_14">
+                   <widget class="QLabel" name="label_TRAIN_MAX_A">
                     <property name="text">
                      <string>Maximum acceleration [ m/s²]</string>
                     </property>
@@ -387,6 +384,36 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_MAX_A">
+                    <property name="wrapping">
+                     <bool>false</bool>
+                    </property>
+                    <property name="specialValueText">
+                     <string/>
+                    </property>
+                    <property name="suffix">
+                     <string/>
+                    </property>
+                    <property name="maximum">
+                     <double>9.990000000000000</double>
+                    </property>
+                    <property name="singleStep">
+                     <double>0.250000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="8" column="0">
+                 <layout class="QHBoxLayout" name="horizontalLayout_34">
+                  <item>
+                   <widget class="QLabel" name="label_TRAIN_MAX_D">
+                    <property name="text">
+                     <string>Maximum deceleration [ m/s²]</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QDoubleSpinBox" name="TRAIN_MAX_D">
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -447,7 +474,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_47">
                   <item>
-                   <widget class="QLabel" name="label_47">
+                   <widget class="QLabel" name="label_ROLLING_R_A">
                     <property name="font">
                      <font>
                       <pointsize>10</pointsize>
@@ -486,7 +513,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_33">
                   <item>
-                   <widget class="QLabel" name="label_33">
+                   <widget class="QLabel" name="label_ROLLING_R_B">
                     <property name="text">
                      <string>B</string>
                     </property>
@@ -519,7 +546,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_49">
                   <item>
-                   <widget class="QLabel" name="label_50">
+                   <widget class="QLabel" name="label_ROLLING_R_C">
                     <property name="text">
                      <string>C</string>
                     </property>
@@ -567,7 +594,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_50">
                   <item>
-                   <widget class="QLabel" name="label_51">
+                   <widget class="QLabel" name="label_TRACK_GAUGE">
                     <property name="text">
                      <string>Track gauge [m]</string>
                     </property>
@@ -615,7 +642,7 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout_51">
                   <item>
-                   <widget class="QLabel" name="label_52">
+                   <widget class="QLabel" name="label_STARTING_R">
                     <property name="font">
                      <font>
                       <pointsize>10</pointsize>
@@ -686,14 +713,260 @@
              <bool>false</bool>
             </property>
             <layout class="QGridLayout" name="gridLayout_6">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
-             </property>
              <item row="0" column="0">
               <layout class="QGridLayout" name="gridLayout_2">
                <property name="sizeConstraint">
                 <enum>QLayout::SetMaximumSize</enum>
                </property>
+               <item row="0" column="1">
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeType">
+                  <enum>QSizePolicy::Maximum</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>60</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="0" alignment="Qt::AlignTop">
+                <widget class="QGroupBox" name="groupBox_3">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>380</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="title">
+                  <string>Locomotive</string>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_3">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetMaximumSize</enum>
+                  </property>
+                  <item row="6" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_MAX_A">
+                      <property name="text">
+                       <string>Maximum acceleration [m/s²]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="LOCO_MAX_A">
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                      <property name="maximum">
+                       <double>9.990000000000000</double>
+                      </property>
+                      <property name="singleStep">
+                       <double>0.250000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="0" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_18">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_AXLES">
+                      <property name="text">
+                       <string>Axles [u]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="LOCO_AXLES">
+                      <property name="layoutDirection">
+                       <enum>Qt::LeftToRight</enum>
+                      </property>
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_3">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_ROT_MASS">
+                      <property name="text">
+                       <string>Rotational mass [%]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="LOCO_ROT_MASS">
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="prefix">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="4" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_4">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_AREA">
+                      <property name="text">
+                       <string>Frontal area [m²]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="LOCO_AREA">
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="prefix">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="1" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_NUMBER">
+                      <property name="text">
+                       <string>Number [u]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="LOCO_NUMBER">
+                      <property name="layoutDirection">
+                       <enum>Qt::LeftToRight</enum>
+                      </property>
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_2">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_MASS">
+                      <property name="text">
+                       <string>Individual mass [t]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="LOCO_MASS">
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="prefix">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                      <property name="maximum">
+                       <double>999.000000000000000</double>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="5" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLaya">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_MAX_SPEED">
+                      <property name="text">
+                       <string>Maximum speed [km/h]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="LOCO_MAX_SPEED">
+                      <property name="wrapping">
+                       <bool>false</bool>
+                      </property>
+                      <property name="specialValueText">
+                       <string/>
+                      </property>
+                      <property name="suffix">
+                       <string/>
+                      </property>
+                      <property name="maximum">
+                       <number>999</number>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="7" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <item>
+                     <widget class="QLabel" name="label_LOCO_MAX_D">
+                      <property name="text">
+                       <string>Maximum deceleration [m/s²]</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QDoubleSpinBox" name="LOCO_MAX_D"/>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
                <item row="0" column="2" alignment="Qt::AlignTop">
                 <widget class="QGroupBox" name="groupBox_4">
                  <property name="sizePolicy">
@@ -721,7 +994,7 @@
                   <item row="0" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_19">
                     <item>
-                     <widget class="QLabel" name="label_20">
+                     <widget class="QLabel" name="label_WAG_AXLES">
                       <property name="text">
                        <string>Axles [u]</string>
                       </property>
@@ -748,7 +1021,7 @@
                   <item row="1" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_8">
                     <item>
-                     <widget class="QLabel" name="label_7">
+                     <widget class="QLabel" name="label_WAG_NUMBER">
                       <property name="text">
                        <string>Number [u]</string>
                       </property>
@@ -775,7 +1048,7 @@
                   <item row="2" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_5">
                     <item>
-                     <widget class="QLabel" name="label_5">
+                     <widget class="QLabel" name="label_WAG_MASS">
                       <property name="text">
                        <string>Individual mass [t]</string>
                       </property>
@@ -805,7 +1078,7 @@
                   <item row="3" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
                     <item>
-                     <widget class="QLabel" name="label_6">
+                     <widget class="QLabel" name="label_WAG_ROT_MASS">
                       <property name="text">
                        <string>Rotational mass [%]</string>
                       </property>
@@ -832,7 +1105,7 @@
                   <item row="4" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_35">
                     <item>
-                     <widget class="QLabel" name="label_26">
+                     <widget class="QLabel" name="label_LOCO_LENGTH">
                       <property name="text">
                        <string>Consist length [m]</string>
                       </property>
@@ -861,241 +1134,6 @@
                   </item>
                  </layout>
                 </widget>
-               </item>
-               <item row="0" column="0" alignment="Qt::AlignTop">
-                <widget class="QGroupBox" name="groupBox_3">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>380</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="title">
-                  <string>Locomotive</string>
-                 </property>
-                 <layout class="QGridLayout" name="gridLayout_3">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetMaximumSize</enum>
-                  </property>
-                  <item row="0" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_18">
-                    <item>
-                     <widget class="QLabel" name="label_19">
-                      <property name="text">
-                       <string>Axles [u]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="LOCO_AXLES">
-                      <property name="layoutDirection">
-                       <enum>Qt::LeftToRight</enum>
-                      </property>
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="1" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout">
-                    <item>
-                     <widget class="QLabel" name="label">
-                      <property name="text">
-                       <string>Number [u]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="LOCO_NUMBER">
-                      <property name="layoutDirection">
-                       <enum>Qt::LeftToRight</enum>
-                      </property>
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="2" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_2">
-                    <item>
-                     <widget class="QLabel" name="label_2">
-                      <property name="text">
-                       <string>Individual mass [t]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QDoubleSpinBox" name="LOCO_MASS">
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="prefix">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                      <property name="maximum">
-                       <double>999.000000000000000</double>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="3" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_3">
-                    <item>
-                     <widget class="QLabel" name="label_3">
-                      <property name="text">
-                       <string>Rotational mass [%]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QDoubleSpinBox" name="LOCO_ROT_MASS">
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="prefix">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="4" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_4">
-                    <item>
-                     <widget class="QLabel" name="label_4">
-                      <property name="text">
-                       <string>Frontal area [m²]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QDoubleSpinBox" name="LOCO_AREA">
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="prefix">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="5" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLaya">
-                    <item>
-                     <widget class="QLabel" name="label_11">
-                      <property name="text">
-                       <string>Maximum speed [km/h]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QSpinBox" name="LOCO_MAX_SPEED">
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                      <property name="maximum">
-                       <number>999</number>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="6" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_7">
-                    <item>
-                     <widget class="QLabel" name="label_8">
-                      <property name="text">
-                       <string>Maximum acceleration [m/s²]</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QDoubleSpinBox" name="LOCO_MAX_A">
-                      <property name="wrapping">
-                       <bool>false</bool>
-                      </property>
-                      <property name="specialValueText">
-                       <string/>
-                      </property>
-                      <property name="suffix">
-                       <string/>
-                      </property>
-                      <property name="maximum">
-                       <double>9.990000000000000</double>
-                      </property>
-                      <property name="singleStep">
-                       <double>0.250000000000000</double>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                 </layout>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <spacer name="horizontalSpacer_2">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeType">
-                  <enum>QSizePolicy::Maximum</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>60</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
                </item>
               </layout>
              </item>
@@ -1226,7 +1264,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Braking effort - Speed curve (.csv) </string>
+                 <string>Braking Effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -1273,7 +1311,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_6">
              <item>
-              <widget class="QLabel" name="label_48">
+              <widget class="QLabel" name="label_E_AUX_CONS">
                <property name="text">
                 <string>Auxiliaries consumption [kWh]</string>
                </property>
@@ -1300,7 +1338,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_11">
              <item>
-              <widget class="QLabel" name="label_69">
+              <widget class="QLabel" name="label_E_MAX_RATE">
                <property name="text">
                 <string>Max effort rate [kN/s]</string>
                </property>
@@ -1442,7 +1480,7 @@
                  </size>
                 </property>
                 <property name="text">
-                 <string>Braking effort - Speed curve (.csv) </string>
+                 <string>Braking Effort - Speed curve (.csv) </string>
                 </property>
                </widget>
               </item>
@@ -1483,7 +1521,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_9">
              <item>
-              <widget class="QLabel" name="label_63">
+              <widget class="QLabel" name="label_D_AUX_CONS">
                <property name="text">
                 <string>Auxiliaries consumption [kWh]</string>
                </property>
@@ -1510,7 +1548,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_10">
              <item>
-              <widget class="QLabel" name="label_68">
+              <widget class="QLabel" name="label_D_MAX_RATE">
                <property name="text">
                 <string>Max effort rate [kN/s]</string>
                </property>
@@ -1555,7 +1593,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_48">
              <item>
-              <widget class="QLabel" name="label_49">
+              <widget class="QLabel" name="label_TRAFO_EFF">
                <property name="text">
                 <string>Transformer [%]</string>
                </property>
@@ -1585,7 +1623,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_54">
              <item>
-              <widget class="QLabel" name="label_58">
+              <widget class="QLabel" name="label_RECT_EFF">
                <property name="text">
                 <string>Rectifier [%]</string>
                </property>
@@ -1615,7 +1653,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_55">
              <item>
-              <widget class="QLabel" name="label_59">
+              <widget class="QLabel" name="label_INV_EFF">
                <property name="text">
                 <string>Inverter [%]</string>
                </property>
@@ -1645,7 +1683,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_56">
              <item>
-              <widget class="QLabel" name="label_60">
+              <widget class="QLabel" name="label_MOTOR_EFF">
                <property name="text">
                 <string>Motor [%]</string>
                </property>
@@ -1675,7 +1713,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_8">
              <item>
-              <widget class="QLabel" name="label_61">
+              <widget class="QLabel" name="label_AUX_EFF">
                <property name="text">
                 <string>Auxilaries [%]</string>
                </property>
@@ -1705,7 +1743,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLaya_12">
              <item>
-              <widget class="QLabel" name="label_66">
+              <widget class="QLabel" name="label_BRAKE_DELAY">
                <property name="text">
                 <string>Brake delay [s]</string>
                </property>
@@ -1779,7 +1817,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_22">
                 <item>
-                 <widget class="QLabel" name="label_21">
+                 <widget class="QLabel" name="label_BATT_NUMBER">
                   <property name="text">
                    <string>Number [u]</string>
                   </property>
@@ -1806,7 +1844,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
-                 <widget class="QLabel" name="label_10">
+                 <widget class="QLabel" name="label_BATT_CAPACITY">
                   <property name="text">
                    <string>Capacity [kWh]</string>
                   </property>
@@ -1833,7 +1871,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_23">
                 <item>
-                 <widget class="QLabel" name="label_22">
+                 <widget class="QLabel" name="label_BATT_CHARG_RATE">
                   <property name="text">
                    <string>Max charging rate [kWh/s]</string>
                   </property>
@@ -1863,7 +1901,7 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_24">
                 <item>
-                 <widget class="QLabel" name="label_23">
+                 <widget class="QLabel" name="label_BATT_DISCHARG_RATE">
                   <property name="text">
                    <string>Max discharging rate [kWh/s]</string>
                   </property>
@@ -2002,7 +2040,7 @@
               <bool>false</bool>
              </property>
              <property name="currentText">
-              <string>Select solver method</string>
+              <string/>
              </property>
              <property name="placeholderText">
               <string>Select solver method</string>
@@ -2027,7 +2065,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_53">
              <item>
-              <widget class="QLabel" name="label_55">
+              <widget class="QLabel" name="label_DISTANCE_STEP">
                <property name="toolTip">
                 <string>Define the accuracy for powering step computations</string>
                </property>
@@ -2044,6 +2082,9 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="DISTANCE_STEP">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define the accuracy for powering step computations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -2072,7 +2113,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_57">
              <item>
-              <widget class="QLabel" name="label_67">
+              <widget class="QLabel" name="label_DISTANCE_STEP_BRAKING">
                <property name="toolTip">
                 <string>Define the accuracy for braking step computations</string>
                </property>
@@ -2089,6 +2130,9 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="DISTANCE_STEP_BRAKING">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Define the accuracy for braking step computations&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -2386,7 +2430,7 @@
        <attribute name="title">
         <string>Simulation</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QVBoxLayout" name="verticalLayout_19">
         <item>
          <widget class="QLabel" name="label_15">
           <property name="font">
@@ -2399,10 +2443,10 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignHCenter">
          <widget class="QGroupBox" name="groupBox_2">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -2439,64 +2483,113 @@
             <number>9</number>
            </property>
            <item>
-            <widget class="QCheckBox" name="cb_r_stations_2">
-             <property name="text">
-              <string>Stations</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
+            <layout class="QHBoxLayout" name="horizontalLayout_31">
+             <item>
+              <widget class="QLabel" name="label_24">
+               <property name="text">
+                <string>Plot vs</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QRadioButton" name="radioButton_time">
+                 <property name="text">
+                  <string>Time</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="radioButton_distance">
+                 <property name="text">
+                  <string>Distance</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="cb_r_speedres_2">
-             <property name="text">
-              <string>Speed restriction</string>
+            <layout class="QVBoxLayout" name="verticalLayout_13">
+             <property name="spacing">
+              <number>0</number>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
+             <item>
+              <widget class="QCheckBox" name="cb_speedres_results">
+               <property name="text">
+                <string>Speed restriction</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_virtualspeedres_results">
+               <property name="text">
+                <string>Virtual speed restriction</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_speed_results">
+               <property name="text">
+                <string>Speed</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <widget class="QCheckBox" name="cb_r_grade_2">
-             <property name="text">
-              <string>Grade</string>
+            <layout class="QVBoxLayout" name="verticalLayout_14">
+             <property name="spacing">
+              <number>0</number>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cb_r_profile_2">
-             <property name="text">
-              <string>Profile</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cb_r_radii_2">
-             <property name="text">
-              <string>Curve radii</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="cb_r_legend_2">
-             <property name="text">
-              <string>Legend</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
+             <item>
+              <widget class="QCheckBox" name="cb_grade_results">
+               <property name="text">
+                <string>Grade</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_profile_results">
+               <property name="text">
+                <string>Profile</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_radii_results">
+               <property name="text">
+                <string>Curve radii</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <widget class="Line" name="line_3">
@@ -2504,6 +2597,67 @@
               <enum>Qt::Vertical</enum>
              </property>
             </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_15">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="cb_outputEffort_results">
+               <property name="text">
+                <string>Output effort</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_resistance_results">
+               <property name="text">
+                <string>Resistance</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_accel_results">
+               <property name="text">
+                <string>Acceleration</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_17">
+             <item>
+              <widget class="QCheckBox" name="cb_stations_results">
+               <property name="text">
+                <string>Stations</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cb_legend_results">
+               <property name="text">
+                <string>Legend</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <layout class="QVBoxLayout" name="dial_layout_3">
@@ -2541,7 +2695,7 @@
               </widget>
              </item>
              <item alignment="Qt::AlignHCenter">
-              <widget class="QDial" name="dial_stroke_size_2">
+              <widget class="QDial" name="dial_stroke_size_results">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
@@ -2598,7 +2752,7 @@
               </widget>
              </item>
              <item alignment="Qt::AlignHCenter">
-              <widget class="QDial" name="dial_label_size_2">
+              <widget class="QDial" name="dial_label_size_results">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
@@ -2850,7 +3004,6 @@
   <tabstop>ProfileLoadFilename</tabstop>
   <tabstop>gb_locomotive</tabstop>
   <tabstop>ProfileLoadButton</tabstop>
-  <tabstop>tabWidget</tabstop>
   <tabstop>E_TECurveEditButton</tabstop>
   <tabstop>E_BECurveEditButton</tabstop>
   <tabstop>D_BECurveLoadFilename</tabstop>

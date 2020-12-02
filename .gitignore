@@ -1,13 +1,13 @@
 RailwaySim_Notes.ipynb
-
 __pycache__/
 build/
 dist/
 TODO/
 *.spec
-
-pyuic5 -x RailwaySim_GUI.ui -o RailwaySim_GUI.py/
-Untitled-1.py
 Rail tests.py
 **/shortest_operation_old.py
-
+.ipynb_checkpoints
+csv_editor.py
+scaled_labels.py
+printsupport/
+Output_template_COPY_output_1.csv

@@ -55,9 +55,9 @@ To ensure that the rolling stock complies with the predefined track speed limits
 <p align="center"><img src="resources/images/Virtual_speed_acceleration_example.svg" alt="resistances" width="750"/></p>
 <p align="center"><img src="resources/images/Virtual_speed_example.svg" alt="resistances" width="750"/></p>
 
-Train length is equally essential to determine the average grade to which the system is subjected. An equivalent grade can be obtained based on train length and weighing one step backwards at a time up until the total length is reached.
+Train length is equally essential to determine the average grade to which the system is subjected, instead of using the front car as only reference. A far more accurate equivalent grade can be obtained based on train length and weighing one grade step backwards at a time up until the total length is reached. Curve resistance is however independent of train length and calculated based on the current simulation point.
 
-To determine the actual braking curve, whenever any intersection is found (A) between the powering/cruising and braking matrices, the braking curve that follows is appended.
+To determine the actual braking curve, whenever any intersection is found (A) between the powering/cruising and braking matrices, the remaining curve that follows is appended.
 
 <p align="center"><img src="resources/images/braking_example.svg"/></p>
 
