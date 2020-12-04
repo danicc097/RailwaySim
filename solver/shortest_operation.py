@@ -764,10 +764,10 @@ class ShortestOperationSolver():
             output[0][6] = radius(lookup_grade_array, output[0][0])
             output[0][10] = resistance = R_i(speed, output[0][5], output[0][6])
             output[0][4] = accel_i(speed, MAX_SPEED, resistance, mode=1)
-            output[0][7] = speed_limit = lookup_array[1][3]
+            output[0][7] = speed_limit = lookup_array[1, 3]
             output[0][8] = max_effort(speed, speed_limit, mode=1)
 
-            lookup_kpoint = lookup_array[:][-1]
+            lookup_kpoint = lookup_array[:, -1]  # Don't use [:][-1] !
             dx = C['DISTANCE_STEP']
             kpoint = _new_powering_step(dx, lookup_grade_array, speed_limit, kpoint)
             k = 0
@@ -893,13 +893,13 @@ class ShortestOperationSolver():
                 s=1,
                 label="Speed",
             )
-            ax.scatter(
-                ORIG_BRAKING[0],
-                ORIG_BRAKING[3],
-                color='red',
-                s=1,
-                label="Braking curves",
-            )
+            # ax.scatter(
+            #     ORIG_BRAKING[0],
+            #     ORIG_BRAKING[3],
+            #     color='red',
+            #     s=1,
+            #     label="Braking curves",
+            # )
             # ax.step(
             #     virtual_speed_array[9],
             #     virtual_speed_array[1],
