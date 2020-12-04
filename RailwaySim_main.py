@@ -15,14 +15,19 @@
  /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
 #####################################################################
 """
+"""
+TODO known bugs:
+    speed_from_length doesn't work properly for large trains with rapidly changing speed limits
+    
+"""
 
 import ctypes
 import os
 import sys
 import traceback
 import warnings
-from PyQt5.QtCore import Qt, pyqtSlot
 
+import pandas as pd
 import matplotlib.cbook
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -235,7 +240,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #* System tray
         self.createTrayIcon()
         self.trayIcon.setIcon(self.windowManager.app_icon)
-        self.trayIcon.messageClicked.connect(self.showMaximized)  # click on end of sim popup
+        self.trayIcon.messageClicked.connect(self.show)  # TODO click on end of sim popup
 
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
@@ -243,13 +248,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def changeEvent(self, event):
         """Hides the system tray icon when the main window is visible, and viceversa."""
         if event.type() == QtCore.QEvent.WindowStateChange and self.windowState(
-        ) and Qt.WindowMinimized:
-            print('MINIMIZED')
+        ) and self.isMinimized:
             self.trayIcon.show()
             event.accept()
         else:
             try:
-                self.trayIcon.setVisible(False)
+                self.trayIcon.hide()
             except:
                 pass
 
@@ -459,7 +463,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Shows license information"""
         self.infoScreen = qtw.QMessageBox(None)
         self.infoScreen.setWindowTitle('Legal Information')
-        self.infoScreen.setText('RailwaySim is licenced under the GNU GPL.\t\t')
+        self.infoScreen.setText('RailwaySim is licenced under the GNU GPL v3.\t\t')
         self.infoScreen.setInformativeText("The complete license is available below.\t\t")
         try:
             self.infoScreen.setDetailedText(
@@ -474,7 +478,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
 
     def closeEvent(self, event):
-        """Accept or Ignore event action"""
+        """Catches the MainWindow close button event and displays a dialog."""
         close = qtw.QMessageBox(qtw.QMessageBox.Question, 'Exit', 'Exit application?', parent=self)
         close_reject = close.addButton('No', qtw.QMessageBox.NoRole)
         close_accept = close.addButton('Yes', qtw.QMessageBox.AcceptRole)
@@ -485,11 +489,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-    def showSuccess(self):
-        """System tray notification."""
+    def showSuccess(self, sim_time):
+        """System tray notification displaying simulation ended."""
+        self.trayIcon.show()
         self.trayIcon.showMessage(
-            "Simulation ended successfully!", "Click here to see the results",
-            self.windowManager.app_icon, 1200 * 1000
+            f"Simulation ended successfully in {sim_time} seconds!\n",
+            "Click here to see the results.", self.windowManager.app_icon, 1200 * 1000
         )  # milliseconds default
 
     def start_simulation(self):
@@ -508,12 +513,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         if runSim == qtw.QMessageBox.Yes:
             try:
+                #* Save any changes to the GUI
                 self.writeFile()
-                #* Save current window's user input to dict
+                #* Save current window's user input to a dict
                 constants = grab_GC(self, self.my_settings)
-                #* Compute and output
                 try:
-                    ShortestOperationSolver(self, constants)
+                    sim_time = ShortestOperationSolver.main(self, constants)
+                    self.showSuccess(sim_time)
+                    #* Change to simulation tab and plot
+                    #TODO: show sim tab and plot results
+                    # show_results()
                 except Exception as e:
                     error_type, error, tb = sys.exc_info()
                     print(
@@ -521,10 +530,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     )
                     print(colored(error_type, "yellow"))
                     print(colored(error, "red"))
-                #* Change to simulation tab and plot
-                self.showSuccess()
-                #TODO: show sim tab and plot results
-                # show_results()
+
             except Exception as e:
                 qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
 
@@ -533,7 +539,8 @@ class PlotCanvas_route(FigureCanvas):
     """Route input data graph"""
     def __init__(self, GUI, ref_parent, dpi=100):
         self.GUI_preferences = GUI
-        self.ref_parent = ref_parent  # pass MainWindow to access its widgets
+        # Don't use "parent" as variable name.
+        self.ref_parent = ref_parent  # pass MainWindow to access its widgets.
         self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
         FigureCanvas.__init__(self, self.route_fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -541,10 +548,28 @@ class PlotCanvas_route(FigureCanvas):
         self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
         self.counter = 0  # Allow for plot retries upon exception
 
-    def route_data_import(self, linewidth=2.5, invert=False):
-        """Route profile data import."""
+    def route_data_import(self, invert=False):
+        """Route profile data import.\n
+        Parameters
+        ----------
+        `invert`: flip route data (return trip). 
+        """
         if len(self.ref_parent.ProfileLoadFilename.text()) <= 3:
             return
+
+        # TODO: IF grouped route data by KP
+        array = pd.DataFrame({'Time': [0, 10, 20, 25], 'Temperature': [50, 100, 120, 100]})
+        array2 = pd.DataFrame({'Time': [0, 5, 10, 15], 'Height': [10, 11, 13, 15]})
+        array3 = pd.DataFrame({'Time': [0, 20, 40], 'Width': [3, 5, 6]})
+        concat_df = pd.concat([array, array2, array3])
+        # concat_df.sort_values(by='Time', ascending=True, inplace=True)
+        # concat_df = pd.concat([array,array2,array3]).groupby('Time')
+        # print(concat_df)
+        concat_df = concat_df.groupby('Time').sum(min_count=1)
+        print(concat_df)
+        concat_df = concat_df.groupby('Time').sum(min_count=1).ffill()
+        print(concat_df)
+
         self.ROUTE_INPUT_DF = np.genfromtxt(
             self.ref_parent.ProfileLoadFilename.text(),
             delimiter=',',
@@ -566,14 +591,16 @@ class PlotCanvas_route(FigureCanvas):
             self.station_names = np.array(self.ROUTE_INPUT_DF[12][:], dtype=str)
 
             #* Calculate profile height from distance steps and grade
+            # TODO show in results tab
             self.profile = np.zeros(len(self.distance), dtype=float)
             for index, distance_step in enumerate(self.distance):
-                if index < 1:
+                if index == 0:
                     self.profile[index] = 0
                 else:
                     self.profile[
                         index] = distance_step * self.grade[index] / 1000 + \
                             self.profile[index-1]
+
             # * Main timetable
             self.timetable_stations = np.array(
                 [str(a) for a in self.ROUTE_INPUT_DF[0][:] if a != ""]

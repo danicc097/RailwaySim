@@ -15,10 +15,115 @@ sys.path.append(parentdir)
 from solver.data_formatter import s_to_hhmmss, effort_curve_to_arrays
 
 import time
+import threading
+
+np.seterr(all='raise')
+
+constants = {
+    'AUX_EFF': 0.0,
+    'BATT_CAPACITY': 0,
+    'BATT_CHARG_RATE': 0.0,
+    'BATT_DISCHARG_RATE': 0.0,
+    'BATT_NUMBER': 0,
+    'BOGIES': 4,
+    'BRAKE_DELAY': 0.0,
+    'DISTANCE_STEP': 2.0,
+    'DISTANCE_STEP_BRAKING': 2.0,
+    'D_AUX_CONS': 0,
+    'D_BECurveLoadFilename': '',
+    'D_MAX_RATE': 0,
+    'D_TECurveLoadFilename': '',
+    'E_AUX_CONS': 0,
+    'E_BECurveLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_TE.csv',
+    'E_MAX_RATE': 0,
+    'E_TECurveLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_TE.csv',
+    'INV_EFF': 0.0,
+    'LOCO_AREA': 6.0,
+    'LOCO_AXLES': 2,
+    'LOCO_LENGTH': 550.0,
+    'LOCO_MASS': 120.0,
+    'LOCO_MAX_A': 1.5,
+    'LOCO_MAX_D': 0.0,
+    'LOCO_MAX_SPEED': 200,
+    'LOCO_NUMBER': 1,
+    'LOCO_ROT_MASS': 5.0,
+    'MOTOR_BOGIES': 4,
+    'MOTOR_EFF': 0.0,
+    'ProfileLoadFilename': 'C:/Users/danic/MyPython/RailwaySim/Input_template - Braking.csv',
+    'RECT_EFF': 0.0,
+    'ROLLING_R_A': 1.919,
+    'ROLLING_R_B': 0.0361,
+    'ROLLING_R_C': 0.00049,
+    'STARTING_R': 30.0,
+    'TRACK_GAUGE': 1.668,
+    'TRAFO_EFF': 0.0,
+    'TRAIN_AREA': 0.0,
+    'TRAIN_LENGTH': 88.0,
+    'TRAIN_MASS': 194.0,
+    'TRAIN_MAX_A': 1.5,
+    'TRAIN_MAX_D': 0.75,
+    'TRAIN_MAX_SPEED': 200,
+    'TRAIN_ROT_MASS': 5.84,
+    'WAG_AXLES': 4,
+    'WAG_MASS': 35.0,
+    'WAG_NUMBER': 10,
+    'WAG_ROT_MASS': 4.0,
+    'cb_InvertRoute': True,
+    'cb_accel_results': True,
+    'cb_grade_results': True,
+    'cb_legend_results': True,
+    'cb_outputEffort_results': True,
+    'cb_profile_results': True,
+    'cb_r_grade': True,
+    'cb_r_legend': True,
+    'cb_r_profile': False,
+    'cb_r_radii': False,
+    'cb_r_speedres': True,
+    'cb_r_stations': True,
+    'cb_radii_results': True,
+    'cb_resistance_results': True,
+    'cb_speed_results': True,
+    'cb_speedres_results': True,
+    'cb_stations_results': True,
+    'cb_virtualspeedres_results': True,
+    'gb_diesel_engine': False,
+    'gb_eff': False,
+    'gb_electric_traction': True,
+    'gb_locomotive': False,
+    'gb_onboard_storage': False,
+    'gb_passenger': True,
+    'groupBox': False,
+    'groupBox_13': False,
+    'groupBox_14': False,
+    'groupBox_15': False,
+    'groupBox_17': False,
+    'groupBox_2': False,
+    'groupBox_3': False,
+    'groupBox_4': False,
+    'groupBox_5': False,
+    'groupBox_6': False,
+    'groupBox_7': False,
+    'radioButton_distance': True,
+    'radioButton_time': False
+}
+
+constants['TRAIN_LENGTH'] = 150
 
 
 class ShortestOperationSolver():
-    def __init__(self, window, constants):
+    def __init__(self):
+        # global break_execution
+        # break_execution = False
+        pass
+
+    # def execution_watcher(func):
+    #     def wrapper(break_execution):
+    #         while not break_execution:
+    #             pass
+
+    # threading.Thread(group=None, target=execution_watcher, args=())
+    # @execution_watcher
+    def main(window, constants):
         C = constants
         dataset_np = np.genfromtxt(
             C['ProfileLoadFilename'],
@@ -73,19 +178,24 @@ class ShortestOperationSolver():
                     row -= 1
             return distance
 
-        def d_same_or_higher_speed(array, row, max_step):
-            """Returns the distance (up to 'step' meters) during which speed is the same or higher."""
+        def d_same_or_higher_speed(array, row, step):
+            """Returns the distance during which speed is the same or higher.\n
+            Parameters
+            ----------
+            `step`: positive value to search forward, and viceversa.
+            """
             distance = array[row, 0]
-            if max_step > 0:
+            base_speed = array[row, 3]
+            if step > 0:
                 total_rows, _ = array.shape
                 while row < total_rows - 1:
-                    if array[row + 1, 3] < array[row, 3]:
+                    if array[row + 1, 3] < base_speed:
                         break
                     distance += array[row + 1, 0]
                     row += 1
-            elif max_step < 0:
+            elif step < 0:
                 while row > 0:
-                    if array[row, 3] < array[row - 1, 3]:
+                    if array[row - 1, 3] < base_speed:
                         break
                     distance += array[row - 1, 0]
                     row -= 1
@@ -120,7 +230,28 @@ class ShortestOperationSolver():
                 array[row, 0] = distance
             return array
 
+        def new_speed(original_array):
+            """"""
+            ROUTE_LENGTH = original_array[-1, -1]
+            lookup_kpoint = original_array[:, -1]
+            kpoint = 0.001
+            row = np.searchsorted(lookup_kpoint, kpoint, side="left")
+            min_step = np.min(original_array[0, :], axis=0) / 1000
+            dx = 1 / 1000
+            _, columns = original_array.shape
+            array = np.zeros(1, columns)
+            print(array)
+            while kpoint < (ROUTE_LENGTH - dx):
+                # speed = min([]) #! test if it can write what there was before first
+                row = np.searchsorted(lookup_kpoint, kpoint, side="left")
+                base_row = original_array[row, :]
+
+                kpoint += dx
+            print(array)
+            return array
+
         #* Main virtual speed calculation function
+        # TODO fix !
         def speed_from_length(array, row=0):
             """Calculates the speed which ensures that the last point in the train complies with
             the speed limit. Returns a modified array."""
@@ -131,10 +262,10 @@ class ShortestOperationSolver():
                 total_rows, _ = array.shape
                 if array[row, 3] > MAX_SPEED:
                     array[row, 3] = MAX_SPEED
-                speed = np.copy(array)[row, 3]
-                next_distance = np.copy(array)[row + 1, 3]
+                speed = array[row, 3]
+                next_distance = array[row + 1, 3]
                 next_speed = array[row + 1, 3]
-                distance_same_or_higher_speed = d_same_or_higher_speed(array, row + 1, L_TRAIN)
+                distance_same_or_higher_speed = d_same_or_higher_speed(array, row + 1, 1)
                 if array[row, 0] == 0 or next_speed <= speed or next_speed == speed_to_check:
                     row += 1
                     stacked_steps.clear()
@@ -143,7 +274,6 @@ class ShortestOperationSolver():
                     #* If there's an equal or higher speed for more than L_TRAIN,
                     #* override speed and split last row
                     if distance_same_or_higher_speed >= L_TRAIN:
-                        # ? Refactor into separate function.
                         if len(stacked_steps) > 0:
                             array, row = _apply_offset_array(stacked_steps, array, row, L_TRAIN)
                         else:
@@ -181,11 +311,11 @@ class ShortestOperationSolver():
                 #* When the next step is larger than the remaining length to be overridden,
                 #* split this next row and assign the previous speed to the first slice
                 if array[row + 1, 0] > remaining_length:
+                    speed_to_check = next_speed
                     array = split_row(array, row + 1, remaining_length, speed)
                     array[row + 2, 0] -= remaining_length
                     accum_steps = L_TRAIN + 9999  # break out of inner loop
                     row += 1  # skip the newly created row as well
-                    speed_to_check = next_speed  # the next loop will check the original speed
                 #* If the next step is smaller or equal, assign previous speed and accumulate distance
                 else:
                     stacked_steps.append([np.copy(array)[row + 1, 0], np.copy(array)[row + 1, 3]])
@@ -292,6 +422,7 @@ class ShortestOperationSolver():
         b = b[b[:, 0] > 0]
         kpoint = np.cumsum(b[0:, 0] / 1000, dtype=float)
         b = np.hstack((b, kpoint.reshape(kpoint.size, 1)))
+        #* Array with extra row accounting for train length
         grade_array = np.concatenate((b[0, None], b[0:]), axis=0)
         grade_array[0, 0] = L_TRAIN
         grade_array[0, 1:] = 0
@@ -299,6 +430,7 @@ class ShortestOperationSolver():
         kpoint = np.cumsum(dataset_np_original[:, 0] / 1000, dtype=float)
         dataset_np_original = np.hstack((dataset_np_original, kpoint.reshape(kpoint.size, 1)))
         a = speed_from_length(dataset_np)
+        # a = new_speed(dataset_np_original)
         kpoint = np.cumsum(a[:, 0] / 1000, dtype=float)
         a = np.hstack((a, kpoint.reshape(kpoint.size, 1)))
         virtual_speed_array = np.copy(a)
@@ -392,12 +524,12 @@ class ShortestOperationSolver():
             -----------
             `mode`: `1` (powering), `2` (braking), `3` (cruising)"""
             # * Ensure it goes down when not enough power!!
-            if mode == 1:
+            if mode == 1:  # powering
                 tractive_effort = max_effort(speed, speed_limit, mode=1)
                 accel = (tractive_effort - resistance) / MASS_EQUIV
                 if accel > MAX_ACCEL: accel = MAX_ACCEL
                 return accel
-            elif mode == 2:
+            elif mode == 2:  # braking
                 #* TODO: Max regenerative braking without losses
                 regen_effort = max_effort(speed, speed_limit, mode=2)
                 accel = -MAX_DECEL
@@ -427,7 +559,6 @@ class ShortestOperationSolver():
             speed_accum = 0
             min_d = dx_braking / 1000 * 3
             while kpoint > min_d:
-                # print(colored(kpoint, "green"))
                 row = np.searchsorted(lookup_kpoint, kpoint, side="left")
                 if row < 2: break
                 speed_limit = lookup_array[row, 3]
@@ -464,6 +595,7 @@ class ShortestOperationSolver():
             kpoint = _new_brake_step(
                 braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint
             )
+            if not kpoint: return
             u_lim_not_reached = False
             run_loop = True
             speed_accum = 0
@@ -519,17 +651,29 @@ class ShortestOperationSolver():
 
         def _new_brake_step(braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint):
             """Simulates one braking step of `dx` meters based on previous state."""
-            braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
-            braking[k][0, 1] = dx_braking
-            braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
-            braking[k][0, 6] = radius(lookup_grade_array, kpoint)
-            braking[k][0, 7] = speed_limit
-            braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
-            braking[k][0, 4], braking[k][
-                0, 9] = accel_i(braking[k][1, 3], MAX_SPEED, braking[k][0, 10], mode=2)
-            braking[k][
-                0, 3] = sqrt((braking[k][1, 3] / 3.6)**2 - 2 * braking[k][0, 4] * dx_braking) * 3.6
-            braking[k][0, 2] = dx_braking / ((braking[k][0, 3] + braking[k][1, 3]) / 3.6 / 2)
+            #* The braking curve is the first thing to be computed after the virtual speed
+            #* array. Catch exceptions here.
+            try:
+                braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
+                braking[k][0, 1] = dx_braking
+                braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+                braking[k][0, 6] = radius(lookup_grade_array, kpoint)
+                braking[k][0, 7] = speed_limit
+                braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
+                braking[k][0, 4], braking[k][
+                    0, 9] = accel_i(braking[k][1, 3], MAX_SPEED, braking[k][0, 10], mode=2)
+                braking[k][0, 3] = sqrt(
+                    (braking[k][1, 3] / 3.6)**2 - 2 * braking[k][0, 4] * dx_braking
+                ) * 3.6
+                braking[k][0, 2] = dx_braking / ((braking[k][0, 3] + braking[k][1, 3]) / 3.6 / 2)
+            except Exception as e:
+                qtw.QMessageBox.critical(
+                    window, "Error",
+                    f"Make sure that all necessary GUI input data has been entered:\n\n{e}",
+                    qtw.QMessageBox.Ok
+                )
+                return False
+
             return kpoint
 
         def _new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint):
@@ -549,8 +693,15 @@ class ShortestOperationSolver():
                 return qtw.QMessageBox.critical(
                     window, "Error", f"Insufficient power at {kpoint} km.", qtw.QMessageBox.Ok
                 )
+            try:
+                output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
+            except Exception as e:
+                return qtw.QMessageBox.critical(
+                    window, "Error",
+                    f"Make sure that all necessary GUI input data has been entered:\n\n{e}",
+                    qtw.QMessageBox.Ok
+                )
 
-            output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
             if output[-1, 3] > speed_limit: output[-1, 3] == speed_limit
             return kpoint, output
 
@@ -590,6 +741,8 @@ class ShortestOperationSolver():
             Returns the complete route simulation array."""
             #* Braking table calculation
             braking, dx_braking = compute_brake_array(lookup_array, lookup_grade_array)
+            global ORIG_BRAKING
+            ORIG_BRAKING = np.copy(braking)
             output = np.zeros((1, 11), dtype=float)
             ROUTE_LENGTH = lookup_array[-1, -1]
 
@@ -598,10 +751,10 @@ class ShortestOperationSolver():
             output[0, 3] = speed = 0
             output[0, 5] = grade_equiv(lookup_grade_array, output[0, 0], 'right')
             output[0, 6] = radius(lookup_grade_array, output[0, 0])
-            output[0, 10] = resistance = R_i(output[0, 3], output[0, 5], output[0, 6])
-            output[0, 4] = accel_i(output[0, 3], MAX_SPEED, resistance, mode=1)
+            output[0, 10] = resistance = R_i(speed, output[0, 5], output[0, 6])
+            output[0, 4] = accel_i(speed, MAX_SPEED, resistance, mode=1)
             output[0, 7] = speed_limit = lookup_array[1, 3]
-            output[0, 8] = max_effort(output[0, 3], speed_limit, mode=1)
+            output[0, 8] = max_effort(speed, speed_limit, mode=1)
 
             lookup_kpoint = lookup_array[:, -1]
             dx = C['DISTANCE_STEP']
@@ -697,14 +850,18 @@ class ShortestOperationSolver():
                 # 'Braking Effort [kN]', 9
                 # 'Resistance [kN]', 10
 
-            print("Simulation completed in %s seconds." % (time.time() - start_time))
+            global sim_time
+            sim_time = int(time.time() - start_time)
+            print("Simulation completed in %s seconds." % sim_time)
             return output
 
         def plot_virtual_speed(output):
             """Show computed virtual max speed profile against the original speed limit."""
             nonlocal dataset_np_original, virtual_speed_array
+            global ORIG_BRAKING
             dataset_np_original = dataset_np_original.T
             virtual_speed_array = virtual_speed_array.T
+            ORIG_BRAKING = ORIG_BRAKING.T
 
             output = output.T
 
@@ -713,35 +870,42 @@ class ShortestOperationSolver():
             ax.step(
                 virtual_speed_array[9],
                 virtual_speed_array[3],
-                color='black',
-                label="Revised speed",
+                color='purple',
+                label="Virtual speed limit",
                 where="pre",
             )
             ax.plot(
                 output[0],
                 output[3],
-                color='red',
-                # s=3,
-                label="Braking speed",
-            )
-            ax.step(
-                virtual_speed_array[9],
-                virtual_speed_array[1],
                 color='green',
-                label="Revised grade",
-                where="pre",
+                # s=3,
+                label="Speed",
             )
-            ax.step(
-                dataset_np_original[9],
-                dataset_np_original[1],
-                color='black',
-                label="Original grade",
-                where="pre",
+            ax.scatter(
+                ORIG_BRAKING[0],
+                ORIG_BRAKING[3],
+                color='red',
+                s=1,
+                label="Braking curves",
             )
+            # ax.step(
+            #     virtual_speed_array[9],
+            #     virtual_speed_array[1],
+            #     color='green',
+            #     label="Revised grade",
+            #     where="pre",
+            # )
+            # ax.step(
+            #     dataset_np_original[9],
+            #     dataset_np_original[1],
+            #     color='black',
+            #     label="Original grade",
+            #     where="pre",
+            # )
             ax.step(
                 dataset_np_original[9],
                 dataset_np_original[3],
-                label="Original speed",
+                label="Speed limit",
                 where="pre",
             )
             ax.set_xlabel('Distance [km]')
@@ -757,7 +921,7 @@ class ShortestOperationSolver():
 
         # TODO: column pandas
         #? SWAP COLUMNS WHEN WRITING TO PANDAS, DON'T CHANGE FUNCTION ORDER
-        #? columns: TIME ACCUM. TIME ACCUM hh:mm:ss (vectorize). ORIGINAL u_lim.
+        #? columns: ORIGINAL u_lim.
         #? columns: Power calculations
         #? replace speed res with ORIGINAL. adjacent column with VIRTUAL SPEED LIMIT
 
@@ -783,17 +947,22 @@ class ShortestOperationSolver():
         output = main_simulation(virtual_speed_array, grade_array)
         output = np.vstack(output)
 
-        # plot_virtual_speed(output)
+        plot_virtual_speed(output)
 
         ##########     ndarray to dataframe      #############
         ######################################################
+        output_df = pd.DataFrame(data=output, columns=column_values, dtype=float)
+        #* Additional columns inserted into base output
+        col = output_df['Time [s]'].cumsum()
+        col = col.apply(s_to_hhmmss, 0)
+        idx = output_df.columns.get_loc('Time [s]') + 1
+        output_df.insert(idx, 'Elapsed time [hh:mm:ss]', col)
 
         parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
         # TODO: qfiledialog selection
         def export_output(output):
-            b = pd.DataFrame(data=output, columns=column_values)
-            b.to_csv(
+            output_df.to_csv(
                 parentDirectory + '/Output_template_COPY_output.csv',
                 encoding='utf-8-sig',
                 float_format='%1.8f',
@@ -808,5 +977,8 @@ class ShortestOperationSolver():
             traction_mode_is_diesel = 0
             traction_mode_is_battery = 0
 
+        #* Return simulation time to display on notification bubble
+        return sim_time
 
-# ShortestOperationSolver(None, C)
+
+# ShortestOperationSolver.main(None, constants)
