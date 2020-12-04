@@ -626,27 +626,28 @@ class ShortestOperationSolver():
             from the braking list of arrays."""
             braking = np.concatenate(braking, axis=0)
             braking = braking[braking[:, 0] > 0]
-            accum_brake_steps = 0
-            total_rows, _ = braking.shape
-            for row in range(total_rows - 2):
-                try:
-                    next_kpoint = braking[row + 1, 0]
-                except:
-                    continue
-                kpoint = braking[row, 0]
-                next_speed = braking[row + 1, 3]
-                speed = braking[row, 3]
-                if (
-                    next_kpoint - kpoint
-                ) * 1000 < dx_braking * 2 and next_speed - speed < 0:  # it's a braking curve
-                    accum_brake_steps += 1
-                else:
-                    if accum_brake_steps < 2:
-                        try:
-                            braking = np.delete(braking, row, axis=0)
-                        except:
-                            pass
-                    accum_brake_steps = 0
+            for _ in range(3):
+                accum_brake_steps = 0
+                total_rows, _ = braking.shape
+                for row in range(total_rows - 2):
+                    try:
+                        next_kpoint = braking[row + 1, 0]
+                    except:
+                        continue
+                    kpoint = braking[row, 0]
+                    next_speed = braking[row + 1, 3]
+                    speed = braking[row, 3]
+                    if (
+                        next_kpoint - kpoint
+                    ) * 1000 < dx_braking * 1.2 and next_speed - speed < 0:  # it's a braking curve
+                        accum_brake_steps += 1
+                    else:
+                        if accum_brake_steps < 2:
+                            try:
+                                braking = np.delete(braking, row, axis=0)
+                            except:
+                                pass
+                        accum_brake_steps = 0
             return braking
 
         def _new_brake_step(braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint):
@@ -676,25 +677,25 @@ class ShortestOperationSolver():
 
             return kpoint
 
-        def _new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint):
+        def _new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint, i):
             """Simulates one powering step of `dx` meters based on previous state."""
-            output = np.concatenate((output, np.zeros((1, 11))), axis=0)
-            output[-1, 0] = kpoint = output[-2, 0] + dx / 1000
-            output[-1, 1] = dx
-            output[-1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
-            output[-1, 6] = radius(lookup_grade_array, kpoint)
-            output[-1, 7] = speed_limit
-            output[-1, 8] = max_effort(output[-2, 3], MAX_SPEED, mode=1)
-            output[-1, 10] = R_i(output[-2, 3], output[-1, 5], output[-1, 6])
-            output[-1, 4] = accel_i(output[-2, 3], MAX_SPEED, output[-1, 10], mode=1)
+            # output = np.concatenate((output, np.zeros((1, 11))), axis=0)
+            output[i, 0] = kpoint = output[i - 1, 0] + dx / 1000
+            output[i, 1] = dx
+            output[i, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[i, 6] = radius(lookup_grade_array, kpoint)
+            output[i, 7] = speed_limit
+            output[i, 8] = max_effort(output[i - 1, 3], MAX_SPEED, mode=1)
+            output[i, 10] = R_i(output[i - 1, 3], output[i, 5], output[i, 6])
+            output[i, 4] = accel_i(output[i - 1, 3], MAX_SPEED, output[i, 10], mode=1)
             try:
-                output[-1, 3] = sqrt((output[-2, 3] / 3.6)**2 + 2 * output[-1, 4] * dx) * 3.6
+                output[i, 3] = sqrt((output[i - 1, 3] / 3.6)**2 + 2 * output[i, 4] * dx) * 3.6
             except:
                 return qtw.QMessageBox.critical(
                     window, "Error", f"Insufficient power at {kpoint} km.", qtw.QMessageBox.Ok
                 )
             try:
-                output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
+                output[i, 2] = dx / ((output[i, 3] + output[i - 1, 3]) / 3.6 / 2)
             except Exception as e:
                 return qtw.QMessageBox.critical(
                     window, "Error",
@@ -702,23 +703,25 @@ class ShortestOperationSolver():
                     qtw.QMessageBox.Ok
                 )
 
-            if output[-1, 3] > speed_limit: output[-1, 3] == speed_limit
-            return kpoint, output
+            if output[i, 3] > speed_limit: output[i, 3] == speed_limit
+            i += 1
+            return kpoint, i
 
-        def _new_cruising_step(output, dx, lookup_grade_array, speed_limit, kpoint):
+        def _new_cruising_step(output, dx, lookup_grade_array, speed_limit, kpoint, i):
             """Simulates one cruising step of `dx` meters based on previous state."""
-            output = np.concatenate((output, np.zeros((1, 11))), axis=0)
-            output[-1, 0] = kpoint = output[-2, 0] + dx / 1000
-            output[-1, 1] = dx
-            output[-1, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
-            output[-1, 6] = radius(lookup_grade_array, kpoint)
-            output[-1, 7] = speed_limit
-            output[-1, 10] = R_i(output[-2, 3], output[-1, 5], output[-1, 6])
-            output[-1, 4], output[-1, 8] = accel_i(output[-2, 3], MAX_SPEED, output[-1, 10], mode=3)
-            output[-1, 3] = speed_limit
-            output[-1, 2] = dx / ((output[-1, 3] + output[-2, 3]) / 3.6 / 2)
-            if output[-1, 3] > speed_limit: output[-1, 3] == speed_limit
-            return kpoint, output
+            # output = np.concatenate((output, np.zeros((1, 11))), axis=0)
+            output[i, 0] = kpoint = output[i - 1, 0] + dx / 1000
+            output[i, 1] = dx
+            output[i, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[i, 6] = radius(lookup_grade_array, kpoint)
+            output[i, 7] = speed_limit
+            output[i, 10] = R_i(output[i - 1, 3], output[i, 5], output[i, 6])
+            output[i, 4], output[i, 8] = accel_i(output[i - 1, 3], MAX_SPEED, output[i, 10], mode=3)
+            output[i, 3] = speed_limit
+            output[i, 2] = dx / ((output[i, 3] + output[i - 1, 3]) / 3.6 / 2)
+            if output[i, 3] > speed_limit: output[i, 3] == speed_limit
+            i += 1
+            return kpoint, i
 
         def _get_braking_curve(braking, dx_braking, kpoint):
             """Return a complete braking curve from the array at the specified `kpoint`."""
@@ -743,9 +746,12 @@ class ShortestOperationSolver():
             braking, dx_braking = compute_brake_array(lookup_array, lookup_grade_array)
             global ORIG_BRAKING
             ORIG_BRAKING = np.copy(braking)
-            output = np.zeros((1, 11), dtype=float)
             ROUTE_LENGTH = lookup_array[-1, -1]
-
+            min_step = min(C['DISTANCE_STEP'], C['DISTANCE_STEP_BRAKING']) / 1000
+            print(min_step)
+            max_array_size = int(ROUTE_LENGTH / min_step * 1.1)
+            output = np.empty((max_array_size, 11), dtype=float)
+            print(output.shape)
             #* Initialize train start up:
             output[0, 0] = kpoint = 0
             output[0, 3] = speed = 0
@@ -755,21 +761,20 @@ class ShortestOperationSolver():
             output[0, 4] = accel_i(speed, MAX_SPEED, resistance, mode=1)
             output[0, 7] = speed_limit = lookup_array[1, 3]
             output[0, 8] = max_effort(speed, speed_limit, mode=1)
-
+            i = 1
             lookup_kpoint = lookup_array[:, -1]
             dx = C['DISTANCE_STEP']
-            kpoint, output = _new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint)
-            k = 0
+            kpoint, i = _new_powering_step(output, dx, lookup_grade_array, speed_limit, kpoint, i)
             curve_appended = False
             station_start = False
-            while kpoint < (ROUTE_LENGTH - (dx / 1000)):
+            while kpoint < (ROUTE_LENGTH - (dx / 1000)) and i < max_array_size:
                 row = np.searchsorted(lookup_kpoint, kpoint, side="right")
                 #* Use array without stations to get speed limit
                 speed_limit = lookup_array[row, 3]
-                speed = output[-1, 3]
+                speed = output[i - 1, 3]
                 if curve_appended and station_start:
-                    kpoint, output = _new_powering_step(
-                        output, dx, lookup_grade_array, speed_limit, kpoint
+                    kpoint, i = _new_powering_step(
+                        output, dx, lookup_grade_array, speed_limit, kpoint, i
                     )
                     curve_appended = False
                     station_start = False
@@ -782,8 +787,8 @@ class ShortestOperationSolver():
                 elif curve_appended:
                     speed_limit = lookup_array[row + 1, 3]
                     # output[-1, 3] = speed_limit
-                    kpoint, output = _new_cruising_step(
-                        output, dx, lookup_grade_array, speed_limit, kpoint
+                    kpoint, i = _new_cruising_step(
+                        output, dx, lookup_grade_array, speed_limit, kpoint, i
                     )
                     curve_appended = False
                     #* Remove past braking rows
@@ -794,13 +799,13 @@ class ShortestOperationSolver():
                         pass
                 elif kpoint < braking[0, 0]:  # still not a target for braking
                     if speed < speed_limit:
-                        kpoint, output = _new_powering_step(
-                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        kpoint, i = _new_powering_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint, i
                         )
                     else:
-                        output[-1, 3] = speed_limit
-                        kpoint, output = _new_cruising_step(
-                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        output[i, 3] = speed_limit
+                        kpoint, i = _new_cruising_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint, i
                         )
                     curve_appended = False
                     #* No need to delete braking rows, since we're not inside
@@ -809,8 +814,8 @@ class ShortestOperationSolver():
                     curve_to_append, stacked_rows = _get_braking_curve(braking, dx_braking, kpoint)
                     if speed < braking[0, 3]:
                         #* Continue powering
-                        kpoint, output = _new_powering_step(
-                            output, dx, lookup_grade_array, speed_limit, kpoint
+                        kpoint, i = _new_powering_step(
+                            output, dx, lookup_grade_array, speed_limit, kpoint, i
                         )
                         curve_appended = False
                         #* Remove past braking rows. Now it is necessary since we're inside
@@ -822,6 +827,7 @@ class ShortestOperationSolver():
                     else:
                         #* If speed is higher we have to append the next braking curve.
                         #* We need to delete whatever curve is left behind before the intersection.
+                        print('im here')
                         try:
                             #* Remove past braking rows
                             current_k = np.searchsorted(braking[:, 0], kpoint, side="left") - 1
@@ -831,10 +837,15 @@ class ShortestOperationSolver():
                         curve_to_append, stacked_rows = _get_braking_curve(
                             braking, dx_braking, kpoint
                         )
-                        output = np.concatenate((output[:-2], curve_to_append), axis=0)
-                        kpoint = output[-1, 0]
+                        rows, _ = curve_to_append.shape
+                        # print("output slice:", output[i - 1:rows - 1, :].shape)
+                        # print("curve_to_append slice:", curve_to_append.shape)
+                        # print(curve_to_append)
+                        output[i - 1:i + rows - 1] = curve_to_append
+                        i += rows
+                        kpoint = output[i, 0]
                         curve_appended = True
-                        station_start = True if output[-1, 3] == 0 else False
+                        station_start = True if output[i, 3] == 0 else False
                         #TODO: / nice to have: recompute previous accel so that speed = brtable speed
 
                 #? Base simulation columns
@@ -874,11 +885,11 @@ class ShortestOperationSolver():
                 label="Virtual speed limit",
                 where="pre",
             )
-            ax.plot(
+            ax.scatter(
                 output[0],
                 output[3],
                 color='green',
-                # s=3,
+                s=1,
                 label="Speed",
             )
             ax.scatter(
@@ -981,4 +992,4 @@ class ShortestOperationSolver():
         return sim_time
 
 
-# ShortestOperationSolver.main(None, constants)
+ShortestOperationSolver.main(None, constants)
