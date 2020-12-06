@@ -1,5 +1,10 @@
 #%% #!###################
-print([[0] * 10])
+import numpy as np
+
+array = np.array(([1, 2, 3, 4, 5], [0, 0, 0, 0, 0]))
+array2 = np.array(([9, 8, 7, 6], [0, 0, 0, 0]))
+array[0, 2:4] = array2[0, 0:2]
+print(array)
 #%% #!###################
 import numpy as np
 import matplotlib.pyplot as plt

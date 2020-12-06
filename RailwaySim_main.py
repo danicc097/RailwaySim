@@ -15,11 +15,6 @@
  /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
 #####################################################################
 """
-"""
-TODO known bugs:
-    speed_from_length doesn't work properly for large trains with rapidly changing speed limits
-    
-"""
 
 import ctypes
 import os

@@ -107,7 +107,7 @@ constants = {
     'radioButton_time': False
 }
 
-constants['TRAIN_LENGTH'] = 150
+constants['TRAIN_LENGTH'] = 850
 
 
 class ShortestOperationSolver():
@@ -277,17 +277,16 @@ class ShortestOperationSolver():
             return speed_set if speed_set is not None else 99999
 
         def new_speed(original_array):
-            """"""
+            """Calculate a new virtual speed limit based on train length."""
             ROUTE_LENGTH = original_array[-1, -1]
             print("ROUTE_LENGTH: ", ROUTE_LENGTH)
 
-            dx_acc = 5
+            dx_acc = C['DISTANCE_STEP']
             lookup_array = np.copy(original_array)
             station_rows = lookup_array[lookup_array[:, 0] == 0]
             lookup_array = lookup_array[lookup_array[:, 0] > 0]
 
             min_step = 10  #np.min(lookup_array[:, 0], axis=0)
-            print("station_rows: ", station_rows, "\n End of station rows ..............")
             lookup_kpoint = lookup_array[:, -1]
             kpoint = 0
             row = 0
@@ -299,7 +298,7 @@ class ShortestOperationSolver():
                 array.append(base_row)
                 array[-1][-1] = kpoint
                 speed_list = list()
-                for distance in range(0, L_TRAIN, min_step):
+                for distance in range(0, int(L_TRAIN), min_step):
                     try:
                         row = np.searchsorted(lookup_kpoint, kpoint - distance / 1000, side="right")
                         speed_list.append(lookup_array[row][3])
@@ -320,27 +319,19 @@ class ShortestOperationSolver():
             len_stations_rows, c = station_rows.shape
             station_rows = station_rows.tolist()
             for i, station in enumerate(station_rows):
-                # if i == 0:
-                #     station_rows[i] = np.zeros((1, c))
-                #     continue
-                # if i == len_stations_rows:
-                #     print('hereee')
-                #     station_rows[i, -1] = array[-1, -1]
-                #     break
-                #TODO:
-                row = np.searchsorted(array[:, -1], station[-1], side="left")
+                row = np.searchsorted(array[:, -1], station[-1], side="right")
                 array = np.insert(array, row, station_rows[i], axis=0)
-                array[row - 1, 0] = (array[row - 1, -1] - array[row, -1]) * 1000
-                array[row - 1, -1] = station_rows[i][-1]
-                # idx.append(row)
+                array[row, 0] = 0
+                array[row, -1] = array[row - 1, -1]
+                #* Keep previous electrification as well
+                array[row, 5:9] = array[row - 1, 5:9]
 
             # f_plot_virtual_speed(array)
 
             return array
 
-        # new_speed(dataset_np_original)
-        #* Main virtual speed calculation function
-        # TODO fix !
+        # Gives wrong results when train length - speed limit step ratios are high
+        # Kept for future reference
         def speed_from_length(array, row=0):
             """Calculates the speed which ensures that the last point in the train complies with
             the speed limit. Returns a modified array."""
@@ -434,7 +425,7 @@ class ShortestOperationSolver():
             stacked_steps.clear()
             return array, row
 
-        # Failed test. No foreeseable use anyway.
+        # Failed test. No foreseeable use anyway.
         def d_same_value(lookup_array, kpoint, lookup_column, direction='forward'):
             """Returns the distance in meters from the `kpoint` during 
             which the values of the specified ``lookup_column`` (e.g. speed, grade or radius)
@@ -484,6 +475,7 @@ class ShortestOperationSolver():
                 return qtw.QMessageBox.critical(
                     window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
                 )
+
         #* Maximum effort based on speed (electric)
         if C['gb_electric_traction'] == True:
             try:
@@ -519,6 +511,7 @@ class ShortestOperationSolver():
         a = new_speed(dataset_np_original)
         v = pd.DataFrame(data=a, dtype=float)
         export_output(v, 'virtual')
+
         # a = speed_from_length(dataset_np)
         # kpoint = np.cumsum(a[:, 0] / 1000, dtype=float)
         # a = np.hstack((a, kpoint.reshape(kpoint.size, 1)))
@@ -535,6 +528,24 @@ class ShortestOperationSolver():
             lookup_kpoint = lookup_grade_array[:, -1]
             row = np.searchsorted(lookup_kpoint, kpoint, side="left")  # left for backwards
             return lookup_grade_array[row, 2]
+
+        def electrification(lookup_grade_array, kpoint):
+            """Retrieve the current track electrification.\n
+            ``kpoint``: simulation point on the front of the train.
+            """
+            lookup_kpoint = lookup_grade_array[:, -1]
+            row = np.searchsorted(lookup_kpoint, kpoint, side="left")  # left for backwards
+            if lookup_grade_array[row, 5] == 1: return 1
+            if lookup_grade_array[row, 6] == 1: return 2
+            if lookup_grade_array[row, 7] == 1: return 3
+            if lookup_grade_array[row, 8] == 1 and C['gb_onboard_storage'] == True:
+                return 4
+                # Use diesel if present or batteries as last resort
+            else:
+                if C['gb_diesel_engine'] == True: return 3
+                elif C['gb_onboard_storage'] == True: return 4
+                else:
+                    raise ValueError("No track mode selected")
 
         def grade_equiv(lookup_grade_array, kpoint, side=None):
             """Backward search to define the equivalent grade based on train length.\n
@@ -564,21 +575,31 @@ class ShortestOperationSolver():
                 total_sum += i
             return total_sum / L_TRAIN
 
-        #TODO: diesel electric
-        def max_effort(speed, speed_limit, mode=1):
+        def max_effort(speed, speed_limit, mode=1, track=None):
             """Returns the maximum effort available at current speed.\n
             Parameters:
             -----------
-            `mode`: `1` (powering/cruising), `2` (braking)"""
+            `mode`: `1` (powering/cruising), `2` (braking)
+            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery/No electrification) \n
+            """
             max_effort = 0
+            #* In case of a electrified track, this mode will always be selected first.
             if mode == 1:
                 if speed > speed_limit:
                     speed = speed_limit
-                max_effort = np.interp(speed, Electric_T_speed, Electric_T_effort)
+                if track == 1 or track == 2 or track == 4:
+                    max_effort = np.interp(speed, Electric_T_speed, Electric_T_effort)
+                elif track == 3:
+                    max_effort = np.interp(speed, Diesel_T_speed, Diesel_T_effort)
             elif mode == 2:
                 if speed > speed_limit:
                     speed = speed_limit
-                max_effort = abs(np.interp(speed, Electric_B_speed, Electric_B_effort))
+                if track == 1 or track == 2 or track == 4:
+                    max_effort = abs(np.interp(speed, Electric_B_speed, Electric_B_effort))
+                elif track == 3:
+                    max_effort = abs(np.interp(speed, Diesel_B_speed, Diesel_B_effort))
+            else:
+                raise ValueError("Powering mode must be either 1 or 2.")
             return max_effort
 
         ROLLING_R_A = C['ROLLING_R_A']
@@ -608,27 +629,31 @@ class ShortestOperationSolver():
             return starting_R + curve_R + grade_R + rolling_R
 
         #TODO: diesel electric arguments
-        def accel_i(speed, speed_limit, resistance, mode=1):
-            """Determine instantaneous acceleration.\n
+        def accel_i(speed, speed_limit, resistance, mode=1, track=None):
+            """Determine instantaneous acceleration. 
+            Returns a tuple of isntantaneous acceleration and effort.\n
             Parameters:
             -----------
-            `mode`: `1` (powering), `2` (braking), `3` (cruising)"""
+            `mode`: `1` (powering), `2` (braking), `3` (cruising) \n
+            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery/No electrification) \n
+            """
+
             # * Ensure it goes down when not enough power!!
             if mode == 1:  # powering
-                tractive_effort = max_effort(speed, speed_limit, mode=1)
+                tractive_effort = max_effort(speed, speed_limit, mode=1, track=track)
                 accel = (tractive_effort - resistance) / MASS_EQUIV
                 if accel > MAX_ACCEL: accel = MAX_ACCEL
-                return accel
+                return accel, tractive_effort
             elif mode == 2:  # braking
                 #* TODO: Max regenerative braking without losses
-                regen_effort = max_effort(speed, speed_limit, mode=2)
+                regen_effort = max_effort(speed, speed_limit, mode=2, track=track)
                 accel = -MAX_DECEL
                 total_braking_effort = resistance + MASS_EQUIV * abs(accel)
                 return accel, total_braking_effort
             elif mode == 3:  # cruising
                 accel = 0
                 output_effort = resistance
-                maximum_effort = max_effort(speed, speed_limit, mode=1)
+                maximum_effort = max_effort(speed, speed_limit, mode=1, track=track)
                 if (maximum_effort - resistance) / MASS_EQUIV < 0:
                     accel = (maximum_effort - resistance) / MASS_EQUIV
                     output_effort = maximum_effort
@@ -711,7 +736,6 @@ class ShortestOperationSolver():
                 run_loop = False
             return kpoint, u_lim_not_reached, run_loop, speed_accum, k
 
-        #TODO: SAME LOGIC TO APPEND CURVE slice TO FORWARD CALC
         def _clean_braking(braking, dx_braking):
             """Remove unnecessary empty rows and singularities 
             from the braking list of arrays."""
@@ -752,8 +776,10 @@ class ShortestOperationSolver():
                 braking[k][0, 6] = radius(lookup_grade_array, kpoint)
                 braking[k][0, 7] = speed_limit
                 braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
-                braking[k][0, 4], braking[k][
-                    0, 9] = accel_i(braking[k][1, 3], MAX_SPEED, braking[k][0, 10], mode=2)
+                track_e = electrification(lookup_grade_array, kpoint)
+                braking[k][0, 4], braking[k][0, 9] = accel_i(
+                    braking[k][1, 3], MAX_SPEED, braking[k][0, 10], mode=2, track=track_e
+                )
                 braking[k][0, 3] = sqrt(
                     (braking[k][1, 3] / 3.6)**2 - 2 * braking[k][0, 4] * dx_braking
                 ) * 3.6
@@ -778,9 +804,11 @@ class ShortestOperationSolver():
             output[-1][5] = grade_equiv(lookup_grade_array, kpoint, 'left')
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
-            output[-1][8] = max_effort(output[-2][3], MAX_SPEED, mode=1)
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
-            output[-1][4] = accel_i(output[-2][3], MAX_SPEED, output[-1][10], mode=1)
+            track_e = electrification(lookup_grade_array, kpoint)
+            output[-1][4], output[-1][8] = accel_i(
+                output[-2][3], MAX_SPEED, output[-1][10], mode=1, track=track_e
+            )
             try:
                 output[-1][3] = sqrt((output[-2][3] / 3.6)**2 + 2 * output[-1][4] * dx) * 3.6
             except:
@@ -810,7 +838,10 @@ class ShortestOperationSolver():
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
-            output[-1][4], output[-1][8] = accel_i(output[-2][3], MAX_SPEED, output[-1][10], mode=3)
+            track_e = electrification(lookup_grade_array, kpoint)
+            output[-1][4], output[-1][8] = accel_i(
+                output[-2][3], MAX_SPEED, output[-1][10], mode=3, track=track_e
+            )
             output[-1][3] = speed_limit
             output[-1][2] = dx / ((output[-1][3] + output[-2][3]) / 3.6 / 2)
             return kpoint
@@ -849,9 +880,11 @@ class ShortestOperationSolver():
             output[0][5] = grade_equiv(lookup_grade_array, output[0][0], 'right')
             output[0][6] = radius(lookup_grade_array, output[0][0])
             output[0][10] = resistance = R_i(speed, output[0][5], output[0][6])
-            output[0][4] = accel_i(speed, MAX_SPEED, resistance, mode=1)
+            track_e = electrification(lookup_grade_array, kpoint)
+            output[0][4], output[0][8] = accel_i(
+                speed, MAX_SPEED, resistance, mode=1, track=track_e
+            )
             output[0][7] = speed_limit = lookup_array[1, 3]
-            output[0][8] = max_effort(speed, speed_limit, mode=1)
 
             lookup_kpoint = lookup_array[:, -1]  # Don't use [:][-1] !
             dx = C['DISTANCE_STEP']
@@ -1062,4 +1095,4 @@ class ShortestOperationSolver():
         return sim_time
 
 
-ShortestOperationSolver.main(None, constants)
+# ShortestOperationSolver.main(None, constants)
