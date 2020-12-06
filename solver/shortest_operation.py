@@ -7,7 +7,9 @@ import pandas as pd
 import os
 import sys
 import matplotlib.pyplot as plt
-# from numba import njit
+
+from numba import njit, float64, int64
+
 currentdir = os.path.dirname(os.path.realpath(__file__))
 parentdir = os.path.dirname(currentdir)
 sys.path.append(parentdir)
@@ -173,6 +175,7 @@ class ShortestOperationSolver():
                 index=False,
             )
 
+        @njit
         def d_same_speed(array, row, max_step):
             """Returns the distance during which speed is the same.
             If `max_step` < `0` it will search backwards."""
@@ -192,6 +195,7 @@ class ShortestOperationSolver():
                     row -= 1
             return distance
 
+        @njit
         def d_same_or_higher_speed(array, row, step):
             """Returns the distance during which speed is the same or higher.\n
             Parameters
@@ -215,6 +219,7 @@ class ShortestOperationSolver():
                     row -= 1
             return distance
 
+        @njit
         def split_row(array, row, distance=None, speed=None):
             """Splits a row and assigns a given distance and speed to the first slice."""
             array = np.concatenate((array[:row], array[row, None], array[row:]), axis=0)
@@ -276,12 +281,13 @@ class ShortestOperationSolver():
                     row -= 1
             return speed_set if speed_set is not None else 99999
 
+        DISTANCE_STEP = C['DISTANCE_STEP']
+
+        @njit
         def new_speed(original_array):
             """Calculate a new virtual speed limit based on train length."""
             ROUTE_LENGTH = original_array[-1, -1]
-            print("ROUTE_LENGTH: ", ROUTE_LENGTH)
-
-            dx_acc = C['DISTANCE_STEP']
+            dx_acc = DISTANCE_STEP
             lookup_array = np.copy(original_array)
             station_rows = lookup_array[lookup_array[:, 0] == 0]
             lookup_array = lookup_array[lookup_array[:, 0] > 0]
@@ -306,15 +312,18 @@ class ShortestOperationSolver():
                         pass
                 if len(speed_list) > 0: array[-1][3] = min(speed_list)
                 kpoint += dx_acc / 1000
-            array = np.array(array, dtype=float)
+            array = np.array(array)
             array[:, 0] = dx_acc
             array = array[2:, :]
             #* Insert first station
             station_rows[0, 5:9] = lookup_array[0, 5:9]  # Select proper mode
-            array = np.vstack((station_rows[0, :], array))
+            ra, ca = array.shape
+            a_full = np.empty((ra, ca))
+            a_full[0, :] = station_rows[0, :]
+            array = np.vstack((a_full, array))
             station_rows = station_rows[1:]
             #* Insert following stations and fix distance steps
-            station_rows = station_rows.tolist()
+            station_rows = list(station_rows)
             for i, station in enumerate(station_rows):
                 row = np.searchsorted(array[:, -1], station[-1], side="right")
                 array = np.insert(array, row, station_rows[i], axis=0)
@@ -378,6 +387,7 @@ class ShortestOperationSolver():
                             row += 1
             return array
 
+        @njit
         def _create_offset_array(array, row, speed, next_speed, stacked_steps):
             """Offsets an array based on train length and stores the original array slices."""
             accum_steps = 0
@@ -401,6 +411,7 @@ class ShortestOperationSolver():
                     row += 1
             return array, row, speed_to_check
 
+        @njit
         def _apply_offset_array(stacked_steps, array, row, stop_cond):
             """Applies the stacked steps and corresponding speed until the stop
             distance is reached or the steps have been completely offset."""
@@ -519,6 +530,7 @@ class ShortestOperationSolver():
         ######################################################
 
         #TODO: SAME LOGIC TO find current ELECTRIFICATION, ETC
+        @njit
         def radius(lookup_grade_array, kpoint):
             """Backward search to retrieve the current radius.\n
             ``kpoint``: simulation point on the front of the train.
@@ -527,6 +539,11 @@ class ShortestOperationSolver():
             row = np.searchsorted(lookup_kpoint, kpoint, side="left")  # left for backwards
             return lookup_grade_array[row, 2]
 
+        gb_onboard_storage = C['gb_onboard_storage']
+        gb_diesel_engine = C['gb_diesel_engine']
+        gb_onboard_storage = C['gb_onboard_storage']
+
+        @njit
         def electrification(lookup_grade_array, kpoint):
             """Retrieve the current track electrification.\n
             ``kpoint``: simulation point on the front of the train.
@@ -536,21 +553,22 @@ class ShortestOperationSolver():
             if lookup_grade_array[row, 5] == 1: return 1
             elif lookup_grade_array[row, 6] == 1: return 2
             elif lookup_grade_array[row, 7] == 1: return 3
-            elif lookup_grade_array[row, 8] == 1 and C['gb_onboard_storage'] == True:
+            elif lookup_grade_array[row, 8] == 1 and gb_onboard_storage == True:
                 return 4
                 # Use diesel if present or batteries as last resort
             else:
-                if C['gb_diesel_engine'] == True: return 3
-                elif C['gb_onboard_storage'] == True: return 4
+                if gb_diesel_engine == True: return 3
+                elif gb_onboard_storage == True: return 4
                 else:
                     raise ValueError("No track mode selected")
 
-        def grade_equiv(lookup_grade_array, kpoint, side=None):
+        @njit
+        def grade_equiv(lookup_grade_array, kpoint, offset=0):
             """Backward search to define the equivalent grade based on train length.\n
             ``kpoint``: simulation point on the front of the train.
             """
             lookup_kpoint = lookup_grade_array[:, -1]
-            row = np.searchsorted(lookup_kpoint, kpoint, side=side)
+            row = np.searchsorted(lookup_kpoint, kpoint, side="left") + offset
             grade_steps = []
             accum_length = (kpoint - lookup_kpoint[row - 1]) * 1000
             if accum_length > L_TRAIN:
@@ -573,6 +591,7 @@ class ShortestOperationSolver():
                 total_sum += i
             return total_sum / L_TRAIN
 
+        @njit
         def max_effort(speed, speed_limit, mode=1, track=None):
             """Returns the maximum effort available at current speed.\n
             Parameters:
@@ -608,6 +627,7 @@ class ShortestOperationSolver():
 
         #TODO: nice to have eval() for custom user input on GUI
         # * Validated
+        @njit
         def R_i(speed, grade, radius, braking=None):
             """Compute instantaneous rolling resistance.
             Parameters:
@@ -627,6 +647,7 @@ class ShortestOperationSolver():
             return starting_R + curve_R + grade_R + rolling_R
 
         #TODO: diesel electric arguments
+        @njit
         def accel_i(speed, speed_limit, resistance, mode=1, track=None):
             """Determine instantaneous acceleration. 
             Returns a tuple of isntantaneous acceleration and effort.\n
@@ -657,12 +678,15 @@ class ShortestOperationSolver():
                     output_effort = maximum_effort
                 return accel, output_effort
 
+        DISTANCE_STEP_BRAKING = C['DISTANCE_STEP_BRAKING']
+
+        @njit
         def compute_brake_array(lookup_array, lookup_grade_array):
             """Computes a list of arrays to append braking curves
             the main forward calculations."""
             #* Initialize table (last station):
             k = 0
-            dx_braking = C['DISTANCE_STEP_BRAKING']
+            dx_braking = DISTANCE_STEP_BRAKING
             braking = [np.zeros((2, len(column_values)), dtype=float)]
             braking[k][1, 0] = kpoint = lookup_array[-1, -1]
             lookup_kpoint = lookup_array[:, -1]
@@ -701,6 +725,7 @@ class ShortestOperationSolver():
 
             return _clean_braking(braking, dx_braking), dx_braking
 
+        @njit
         def _compute_braking_curve(
             braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint, end_of_target,
             lookup_kpoint, lookup_array
@@ -734,6 +759,7 @@ class ShortestOperationSolver():
                 run_loop = False
             return kpoint, u_lim_not_reached, run_loop, speed_accum, k
 
+        @njit
         def _clean_braking(braking, dx_braking):
             """Remove unnecessary empty rows and singularities 
             from the braking list of arrays."""
@@ -763,6 +789,7 @@ class ShortestOperationSolver():
                         accum_brake_steps = 0
             return braking
 
+        @njit
         def _new_brake_step(braking, k, dx_braking, lookup_grade_array, speed_limit, kpoint):
             """Simulates one braking step of `dx` meters based on previous state."""
             #* The braking curve is the first thing to be computed after the virtual speed
@@ -770,7 +797,7 @@ class ShortestOperationSolver():
             try:
                 braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
                 braking[k][0, 1] = dx_braking
-                braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+                braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint)
                 braking[k][0, 6] = radius(lookup_grade_array, kpoint)
                 braking[k][0, 7] = speed_limit
                 braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
@@ -794,6 +821,7 @@ class ShortestOperationSolver():
 
             return kpoint
 
+        @njit
         def _new_powering_step(dx, lookup_grade_array, speed_limit, kpoint):
             """Simulates one powering step of `dx` meters based on previous state."""
             global output
@@ -801,7 +829,7 @@ class ShortestOperationSolver():
             speed_limit = copy.deepcopy(speed_limit)
             output[-1][0] = kpoint = copy.deepcopy(output[-2][0] + dx / 1000)
             output[-1][1] = dx
-            output[-1][5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1][5] = grade_equiv(lookup_grade_array, kpoint)
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
@@ -828,6 +856,7 @@ class ShortestOperationSolver():
             if output[-1][3] > speed_limit: output[-1][3] == speed_limit
             return kpoint
 
+        @njit
         def _new_cruising_step(dx, lookup_grade_array, speed_limit, kpoint):
             """Simulates one cruising step of `dx` meters based on previous state."""
             global output
@@ -835,7 +864,7 @@ class ShortestOperationSolver():
             speed_limit = copy.deepcopy(speed_limit)
             output[-1][0] = kpoint = copy.deepcopy(output[-2][0] + dx / 1000)
             output[-1][1] = dx
-            output[-1][5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1][5] = grade_equiv(lookup_grade_array, kpoint)
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
@@ -853,6 +882,7 @@ class ShortestOperationSolver():
             output[-1][11] = track_e
             return kpoint
 
+        @njit
         def _get_braking_curve(braking, dx_braking, kpoint):
             """Return a complete braking curve from the array at the specified `kpoint`."""
             stacked_rows = 0
@@ -871,6 +901,7 @@ class ShortestOperationSolver():
             curve = list(a)  #a.tolist()
             return curve, stacked_rows
 
+        @njit
         def energy_source(track):
             """Returns the energy source used for the current step."""
             if track == 1: return "AC catenary"
@@ -894,6 +925,9 @@ class ShortestOperationSolver():
             'Energy source',  #11
         ]
 
+        DISTANCE_STEP = C['DISTANCE_STEP']
+
+        @njit
         def main_simulation(lookup_array, lookup_grade_array):
             """Shortest operation solver function. 
             Returns the complete route simulation array."""
@@ -907,7 +941,7 @@ class ShortestOperationSolver():
             #* Initialize train start up:
             output[0][0] = kpoint = 0
             output[0][3] = speed = 0
-            output[0][5] = grade_equiv(lookup_grade_array, output[0][0], 'right')
+            output[0][5] = grade_equiv(lookup_grade_array, output[0][0], offset=1)
             output[0][6] = radius(lookup_grade_array, output[0][0])
             output[0][10] = resistance = R_i(speed, output[0][5], output[0][6])
             track_e = electrification(lookup_grade_array, kpoint + 0.001)
@@ -917,7 +951,7 @@ class ShortestOperationSolver():
             output[0][7] = speed_limit = lookup_array[1, 3]
             output[0][11] = track_e
             lookup_kpoint = lookup_array[:, -1]  # Don't use [:][-1] !
-            dx = C['DISTANCE_STEP']
+            dx = DISTANCE_STEP
             kpoint = _new_powering_step(dx, lookup_grade_array, speed_limit, kpoint)
             k = 0
             curve_appended = False
@@ -1105,4 +1139,4 @@ class ShortestOperationSolver():
         return sim_time
 
 
-# ShortestOperationSolver.main(None, constants)
+ShortestOperationSolver.main(None, constants)
