@@ -1,0 +1,907 @@
+"""
+                 _-====-__-======-__-========-_____-============-__
+                (                                                 _)
+               (    _ __           _                  __,           )
+             o (_  ( /  )      o  //                 (    o         _)
+            OO(_    /--<  __, ,  // , , , __,  __  ,  `. ,  _ _ _    )
+           oO (_   /   \_(_/(_(_(/_(_(_/_(_/(_/ (_/_(___)(_/ / / /   )
+          O    (_                              __/                 _)
+         Oo     (_                                                 )
+        o         '=-___-===-_____-========-_______=___-===--==-='
+      .o                                 
+     . ______          ______________ ______________ ______________
+   _()_||__|| ________ |            | |            | |            | 
+  (         | |      | |  ________  | |  ________  | |  ________  | 
+ /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
+#####################################################################
+"""
+
+import ctypes
+import os
+import sys
+import traceback
+import warnings
+import copy
+import pandas as pd
+import matplotlib.cbook
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
+import numpy as np
+import qdarkstyle
+from matplotlib.backends.backend_qt5agg import \
+    FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from matplotlib.pyplot import rcParams, style
+# from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter
+from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets as qtw
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (
+    QAbstractButton, QDialog, QMainWindow, QSizePolicy, QSystemTrayIcon, QWidget
+)
+from termcolor import colored
+
+# cwd
+import integrated_csv_editor
+from custom_mpl_toolbar import MyMplToolbar
+from RailwaySim_GUI import Ui_MainWindow
+from RailwaySim_GUI_pref import Ui_Form
+from save_restore import grab_GC, guirestore, guisave
+from solver.data_formatter import (get_text_positions, hhmm_to_s, s_to_hhmmss, text_plotter)
+from solver.shortest_operation import ShortestOperationSolver
+
+warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
+
+BASEDIR = os.path.dirname(__file__)
+
+#* Dot separated values enforcement with "C"
+QtCore.QLocale.setDefault(QtCore.QLocale(1))
+
+SEP = os.path.sep
+
+# set icon on Windows
+if sys.platform == 'win32':
+    myappid = 'RailwaySim.v0'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+
+class NewWindow(QMainWindow):
+    """MainWindow factory"""
+    def __init__(self):
+        super().__init__()
+        GUI_preferences_path = os.path.join(BASEDIR, 'resources', 'GUI_preferences.ini')
+        self.GUI_preferences = QtCore.QSettings(GUI_preferences_path, QtCore.QSettings.IniFormat)
+        #* Allow multiple MainWindow instances
+        self.window_list = []
+        self.add_new_window()
+
+    def add_new_window(self):
+        """Create now MainWindow instance"""
+        self.app_icon = QIcon()
+        app_icon_path = os.path.join(BASEDIR, 'resources', 'images', 'RailwaySimIcon.png')
+        self.app_icon.addFile(app_icon_path)
+        app.setWindowIcon(self.app_icon)
+        window = MainWindow(self, self.GUI_preferences)
+        window.setWindowIcon(self.app_icon)
+        self.window_list.append(window)
+        window.show()
+
+
+class MainWindow(QMainWindow, Ui_MainWindow):
+    def __init__(self, window, GUI):
+        super().__init__()
+        self.setupUi(self)
+        self.windowManager = window
+        self.GUI_preferences = GUI
+        self.config_is_set = 0  # Call tracker for config file
+        self.instances_route_canvas = []
+        self.instances_route_toolbar = []
+        self.statusBar().showMessage(BASEDIR)
+        self._buttonEdits()
+        self._mainEdits()
+
+    def _iconFixes(self):
+        '''Selects icon files for current stylesheet'''
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        if not self.dark_mode_set:
+            darkPath = 'resources' + SEP + 'images' + SEP
+        else:
+            darkPath = 'resources' + SEP + 'images_dark' + SEP
+        self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
+        self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
+        self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'about.png')))
+        self.actionEdit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'settings.png')))
+        self.actionExit.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'exit.png')))
+        self.actionPrintToPDF.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'print.png')))
+        self.actionSaveResults.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'download.png')))
+        self.actionOpenResults.setVisible(False)  # Results will be associated to the .ini settings
+        # self.actionOpenResults.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'upload.png')))
+        self.actionNew_Window.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'new.png')))
+        self.actionGitHub_Homepage.setIcon(
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'github.png'))
+        )
+        icon_edit = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'edit_csv.png'))
+        icon_import = QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'import_csv.png'))
+        self.E_TECurveEditButton.setIcon(icon_edit)
+        self.E_TECurveLoadButton.setIcon(icon_import)
+        self.E_BECurveEditButton.setIcon(icon_edit)
+        self.E_BECurveLoadButton.setIcon(icon_import)
+        self.D_TECurveEditButton.setIcon(icon_edit)
+        self.D_TECurveLoadButton.setIcon(icon_import)
+        self.D_BECurveEditButton.setIcon(icon_edit)
+        self.D_BECurveLoadButton.setIcon(icon_import)
+        self.ProfileEditButton.setIcon(icon_edit)
+        self.ProfileLoadButton.setIcon(icon_import)
+
+    def _buttonEdits(self):
+        """Adds functionality to buttons"""
+        #* CSV import buttons - anon to prevent autostart
+        #? "clicked" emits a signal (checked) when pressed:
+        #? checkvoid QAbstractButton::clicked(bool checked = false)
+
+        self.E_TECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.E_TECurveLoadFilename)
+        )
+        self.E_BECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.E_BECurveLoadFilename)
+        )
+        self.D_TECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.D_TECurveLoadFilename)
+        )
+        self.D_BECurveLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.D_BECurveLoadFilename)
+        )
+        self.ProfileLoadButton.clicked.connect(
+            lambda: self.path_extractor(self.ProfileLoadFilename)
+        )
+
+        #* Draw route canvas after import
+        self.ProfileLoadButton.clicked.connect(self.create_route_plot)
+        self.ProfileLoadButton.clicked.connect(self.setup_route_checkbuttons)
+        self.ProfileLoadButton.clicked.connect(self.dial_refresh)
+
+        self.E_TECurveLoadButton.setToolTip('Import CSV file')
+        self.E_BECurveLoadButton.setToolTip('Import CSV file')
+        self.D_TECurveLoadButton.setToolTip('Import CSV file')
+        self.D_BECurveLoadButton.setToolTip('Import CSV file')
+        self.ProfileLoadButton.setToolTip('Import CSV file')
+
+        #* CSV edit buttons
+        self.E_TECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.E_TECurveLoadFilename.text())
+        )
+        self.E_BECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.E_BECurveLoadFilename.text())
+        )
+        self.D_TECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.D_TECurveLoadFilename.text())
+        )
+        self.D_BECurveEditButton.clicked.connect(
+            lambda: self.csv_editor(self.D_BECurveLoadFilename.text())
+        )
+        self.ProfileEditButton.clicked.connect(
+            lambda: self.csv_editor(self.ProfileLoadFilename.text())
+        )
+        self.E_TECurveEditButton.setToolTip('Edit CSV file')
+        self.E_BECurveEditButton.setToolTip('Edit CSV file')
+        self.D_TECurveEditButton.setToolTip('Edit CSV file')
+        self.D_BECurveEditButton.setToolTip('Edit CSV file')
+        self.ProfileEditButton.setToolTip('Edit CSV file')
+
+    def _mainEdits(self):
+        """MainWindow GUI changes"""
+        self.tabWidget.setCurrentIndex(0)  # Open on first tab
+
+        #* PushButtons
+        self.StartSimButton.clicked.connect(self.start_simulation)
+
+        #* Toolbar buttons
+        self.actionGitHub_Homepage.triggered.connect(self.GitHubLink)
+        self.actionAbout.triggered.connect(self.AboutInfo)
+        self.actionExit.triggered.connect(self.close)
+        self.actionEdit.triggered.connect(self.show_preferences)
+
+        #* open and save triggers
+        # WindowShortcut context is required with multiple windows
+        self.actionNew_Window.triggered.connect(self.windowManager.add_new_window)
+        self.actionOpen.triggered.connect(self.readFile)
+        self.actionSave.triggered.connect(self.writeFile)
+        self.actionSave_as.triggered.connect(self.writeNewFile)
+
+        #* Instantiate and then restore theme preferences
+        self.pref_screen = Preferences(self.GUI_preferences, self)
+        self._iconFixes()  # change icons after Preferences are restored
+
+        #* Spacer for empty Route tab
+        self.spacerItem = qtw.QSpacerItem(
+            20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
+        )
+        self.verticalLayout_2.addItem(self.spacerItem)
+        self.verticalLayout_6.addItem(self.spacerItem)
+
+        #* Loco or passenger train simulation selection
+        self.gb_locomotive.toggled.connect(
+            lambda checked: checked and self.gb_passenger.setChecked(False)
+            if self.gb_passenger.isChecked() else checked
+        )
+        self.gb_passenger.toggled.connect(
+            lambda checked: checked and self.gb_locomotive.setChecked(False)
+            if self.gb_locomotive.isChecked() else checked
+        )
+
+        #* Dials
+        self.dial_label_size.valueChanged.connect(self.dial_refresh)
+        self.dial_stroke_size.valueChanged.connect(self.dial_refresh)
+
+        #* System tray
+        self.createTrayIcon()
+        self.trayIcon.setIcon(self.windowManager.app_icon)
+        self.trayIcon.messageClicked.connect(self.show)  # TODO click on end of sim popup
+
+        #* window exit
+        qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+    def changeEvent(self, event):
+        """Hides the system tray icon when the main window is visible, and viceversa."""
+        if event.type() == QtCore.QEvent.WindowStateChange and self.windowState(
+        ) and self.isMinimized:
+            self.trayIcon.show()
+            event.accept()
+        else:
+            try:
+                self.trayIcon.hide()
+            except:
+                pass
+
+    def dial_refresh(self):
+        """Update route plot line width."""
+        if len(self.ProfileLoadFilename.text()) > 3:
+            # self.route_canvas.flush_events()
+            self.linewidth = self.dial_stroke_size.value() / 2.5
+            self.labelsize = 8 + self.dial_label_size.value()
+            self.route_canvas.plot_route(self.linewidth, self.labelsize)
+            self.route_canvas.route_fig.set_tight_layout(True)
+
+    def create_route_plot(self):
+        """Route canvas and toolbar creator. Called when a file is loaded"""
+        if self.ProfileLoadFilename.text() != "":
+            #* Delete vertical spacer
+            self.verticalLayout_2.removeItem(self.spacerItem)
+            #* Delete previous instances if any
+            try:
+                self.instances_route_canvas[0].hide()
+                self.instances_route_toolbar[0].hide()
+                del self.instances_route_canvas[0]
+                del self.instances_route_toolbar[0]
+            except:
+                pass
+            #* Create new instances of canvas and toolbar
+            if len(self.ProfileLoadFilename.text()) > 3:
+                self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
+                darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+                self.route_toolbar = MyMplToolbar(
+                    self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
+                )
+                self.verticalLayout_2.addWidget(self.route_canvas)
+                self.verticalLayout_2.addWidget(self.route_toolbar)
+
+                #* Keep track of NavToolbar and Canvas
+                self.instances_route_canvas.append(self.route_canvas)
+                self.instances_route_toolbar.append(self.route_toolbar)
+                self.statusBar().showMessage("Loaded {}.".format(self.ProfileLoadFilename.text()))
+
+        else:
+            self.statusBar().showMessage("Could not plot because no data was selected.")
+
+    def setup_route_checkbuttons(self):
+        """Route tab checkboxes. Must be called after each plot update."""
+        if self.ProfileLoadFilename.text() == "":
+            return
+        try:
+            if self.route_canvas is not None:
+                self.cb_r_stations.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_speedres.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_grade.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_profile.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_radii.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_r_legend.stateChanged.connect(
+                    self.route_canvas.route_canvas_checkbox_handler
+                )
+                self.cb_InvertRoute.stateChanged.connect(
+                    self.route_canvas.route_canvas_invert_route
+                )
+
+        except Exception as e:
+            self.statusBar().showMessage(
+                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
+            )
+
+    def createTrayIcon(self):
+        self.restoreAction = qtw.QAction("&Restore", self, triggered=self.showNormal)
+        self.quitAction = qtw.QAction("&Quit", self, triggered=qtw.QApplication.instance().quit)
+        self.trayIconMenu = qtw.QMenu(self)
+        self.trayIconMenu.addAction(self.restoreAction)
+        self.trayIconMenu.addAction(self.quitAction)
+
+        self.trayIcon = QSystemTrayIcon(self)
+        self.trayIcon.setContextMenu(self.trayIconMenu)
+
+    #!#################   Methods out of init   ####################
+    #!##############################################################
+
+    def show_preferences(self):
+        """Shows the Preferences widget"""
+        # ApplicationModal to block input in all windows
+        self.pref_screen.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.pref_screen.setFocus(True)
+        guirestore(self.pref_screen, self.GUI_preferences)
+        self.pref_screen.show()
+
+    def path_extractor(self, dest):
+        """Write CSV file path to destination"""
+        my_path, _ = qtw.QFileDialog.getOpenFileName(
+            self,
+            "Select a CSV file to load…",
+            BASEDIR,
+            'CSV Files (*.csv)',
+            options=qtw.QFileDialog.DontResolveSymlinks
+        )
+        if my_path == "":
+            qtw.QMessageBox.critical(
+                self, "Operation aborted", "Empty filename or none selected. \n Please try again.",
+                qtw.QMessageBox.Ok
+            )
+            self.statusBar().showMessage("Select a valid CSV file")
+        else:
+            dest.setText(my_path)
+
+    def csv_editor(self, path):
+        """Edit CSV file located in path"""
+        if path:
+            self.csveditor_screen = integrated_csv_editor.MainWindow()
+            self.csveditor_screen.select_file(path)
+            # ApplicationModal to block input in all windows
+            self.csveditor_screen.setWindowModality(QtCore.Qt.ApplicationModal)
+            self.csveditor_screen.setFocus(True)
+            self.csveditor_screen.show()
+
+    def writeNewFile(self):  # ? Save as
+        """Saves GUI user input to a new config file"""
+        self.config_is_set += 1
+        self.filename, _ = qtw.QFileDialog.getSaveFileName(
+            self,
+            "Select where to save the configuration file…",
+            BASEDIR,
+            'Configuration Files (*.ini)',
+            options=qtw.QFileDialog.DontResolveSymlinks
+        )
+        self.resultsFilename = copy.deepcopy(self.filename).replace('.ini', '.csv')
+        self.statusBar().showMessage(self.filename)
+        if self.filename.lower().endswith('.ini'):
+            try:
+                self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
+                # all values will be returned as QString
+                guisave(self, self.my_settings)
+                self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
+                #* Save results to settings if the simulation was successful
+                self.my_settings.setValue(
+                    str('Results_file'), str(self.resultsFilename.replace('.ini', '.csv'))
+                )
+            except Exception as e:
+                qtw.QMessageBox.critical(self, 'Error', f"Could not save settings: {e}")
+
+    def readFile(self):  # ? Open
+        """Restores GUI user input from a config file"""
+        #* File dialog
+        self.filename, _ = qtw.QFileDialog.getOpenFileName(
+            self,
+            "Select a configuration file to load…",
+            BASEDIR,
+            'Configuration Files (*.ini)',
+            options=qtw.QFileDialog.DontResolveSymlinks
+        )
+        #* Invalid file or none
+        if self.filename == "":
+            qtw.QMessageBox.critical(
+                self, "Operation aborted", "Empty filename or none selected. \n Please try again.",
+                qtw.QMessageBox.Ok
+            )
+            self.statusBar().showMessage("Select a valid configuration file")
+        #* Valid file
+        else:
+            if self.filename.lower().endswith('.ini'):
+                self.config_is_set += 1
+                try:
+                    self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
+                    guirestore(self, self.my_settings)
+                    self.statusBar().showMessage(
+                        "Changes now being saved to: {}".format(self.filename)
+                    )
+                    self.setWindowTitle(os.path.basename(self.filename))
+
+                    #* Update route plot if a path was loaded from settings
+                    if len(self.ProfileLoadFilename.text()) > 3:
+                        try:
+                            self.instances_route_canvas[0].hide()
+                            self.instances_route_toolbar[0].hide()
+                            del self.instances_route_canvas[0]
+                            del self.instances_route_toolbar[0]
+                        except:
+                            pass
+                        self.create_route_plot()
+                        self.setup_route_checkbuttons()
+                        self.dial_refresh()
+
+                except Exception as e:
+                    qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
+            else:
+                qtw.QMessageBox.critical(
+                    self, "Invalid file type", "Please select a .ini file.", qtw.QMessageBox.Ok
+                )
+
+    def writeFile(self):  # ? Save
+        """Saves GUI user input to the previously opened config file"""
+        if self.config_is_set and self.filename != "":
+            self.statusBar().showMessage("Changes saved to: {}".format(self.filename))
+            self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
+            guisave(self, self.my_settings)
+            self.resultsFilename = copy.deepcopy(self.filename).replace('.ini', '.csv')
+            #* Save results to settings if the simulation was successful
+            self.my_settings.setValue(
+                str('Results_file'), str(self.resultsFilename.replace('.ini', '.csv'))
+            )
+        else:
+            self.writeNewFile()
+
+    def AboutInfo(self):
+        """Shows license information"""
+        self.infoScreen = qtw.QMessageBox(None)
+        self.infoScreen.setWindowTitle('Legal Information')
+        self.infoScreen.setText('RailwaySim is licenced under the GNU GPL v3.\t\t')
+        self.infoScreen.setInformativeText("The complete license is available below.\t\t")
+        try:
+            self.infoScreen.setDetailedText(
+                open(os.path.join(BASEDIR, "LICENSE"), "r", encoding="utf-8").read()
+            )
+        except:
+            self.infoScreen.setDetailedText("http://www.gnu.org/licenses/gpl-3.0.en.html")
+        self.infoScreen.setWindowModality(QtCore.Qt.ApplicationModal)
+        self.infoScreen.show()
+
+    def GitHubLink(self):
+        QtGui.QDesktopServices.openUrl(QtCore.QUrl('https://github.com/danicc097/RailwaySim'))
+
+    def closeEvent(self, event):
+        """Catches the MainWindow close button event and displays a dialog."""
+        close = qtw.QMessageBox(qtw.QMessageBox.Question, 'Exit', 'Exit application?', parent=self)
+        close_reject = close.addButton('No', qtw.QMessageBox.NoRole)
+        close_accept = close.addButton('Yes', qtw.QMessageBox.AcceptRole)
+        close.exec()  # Necessary for property-based API
+        if close.clickedButton() == close_accept:
+            self.trayIcon.setVisible(False)
+            event.accept()
+        else:
+            event.ignore()
+
+    def showSuccess(self, sim_time):
+        """System tray notification displaying simulation ended."""
+        self.trayIcon.show()
+        self.trayIcon.showMessage(
+            f"Simulation ended successfully in {sim_time} seconds!\n",
+            "Click here to see the results.", self.windowManager.app_icon, 1200 * 1000
+        )  # milliseconds default
+
+    def start_simulation(self):
+        """Saves changes and runs the selected solver"""
+        if not self.config_is_set:
+            runSim = qtw.QMessageBox.question(
+                self, "Start simulation",
+                "Start simulation?\nAll changes will be saved locally first.",
+                qtw.QMessageBox.Yes | qtw.QMessageBox.No
+            )
+        else:
+            runSim = qtw.QMessageBox.question(
+                self, "Start simulation",
+                "Start simulation?\nAll changes will now be saved to \n{}.".format(self.filename),
+                qtw.QMessageBox.Yes | qtw.QMessageBox.No
+            )
+        if runSim == qtw.QMessageBox.Yes:
+            try:
+                #* Save any changes to the GUI
+                self.writeFile()
+                #* Save current window's user input to a dict
+                constants = grab_GC(self, self.my_settings)
+                try:
+                    sim_time = ShortestOperationSolver.main(self, constants, self.resultsFilename)
+                    self.showSuccess(sim_time)
+                    # self.actionSaveResults.triggered.connect() TODO:
+                    #* Change to simulation tab and plot
+                    #TODO: show sim tab and plot results
+                    # show_results()
+                except Exception as e:
+                    error_type, error, tb = sys.exc_info()
+                    print(
+                        colored((traceback.format_list(traceback.extract_tb(tb)[-1:])[-1]), "red")
+                    )
+                    print(colored(error_type, "yellow"))
+                    print(colored(error, "red"))
+
+            except Exception as e:
+                qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
+
+
+class PlotCanvas_route(FigureCanvas):
+    """Route input data graph"""
+    def __init__(self, GUI, ref_parent, dpi=100):
+        self.GUI_preferences = GUI
+        # Don't use "parent" as variable name.
+        self.ref_parent = ref_parent  # pass MainWindow to access its widgets.
+        self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
+        FigureCanvas.__init__(self, self.route_fig)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
+        self.counter = 0  # Allow for plot retries upon exception
+
+    def route_data_import(self, invert=False):
+        """Route profile data import.\n
+        Parameters
+        ----------
+        `invert`: flip route data (return trip). 
+        """
+        if len(self.ref_parent.ProfileLoadFilename.text()) <= 3:
+            return
+
+        # TODO: IF grouped route data by KP
+        array = pd.DataFrame({'Time': [0, 10, 20, 25], 'Temperature': [50, 100, 120, 100]})
+        array2 = pd.DataFrame({'Time': [0, 5, 10, 15], 'Height': [10, 11, 13, 15]})
+        array3 = pd.DataFrame({'Time': [0, 20, 40], 'Width': [3, 5, 6]})
+        concat_df = pd.concat([array, array2, array3])
+        # concat_df.sort_values(by='Time', ascending=True, inplace=True)
+        # concat_df = pd.concat([array,array2,array3]).groupby('Time')
+        # print(concat_df)
+        concat_df = concat_df.groupby('Time').sum(min_count=1)
+        print(concat_df)
+        concat_df = concat_df.groupby('Time').sum(min_count=1).ffill()
+        print(concat_df)
+
+        self.ROUTE_INPUT_DF = np.genfromtxt(
+            self.ref_parent.ProfileLoadFilename.text(),
+            delimiter=',',
+            dtype=str,
+            encoding='utf-8-sig',
+            autostrip=True,
+            deletechars="",
+        )
+
+        self.ROUTE_INPUT_DF = self.ROUTE_INPUT_DF[1:, :].T
+        if invert:
+            self.ROUTE_INPUT_DF = np.flip(self.ROUTE_INPUT_DF, axis=1)
+        try:
+            self.distance = np.array(self.ROUTE_INPUT_DF[3][:], dtype=float)
+            self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
+            self.grade = np.array(self.ROUTE_INPUT_DF[4][:], dtype=float)
+            self.radii = np.array(self.ROUTE_INPUT_DF[5][:], dtype=float)
+            self.speed_res = np.array(self.ROUTE_INPUT_DF[6][:], dtype=float)
+            self.station_names = np.array(self.ROUTE_INPUT_DF[12][:], dtype=str)
+
+            #* Calculate profile height from distance steps and grade
+            # TODO show in results tab
+            self.profile = np.zeros(len(self.distance), dtype=float)
+            for index, distance_step in enumerate(self.distance):
+                if index == 0:
+                    self.profile[index] = 0
+                else:
+                    self.profile[
+                        index] = distance_step * self.grade[index] / 1000 + \
+                            self.profile[index-1]
+
+            # * Main timetable
+            self.timetable_stations = np.array(
+                [str(a) for a in self.ROUTE_INPUT_DF[0][:] if a != ""]
+            )
+            # * Find station kilometric points (0 m travelled paths)
+            self.timetable_stations_kpoint = np.array(
+                [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
+            )
+            # * Optional timetables
+            try:
+                self.timetable_dwell_time = np.array(
+                    [int(a) for a in self.ROUTE_INPUT_DF[1][:] if a != ""]
+                )
+            except:
+                self.timetable_dwell_time = None
+            try:
+                self.timetable_arrival_time = np.array(
+                    [hhmm_to_s(a) for a in self.ROUTE_INPUT_DF[2][:] if a != ""]
+                )
+            except:
+                self.timetable_arrival_time = None
+
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+
+        except:
+            #* Attempt to replot once
+            try:
+                if self.counter == 0:
+                    self.route_data_import(invert=self.cb_InvertRoute.isChecked())
+                    self.counter += 1
+            except:
+                pass
+
+    def plot_route(self, linewidth=2.5, labelsize=13):
+        """Canvas and toolbar creation, deleting previous instances."""
+        if len(self.ref_parent.instances_route_toolbar) > 1:
+            self.ref_parent.instances_route_canvas[0].hide()
+            self.ref_parent.instances_route_toolbar[0].hide()
+            del self.ref_parent.instances_route_canvas[0]
+            del self.ref_parent.instances_route_toolbar[0]
+
+        self.route_fig.clear()  # clear wrong format if any on graph init
+
+        #* Setting theme
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+        if self.dark_mode_set:
+            self.route_fig.patch.set_facecolor(
+                (0.09803921569, 0.13725490196, 0.17647058824)
+            )  # light grey
+            rcParams['axes.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)  # dark grey
+            rcParams['text.color'] = rcParams['axes.labelcolor'] = rcParams[
+                'axes.edgecolor'] = rcParams['xtick.color'] = rcParams['ytick.color'] = 'white'
+            rcParams['savefig.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)
+        else:
+            style.use('default')
+            self.route_fig.patch.set_facecolor('white')
+        rcParams['savefig.dpi'] = 300
+        rcParams['font.family'] = 'Euclid'
+
+        #* Plot axes
+        self.ax = self.route_fig.add_subplot(111)
+        self.ax.set_xlabel("Distance [km]")
+        self.ax.set_ylabel("Speed [km/h]")
+
+        #* Plotting on main axis sharing X
+        if self.ref_parent.cb_r_speedres.isChecked():
+            self.line0, = self.ax.step(
+                self.kpoint, self.speed_res, linewidth=linewidth, label="Speed [km/h]", where="pre"
+            )
+
+        if self.ref_parent.cb_r_grade.isChecked():
+            self.line1, = self.ax.step(
+                self.kpoint, self.grade, linewidth=linewidth, label="Grade [‰]", where="pre"
+            )
+
+        if self.ref_parent.cb_r_profile.isChecked():
+            self.line3, = self.ax.plot(
+                self.kpoint, self.profile, linewidth=linewidth, label="Profile [m]"
+            )
+
+        #* Twin axis Y - station tick marks
+        if self.ref_parent.cb_r_stations.isChecked():
+            self.ax2 = self.ax.twiny()
+            self.ax2.set_xlim(self.ax.get_xlim())
+            self.ax2.set_label('Stations')
+
+            # self.ax2.tick_params(
+            #     axis="x",
+            #     which='major',
+            #     direction="in",
+            #     width=1.5,
+            #     length=7,
+            #     labelsize=labelsize,
+            #     color="red",
+            #     rotation=40
+            # )
+
+            # x_locator = FixedLocator(self.timetable_stations_kpoint)
+            # # stations = [l+"\n" * (i % 2) for i, l in enumerate(self.timetable_stations)]
+            # x_formatter = FixedFormatter(self.timetable_stations)
+            # self.ax2.xaxis.set_major_locator(
+            #     x_locator
+            # )  # it's best to first set the locator and only then the formatter
+            # self.ax2.xaxis.set_major_formatter(x_formatter)
+            # #* optionally add vertical lines at each of the station positions
+            for x in self.timetable_stations_kpoint:
+                self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
+
+            # ? Offset tick labels alternative
+            txt_height = max(self.ax.get_ylim()) / (8.5)
+            txt_width = max(self.ax.get_xlim()) / (110)
+            # + 0.005 * labelsize
+            # # Get the corrected text positions, then write the text.
+            y_height = [max(self.ax.get_ylim())] * len(self.timetable_stations_kpoint)
+            text_positions = get_text_positions(
+                self.timetable_stations_kpoint,
+                y_height,
+                txt_width,
+                txt_height,
+            )
+            text_plotter(
+                self.timetable_stations_kpoint, self.timetable_stations, y_height, text_positions,
+                self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
+            )
+            self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
+            self.ax2.xaxis.set_major_locator(ticker.NullLocator())
+
+        plt.xticks([])  # remove secondary ticks
+
+        #* Twin axis X - Radii
+        if self.ref_parent.cb_r_radii.isChecked():
+            self.ax3 = self.ax.twinx()
+            self.ax3.set_label('Distance [km] - Radii [m]')
+            self.ax3.set_ylabel('Radii [m]')
+            self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
+            self.line2, = self.ax3.step(
+                self.kpoint,
+                self.radii,
+                linewidth=self.ref_parent.linewidth,
+                label="Radii [m]",
+                where="pre"
+            )
+            self.line2.set_color("purple")
+
+        #* Line color has to be set during/after axis plot
+        if self.dark_mode_set: self.line0.set_color("white")
+
+        #* Include watermark if any
+        global watermark
+        self.route_fig.text(
+            0.5,
+            0.5,
+            watermark,
+            fontsize=20,
+            color='gray',
+            ha='center',
+            va='center',
+            alpha=0.6,
+            transform=self.ax.transAxes
+        )
+
+        #* Chart legend
+        if self.ref_parent.cb_r_legend.isChecked():
+            handles, labels = [], []
+            for ax in self.route_fig.axes:
+                for h, l in zip(*ax.get_legend_handles_labels()):
+                    handles.append(h)
+                    labels.append(l)
+            self.ax.legend(handles, labels)
+
+        self.route_fig.tight_layout()
+        self.draw()
+
+    def route_canvas_checkbox_handler(self):
+        """Replot on checkbox state change."""
+        try:
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+        except:
+            pass
+
+    def route_canvas_invert_route(self):
+        """Replot on checkbox state change."""
+        try:
+            self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
+            self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+        except:
+            pass
+
+
+class Preferences(QWidget, Ui_Form):
+    """Preferences widget screen. Initialized alongside window."""
+    def __init__(self, GUI, ref_parent=None):
+        super().__init__()
+        self.setupUi(self)
+
+        #* Optional param to access attributes
+        self.ref_parent = ref_parent
+
+        #* Restore latest .ini GUI config
+        self.GUI_preferences = GUI
+        try:
+            guirestore(self, self.GUI_preferences)
+        except:  # Create new empty file if none found
+            guisave(self, self.GUI_preferences)
+
+        global watermark
+        watermark = self.watermark.text()
+
+        self.pushButton.clicked.connect(self.hide_preferences)
+        self.cb_dark.stateChanged.connect(self.cb_dark_check)
+        self.cb_watermark.stateChanged.connect(self.cb_watermark_check)
+
+        #* Restores dark mode on start
+        self.cb_dark_check()
+
+    def cb_dark_check(self):
+        """Define stylesheet based on saved settings"""
+
+        # * Save checkbox status after signal
+        guisave(self, self.GUI_preferences)
+        self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
+
+        try:
+            # * Apply corresponding style
+            if not self.dark_mode_set:
+                app.setStyleSheet("")  # Default style
+            else:
+                app.setStyleSheet(qdarkstyle.load_stylesheet())
+
+            # * Update icons
+            for window in self.ref_parent.windowManager.window_list:
+                window._iconFixes()
+
+            # * Update plot
+            self.window_plot_update()
+
+        except:
+            qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
+
+    def cb_watermark_check(self):
+        """Define watermark based on checkbox state and line text"""
+        global watermark
+        watermark = self.watermark.text() if self.cb_watermark.isChecked() else ""
+        #* Redraw canvas application-wide
+        for window in self.ref_parent.windowManager.window_list:
+            try:
+                window.route_canvas.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+            except:
+                pass
+        guisave(self, self.GUI_preferences)
+
+    def window_plot_update(self):
+        """Update icons and replot in all windows"""
+        for index, window in enumerate(self.ref_parent.windowManager.window_list):
+            window._iconFixes()
+            window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
+            darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
+            window.route_toolbar = MyMplToolbar(
+                window.route_canvas, window.route_canvas, coordinates=True, darkMode=darkMode
+            )
+            window.verticalLayout_2.addWidget(window.route_canvas)
+            window.verticalLayout_2.addWidget(window.route_toolbar)
+            window.instances_route_canvas.append(window.route_canvas)
+            window.instances_route_toolbar.append(window.route_toolbar)
+
+            #* Keep only one canvas and toolbar in memory
+            #* Delete blank charts where no file was selected (len == 1)
+            if len(window.instances_route_toolbar) > 0:
+                window.instances_route_canvas[0].hide()
+                window.instances_route_toolbar[0].hide()
+                del window.instances_route_canvas[0]
+                del window.instances_route_toolbar[0]
+
+    def hide_preferences(self):
+        """Exits Preferences window"""
+        self.cb_watermark_check()
+        try:
+            for window in self.ref_parent.windowManager.window_list:
+                window.setup_route_checkbuttons()  # Must be called every replot
+        except:
+            pass
+        self.hide()
+
+
+if __name__ == "__main__":
+    import sys
+    app = qtw.QApplication(sys.argv)
+    app.setStyle('Fusion')  # ['windowsvista', 'Windows', 'Fusion']
+    w = NewWindow()  # Instantiate window factory class
+
+    #* Exit with Ctrl + C
+    timer = QtCore.QTimer()
+    timer.timeout.connect(lambda: None)
+    timer.start(100)
+
+    sys.exit(app.exec_())
+"""
+# * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
+"""

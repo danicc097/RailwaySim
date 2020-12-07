@@ -63,7 +63,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <property name="documentMode">
        <bool>false</bool>
@@ -2431,18 +2431,6 @@
         <string>Simulation</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_19">
-        <item>
-         <widget class="QLabel" name="label_15">
-          <property name="font">
-           <font>
-            <pointsize>20</pointsize>
-           </font>
-          </property>
-          <property name="text">
-           <string>HIDDEN IN MAIN APPLICATION. SHOW RESULTS IN ROUTE TAB</string>
-          </property>
-         </widget>
-        </item>
         <item alignment="Qt::AlignHCenter">
          <widget class="QGroupBox" name="groupBox_2">
           <property name="sizePolicy">
@@ -2484,7 +2472,7 @@
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_31">
-             <item>
+             <item alignment="Qt::AlignVCenter">
               <widget class="QLabel" name="label_24">
                <property name="text">
                 <string>Plot vs</string>
@@ -2848,6 +2836,8 @@
    </attribute>
    <addaction name="actionPrintToPDF"/>
    <addaction name="separator"/>
+   <addaction name="actionSaveResults"/>
+   <addaction name="actionOpenResults"/>
   </widget>
   <action name="actionNew">
    <property name="text">
@@ -2950,6 +2940,28 @@
    </property>
    <property name="text">
     <string>openCSV</string>
+   </property>
+  </action>
+  <action name="actionSaveResults">
+   <property name="text">
+    <string>Save results</string>
+   </property>
+   <property name="toolTip">
+    <string>Save results to CSV</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
+   </property>
+  </action>
+  <action name="actionOpenResults">
+   <property name="text">
+    <string>Open results</string>
+   </property>
+   <property name="toolTip">
+    <string>Open results from CSV</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
  </widget>

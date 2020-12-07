@@ -41,10 +41,10 @@ A deterministic tool to perform railway route simulations.
 To get started:
 1. Clone the repo: `git clone https://github.com/danicc097/RailwaySim.git`
 2. Install the required packages and corresponding versions with `pipenv install`
-3. Run the main program file with `pipenv run python RailwaySim_main.py`
+3. Run the main program file with `pipenv run python RailwaySim__main__.py`
 4. If you make any changes to a `.ui` file, convert it later to python with
    `pyuic5 -x input_file.ui -o output_file.py` 
-5. To distribute using `PyInstaller`, execute `pipenv run pyinstaller --onefile RailwaySim_main.py -i railwaysimicon.ico`.
+5. To distribute using `PyInstaller`, execute `pipenv run pyinstaller --onefile RailwaySim__main__.py -i railwaysimicon.ico`.
 
 ## Features
 
