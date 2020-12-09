@@ -16,6 +16,8 @@
 #####################################################################
 """
 
+import matplotlib.font_manager as font_manager
+
 import ctypes
 import os
 import sys
@@ -28,6 +30,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 import qdarkstyle
+import configparser
+
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -91,11 +95,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, window, GUI):
         super().__init__()
         self.setupUi(self)
+        # self.setFont(mainFont)
         self.windowManager = window
         self.GUI_preferences = GUI
+        self.config = configparser.ConfigParser()
         self.config_is_set = 0  # Call tracker for config file
+        self.simulation_finished = False
         self.instances_route_canvas = []
+        self.instances_results_canvas = []
         self.instances_route_toolbar = []
+        self.instances_results_toolbar = []
         self.statusBar().showMessage(BASEDIR)
         self._buttonEdits()
         self._mainEdits()
@@ -212,14 +221,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pref_screen = Preferences(self.GUI_preferences, self)
         self._iconFixes()  # change icons after Preferences are restored
 
-        #* Spacer for empty Route tab
+        #* Spacer for empty Route and Simulation tab - must be defined as class var to allow removal
         self.spacerItem = qtw.QSpacerItem(
             20, 40, qtw.QSizePolicy.Minimum, qtw.QSizePolicy.Expanding
         )
         self.verticalLayout_2.addItem(self.spacerItem)
-        self.verticalLayout_6.addItem(self.spacerItem)
+        self.verticalLayout_19.addItem(self.spacerItem)
 
-        #* Loco or passenger train simulation selection
+        #* Loco or passenger train simulation selection - basically radio buttons...
         self.gb_locomotive.toggled.connect(
             lambda checked: checked and self.gb_passenger.setChecked(False)
             if self.gb_passenger.isChecked() else checked
@@ -232,11 +241,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #* Dials
         self.dial_label_size.valueChanged.connect(self.dial_refresh)
         self.dial_stroke_size.valueChanged.connect(self.dial_refresh)
+        self.dial_label_size_results.valueChanged.connect(self.dial_refresh_results)
+        self.dial_stroke_size_results.valueChanged.connect(self.dial_refresh_results)
 
         #* System tray
         self.createTrayIcon()
         self.trayIcon.setIcon(self.windowManager.app_icon)
-        self.trayIcon.messageClicked.connect(self.show)  # TODO click on end of sim popup
+        self.trayIcon.messageClicked.connect(self.show)  # TODO jump to sim tab
 
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
@@ -260,7 +271,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.linewidth = self.dial_stroke_size.value() / 2.5
             self.labelsize = 8 + self.dial_label_size.value()
             self.route_canvas.plot_route(self.linewidth, self.labelsize)
-            self.route_canvas.route_fig.set_tight_layout(True)
+            self.route_canvas.fig.set_tight_layout(True)
+
+    def dial_refresh_results(self):
+        """Update route plot line width."""
+        if self.simulation_finished:
+            self.linewidth_results = self.dial_stroke_size_results.value() / 2.5
+            self.labelsize_results = 8 + self.dial_label_size_results.value()
+            self.results_canvas.plot_results(self.linewidth_results, self.labelsize_results)
+            self.results_canvas.fig.set_tight_layout(True)
 
     def create_route_plot(self):
         """Route canvas and toolbar creator. Called when a file is loaded"""
@@ -276,22 +295,66 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except:
                 pass
             #* Create new instances of canvas and toolbar
-            if len(self.ProfileLoadFilename.text()) > 3:
-                self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
-                darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
-                self.route_toolbar = MyMplToolbar(
-                    self.route_canvas, self.route_canvas, coordinates=True, darkMode=darkMode
-                )
-                self.verticalLayout_2.addWidget(self.route_canvas)
-                self.verticalLayout_2.addWidget(self.route_toolbar)
+            try:
+                if len(self.ProfileLoadFilename.text()) > 3:
+                    self.route_canvas = PlotCanvas_route(self.GUI_preferences, self)
+                    darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+                    self.route_toolbar = MyMplToolbar(
+                        self.route_canvas,
+                        self.route_canvas,
+                        coordinates=True,
+                        darkMode=darkMode,
+                        main_dir=BASEDIR
+                    )
+                    self.verticalLayout_2.addWidget(self.route_canvas)
+                    self.verticalLayout_2.addWidget(self.route_toolbar)
 
-                #* Keep track of NavToolbar and Canvas
-                self.instances_route_canvas.append(self.route_canvas)
-                self.instances_route_toolbar.append(self.route_toolbar)
-                self.statusBar().showMessage("Loaded {}.".format(self.ProfileLoadFilename.text()))
+                    #* Keep track of NavToolbar and Canvas
+                    self.instances_route_canvas.append(self.route_canvas)
+                    self.instances_route_toolbar.append(self.route_toolbar)
+                    self.statusBar().showMessage(f"Loaded {self.ProfileLoadFilename.text()}.")
+            except:
+                pass
 
         else:
             self.statusBar().showMessage("Could not plot because no data was selected.")
+
+    def create_results_plot(self):
+        """Simulation results canvas and toolbar creator. 
+        Called when a file is loaded and contains a results file path or after simulating."""
+        if self.simulation_finished:
+            #* Delete vertical spacer
+            self.verticalLayout_19.removeItem(self.spacerItem)
+            #* Delete previous instances if any
+            try:
+                self.instances_results_canvas[0].hide()
+                self.instances_results_toolbar[0].hide()
+                del self.instances_results_canvas[0]
+                del self.instances_results_toolbar[0]
+            except:
+                pass
+            #* Create new instances of canvas and toolbar
+            if len(self.resultsFilename) > 3:
+                self.results_canvas = PlotCanvas_results(self.GUI_preferences, self)
+                darkMode = bool(int(self.GUI_preferences.value('cb_dark')))
+                self.results_toolbar = MyMplToolbar(
+                    self.results_canvas,
+                    self.results_canvas,
+                    coordinates=True,
+                    darkMode=darkMode,
+                    main_dir=BASEDIR
+                )
+                self.verticalLayout_19.addWidget(self.results_canvas)
+                self.verticalLayout_19.addWidget(self.results_toolbar)
+
+                #* Keep track of NavToolbar and Canvas
+                self.instances_results_canvas.append(self.results_canvas)
+                self.instances_results_toolbar.append(self.results_toolbar)
+                self.statusBar().showMessage(f"Loaded results from {self.resultsFilename}.")
+
+        else:
+            self.statusBar(
+            ).showMessage("Could not plot because no simulation has been carried out.")
 
     def setup_route_checkbuttons(self):
         """Route tab checkboxes. Must be called after each plot update."""
@@ -299,26 +362,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         try:
             if self.route_canvas is not None:
-                self.cb_r_stations.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
+                self.route_checkbuttons = [
+                    self.cb_r_stations,
+                    self.cb_r_speedres,
+                    self.cb_r_grade,
+                    self.cb_r_profile,
+                    self.cb_r_radii,
+                    self.cb_r_legend,
+                    self.cb_InvertRoute,
+                ]
+                for cb in self.route_checkbuttons:
+                    cb.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
+
+        except Exception as e:
+            self.statusBar().showMessage(
+                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
+            )
+
+    def setup_results_checkbuttons(self):
+        """Simulation tab checkboxes. Must be called after each plot update."""
+        if not self.simulation_finished:
+            return
+        try:
+            if self.results_canvas is not None:
+                self.results_checkbuttons = [
+                    self.cb_speedres_results,
+                    self.cb_virtualspeedres_results,
+                    self.cb_speed_results,
+                    self.cb_grade_results,
+                    self.cb_profile_results,
+                    self.cb_radii_results,
+                    self.cb_outputEffort_results,
+                    self.cb_resistance_results,
+                    self.cb_accel_results,
+                    self.cb_stations_results,
+                    self.cb_legend_results,
+                ]
+                for cb in self.results_checkbuttons:
+                    cb.stateChanged.connect(self.results_canvas.results_canvas_checkbox_handler)
+                #* Radiobuttons don't emit stateChanged
+                self.radioButton_time.toggled.connect(
+                    self.results_canvas.results_canvas_checkbox_handler
                 )
-                self.cb_r_speedres.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_grade.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_profile.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_radii.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_r_legend.stateChanged.connect(
-                    self.route_canvas.route_canvas_checkbox_handler
-                )
-                self.cb_InvertRoute.stateChanged.connect(
-                    self.route_canvas.route_canvas_invert_route
+                self.radioButton_distance.toggled.connect(
+                    self.results_canvas.results_canvas_checkbox_handler
                 )
 
         except Exception as e:
@@ -424,6 +511,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 try:
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
+                    self.config.read(self.filename)
+                    self.resultsFilename = self.config['General']['Results_file']
                     self.statusBar().showMessage(
                         "Changes now being saved to: {}".format(self.filename)
                     )
@@ -442,6 +531,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.setup_route_checkbuttons()
                         self.dial_refresh()
 
+                    #TODO: plot results
+                    #* Create a results plot if a simulation finished
+                    if self.simulation_finished:
+                        try:
+                            self.instances_results_canvas[0].hide()
+                            self.instances_results_toolbar[0].hide()
+                            del self.instances_results_canvas[0]
+                            del self.instances_results_toolbar[0]
+                        except:
+                            pass
+                        # self.create_results_plot()
+                        # self.setup_results_checkbuttons()
+                        # self.dial_refresh_results()
                 except Exception as e:
                     qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
             else:
@@ -523,11 +625,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 constants = grab_GC(self, self.my_settings)
                 try:
                     sim_time = ShortestOperationSolver.main(self, constants, self.resultsFilename)
+                    self.simulation_finished = True
                     self.showSuccess(sim_time)
                     # self.actionSaveResults.triggered.connect() TODO:
                     #* Change to simulation tab and plot
+                    try:
+                        self.instances_results_canvas[0].hide()
+                        self.instances_results_toolbar[0].hide()
+                        del self.instances_results_canvas[0]
+                        del self.instances_results_toolbar[0]
+                    except:
+                        pass
+                    self.create_results_plot()
+                    self.setup_results_checkbuttons()
+                    self.dial_refresh_results()
                     #TODO: show sim tab and plot results
-                    # show_results()
+
                 except Exception as e:
                     error_type, error, tb = sys.exc_info()
                     print(
@@ -546,8 +659,8 @@ class PlotCanvas_route(FigureCanvas):
         self.GUI_preferences = GUI
         # Don't use "parent" as variable name.
         self.ref_parent = ref_parent  # pass MainWindow to access its widgets.
-        self.route_fig = Figure(dpi=dpi)  # 100 dpi recommended
-        FigureCanvas.__init__(self, self.route_fig)
+        self.fig = Figure(dpi=dpi)  # 100 dpi recommended
+        FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
         self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
@@ -571,9 +684,9 @@ class PlotCanvas_route(FigureCanvas):
         # concat_df = pd.concat([array,array2,array3]).groupby('Time')
         # print(concat_df)
         concat_df = concat_df.groupby('Time').sum(min_count=1)
-        print(concat_df)
+        # print(concat_df)
         concat_df = concat_df.groupby('Time').sum(min_count=1).ffill()
-        print(concat_df)
+        # print(concat_df)
 
         self.ROUTE_INPUT_DF = np.genfromtxt(
             self.ref_parent.ProfileLoadFilename.text(),
@@ -588,6 +701,7 @@ class PlotCanvas_route(FigureCanvas):
         if invert:
             self.ROUTE_INPUT_DF = np.flip(self.ROUTE_INPUT_DF, axis=1)
         try:
+            #* Minimum data to compute
             self.distance = np.array(self.ROUTE_INPUT_DF[3][:], dtype=float)
             self.kpoint = np.cumsum(self.distance / 1000, dtype=float)
             self.grade = np.array(self.ROUTE_INPUT_DF[4][:], dtype=float)
@@ -596,7 +710,6 @@ class PlotCanvas_route(FigureCanvas):
             self.station_names = np.array(self.ROUTE_INPUT_DF[12][:], dtype=str)
 
             #* Calculate profile height from distance steps and grade
-            # TODO show in results tab
             self.profile = np.zeros(len(self.distance), dtype=float)
             for index, distance_step in enumerate(self.distance):
                 if index == 0:
@@ -614,6 +727,7 @@ class PlotCanvas_route(FigureCanvas):
             self.timetable_stations_kpoint = np.array(
                 [self.kpoint[index] for index, a in enumerate(self.distance) if a == 0]
             )
+
             # * Optional timetables
             try:
                 self.timetable_dwell_time = np.array(
@@ -647,12 +761,12 @@ class PlotCanvas_route(FigureCanvas):
             del self.ref_parent.instances_route_canvas[0]
             del self.ref_parent.instances_route_toolbar[0]
 
-        self.route_fig.clear()  # clear wrong format if any on graph init
+        self.fig.clear()  # clear wrong format if any on graph init
 
         #* Setting theme
         self.dark_mode_set = bool(int(self.GUI_preferences.value('cb_dark')))
         if self.dark_mode_set:
-            self.route_fig.patch.set_facecolor(
+            self.fig.patch.set_facecolor(
                 (0.09803921569, 0.13725490196, 0.17647058824)
             )  # light grey
             rcParams['axes.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)  # dark grey
@@ -661,123 +775,113 @@ class PlotCanvas_route(FigureCanvas):
             rcParams['savefig.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)
         else:
             style.use('default')
-            self.route_fig.patch.set_facecolor('white')
+            self.fig.patch.set_facecolor('white')
         rcParams['savefig.dpi'] = 300
-        rcParams['font.family'] = 'Euclid'
+        path = os.path.join(BASEDIR, 'resources', 'fonts', 'Fira_Sans', 'FiraSans-Medium.ttf')
+        prop = font_manager.FontProperties(fname=path)
+        font_manager._rebuild()
+        rcParams['font.family'] = prop.get_name()
 
         #* Plot axes
-        self.ax = self.route_fig.add_subplot(111)
+        self.ax = self.fig.add_subplot(111)
         self.ax.set_xlabel("Distance [km]")
         self.ax.set_ylabel("Speed [km/h]")
+        try:
+            #* Plotting on main axis sharing X
+            if self.ref_parent.cb_r_speedres.isChecked():
+                self.line0, = self.ax.step(
+                    self.kpoint,
+                    self.speed_res,
+                    linewidth=linewidth,
+                    label="Speed [km/h]",
+                    where="pre"
+                )
 
-        #* Plotting on main axis sharing X
-        if self.ref_parent.cb_r_speedres.isChecked():
-            self.line0, = self.ax.step(
-                self.kpoint, self.speed_res, linewidth=linewidth, label="Speed [km/h]", where="pre"
+            if self.ref_parent.cb_r_grade.isChecked():
+                self.line1, = self.ax.step(
+                    self.kpoint, self.grade, linewidth=linewidth, label="Grade [‰]", where="pre"
+                )
+
+            if self.ref_parent.cb_r_profile.isChecked():
+                self.line3, = self.ax.plot(
+                    self.kpoint, self.profile, linewidth=linewidth, label="Profile [m]"
+                )
+
+            #* Twin axis Y - station tick marks
+            if self.ref_parent.cb_r_stations.isChecked():
+                self.ax2 = self.ax.twiny()
+                self.ax2.set_xlim(self.ax.get_xlim())
+                self.ax2.set_label('Stations')
+                #* optionally add vertical lines at each of the station positions
+                for x in self.timetable_stations_kpoint:
+                    self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
+
+                # ? Offset tick labels alternative
+                txt_height = max(self.ax.get_ylim()) / (8.5)
+                txt_width = max(self.ax.get_xlim()) / (110)
+                # + 0.005 * labelsize
+                # # Get the corrected text positions, then write the text.
+                y_height = [max(self.ax.get_ylim())] * len(self.timetable_stations_kpoint)
+                text_positions = get_text_positions(
+                    self.timetable_stations_kpoint,
+                    y_height,
+                    txt_width,
+                    txt_height,
+                )
+                text_plotter(
+                    self.timetable_stations_kpoint, self.timetable_stations, y_height,
+                    text_positions, self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
+                )
+                self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
+                self.ax2.xaxis.set_major_locator(ticker.NullLocator())
+
+            plt.xticks([])  # remove secondary ticks
+
+            #* Twin axis X - Radii
+            if self.ref_parent.cb_r_radii.isChecked():
+                self.ax3 = self.ax.twinx()
+                self.ax3.set_label('Distance [km] - Radii [m]')
+                self.ax3.set_ylabel('Radii [m]')
+                self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
+                self.line2, = self.ax3.step(
+                    self.kpoint,
+                    self.radii,
+                    linewidth=self.ref_parent.linewidth,
+                    label="Radii [m]",
+                    where="pre"
+                )
+                self.line2.set_color("purple")
+
+            #* Line color has to be set during/after axis plot
+            if self.dark_mode_set: self.line0.set_color("white")
+
+            #* Include watermark if any
+            global watermark
+            self.fig.text(
+                0.5,
+                0.5,
+                watermark,
+                fontsize=20,
+                color='gray',
+                ha='center',
+                va='center',
+                alpha=0.6,
+                transform=self.ax.transAxes
             )
 
-        if self.ref_parent.cb_r_grade.isChecked():
-            self.line1, = self.ax.step(
-                self.kpoint, self.grade, linewidth=linewidth, label="Grade [‰]", where="pre"
-            )
+            #* Chart legend
+            if self.ref_parent.cb_r_legend.isChecked():
+                handles, labels = [], []
+                for ax in self.fig.axes:
+                    for h, l in zip(*ax.get_legend_handles_labels()):
+                        handles.append(h)
+                        labels.append(l)
+                self.ax.legend(handles, labels)
 
-        if self.ref_parent.cb_r_profile.isChecked():
-            self.line3, = self.ax.plot(
-                self.kpoint, self.profile, linewidth=linewidth, label="Profile [m]"
-            )
-
-        #* Twin axis Y - station tick marks
-        if self.ref_parent.cb_r_stations.isChecked():
-            self.ax2 = self.ax.twiny()
-            self.ax2.set_xlim(self.ax.get_xlim())
-            self.ax2.set_label('Stations')
-
-            # self.ax2.tick_params(
-            #     axis="x",
-            #     which='major',
-            #     direction="in",
-            #     width=1.5,
-            #     length=7,
-            #     labelsize=labelsize,
-            #     color="red",
-            #     rotation=40
-            # )
-
-            # x_locator = FixedLocator(self.timetable_stations_kpoint)
-            # # stations = [l+"\n" * (i % 2) for i, l in enumerate(self.timetable_stations)]
-            # x_formatter = FixedFormatter(self.timetable_stations)
-            # self.ax2.xaxis.set_major_locator(
-            #     x_locator
-            # )  # it's best to first set the locator and only then the formatter
-            # self.ax2.xaxis.set_major_formatter(x_formatter)
-            # #* optionally add vertical lines at each of the station positions
-            for x in self.timetable_stations_kpoint:
-                self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
-
-            # ? Offset tick labels alternative
-            txt_height = max(self.ax.get_ylim()) / (8.5)
-            txt_width = max(self.ax.get_xlim()) / (110)
-            # + 0.005 * labelsize
-            # # Get the corrected text positions, then write the text.
-            y_height = [max(self.ax.get_ylim())] * len(self.timetable_stations_kpoint)
-            text_positions = get_text_positions(
-                self.timetable_stations_kpoint,
-                y_height,
-                txt_width,
-                txt_height,
-            )
-            text_plotter(
-                self.timetable_stations_kpoint, self.timetable_stations, y_height, text_positions,
-                self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
-            )
-            self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
-            self.ax2.xaxis.set_major_locator(ticker.NullLocator())
-
-        plt.xticks([])  # remove secondary ticks
-
-        #* Twin axis X - Radii
-        if self.ref_parent.cb_r_radii.isChecked():
-            self.ax3 = self.ax.twinx()
-            self.ax3.set_label('Distance [km] - Radii [m]')
-            self.ax3.set_ylabel('Radii [m]')
-            self.ax3.set_ylim(top=np.amax(self.radii) * 4, bottom=0)
-            self.line2, = self.ax3.step(
-                self.kpoint,
-                self.radii,
-                linewidth=self.ref_parent.linewidth,
-                label="Radii [m]",
-                where="pre"
-            )
-            self.line2.set_color("purple")
-
-        #* Line color has to be set during/after axis plot
-        if self.dark_mode_set: self.line0.set_color("white")
-
-        #* Include watermark if any
-        global watermark
-        self.route_fig.text(
-            0.5,
-            0.5,
-            watermark,
-            fontsize=20,
-            color='gray',
-            ha='center',
-            va='center',
-            alpha=0.6,
-            transform=self.ax.transAxes
-        )
-
-        #* Chart legend
-        if self.ref_parent.cb_r_legend.isChecked():
-            handles, labels = [], []
-            for ax in self.route_fig.axes:
-                for h, l in zip(*ax.get_legend_handles_labels()):
-                    handles.append(h)
-                    labels.append(l)
-            self.ax.legend(handles, labels)
-
-        self.route_fig.tight_layout()
-        self.draw()
+            self.fig.tight_layout()
+            self.draw()
+        except AttributeError:
+            qtw.QMessageBox.critical(self, "Error", "Not a valid route format.")
 
     def route_canvas_checkbox_handler(self):
         """Replot on checkbox state change."""
@@ -791,6 +895,195 @@ class PlotCanvas_route(FigureCanvas):
         try:
             self.route_data_import(invert=self.ref_parent.cb_InvertRoute.isChecked())
             self.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+        except:
+            pass
+
+
+class PlotCanvas_results(FigureCanvas):
+    """Simulation output data graph"""
+    def __init__(self, GUI, ref_parent, dpi=100):
+        self.GUI_preferences = GUI
+        # Don't use "parent" as variable name.
+        self.ref_parent = ref_parent  # pass MainWindow to access its widgets.
+        self.fig = Figure(dpi=dpi)  # 100 dpi recommended
+        FigureCanvas.__init__(self, self.fig)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+        self.df = pd.read_csv(self.ref_parent.resultsFilename)
+
+    def plot_results(self, linewidth=2.5, labelsize=13):
+        """Canvas and toolbar creation, deleting previous instances."""
+        if len(self.ref_parent.instances_results_toolbar) > 1:
+            self.ref_parent.instances_results_canvas[0].hide()
+            self.ref_parent.instances_results_toolbar[0].hide()
+            del self.ref_parent.instances_results_canvas[0]
+            del self.ref_parent.instances_results_toolbar[0]
+
+        self.fig.clear()  # clear wrong format if any on graph init
+
+        #* No dark mode to create the report properly
+        self.dark_mode_set = False
+        if self.dark_mode_set:
+            self.fig.patch.set_facecolor(
+                (0.09803921569, 0.13725490196, 0.17647058824)
+            )  # light grey
+            rcParams['axes.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)  # dark grey
+            rcParams['text.color'] = rcParams['axes.labelcolor'] = rcParams[
+                'axes.edgecolor'] = rcParams['xtick.color'] = rcParams['ytick.color'] = 'white'
+            rcParams['savefig.facecolor'] = (0.19607843137, 0.25490196078, 0.29411764706)
+        else:
+            style.use('default')
+            self.fig.patch.set_facecolor('white')
+        rcParams['savefig.dpi'] = 300
+        path = os.path.join(BASEDIR, 'resources', 'fonts', 'Fira_Sans', 'FiraSans-Medium.ttf')
+        prop = font_manager.FontProperties(fname=path)
+        font_manager._rebuild()
+        rcParams['font.family'] = prop.get_name()
+
+        #* Plot axes
+        self.ax = self.fig.add_subplot(111)
+        if self.ref_parent.radioButton_distance.isChecked():
+            self.ax.set_xlabel("Distance [km]")
+            x_axis = self.df['KP [km]']
+        else:
+            self.ax.set_xlabel("Time [s]")
+            x_axis = self.df['Elapsed time [s]']
+
+        self.ax.set_ylabel("Speed [km/h]")
+
+        #* Plotting on main axis sharing X
+        if self.ref_parent.cb_speedres_results.isChecked():
+            self.line0, = self.ax.step(
+                x_axis,
+                self.df['Speed restriction [km/h]'],  #*ROUTE DATA
+                linewidth=linewidth,
+                label="Speed restriction [km/h]",
+                where="pre"
+            )
+
+        if self.ref_parent.cb_virtualspeedres_results.isChecked():
+            self.line1, = self.ax.step(
+                x_axis,
+                self.df['Virtual speed restriction [km/h]'],
+                linewidth=linewidth,
+                label="Virtual speed restriction [km/h]",
+                where="pre"
+            )
+        if self.ref_parent.cb_speed_results.isChecked():
+            self.line2, = self.ax.plot(
+                x_axis,
+                self.df['Speed [km/h]'],
+                linewidth=linewidth,
+                label="Speed [km/h]",
+            )
+        if self.ref_parent.cb_grade_results.isChecked():
+            self.line3, = self.ax.step(
+                x_axis, self.df['Grade [‰]'], linewidth=linewidth, label="Grade [‰]", where="pre"
+            )
+
+        if self.ref_parent.cb_profile_results.isChecked():
+            self.line4, = self.ax.plot(
+                x_axis, self.df['Profile [m]'], linewidth=linewidth, label="Profile [m]"
+            )
+        if self.ref_parent.cb_resistance_results.isChecked():
+            self.line5, = self.ax.plot(
+                x_axis, self.df['Resistance [kN]'], linewidth=linewidth, label="Resistance [kN]"
+            )
+        if self.ref_parent.cb_accel_results.isChecked():
+            self.line6, = self.ax.plot(
+                x_axis,
+                self.df['Acceleration [m/s²]'],
+                linewidth=linewidth,
+                label="Acceleration [m/s²]"
+            )
+        self.df['Braking Effort [kN]'] = -abs(self.df['Braking Effort [kN]'])
+        self.outputEffort = self.df[['Tractive Effort [kN]', 'Braking Effort [kN]']].sum(axis=1)
+        if self.ref_parent.cb_outputEffort_results.isChecked():
+            self.line7, = self.ax.plot(
+                x_axis, self.outputEffort, linewidth=linewidth, label="Effort [kN]"
+            )
+
+        # #* Twin axis Y - station tick marks
+        # if self.ref_parent.cb_stations_results.isChecked():
+        #     self.ax2 = self.ax.twiny()
+        #     self.ax2.set_xlim(self.ax.get_xlim())
+        #     self.ax2.set_label('Stations')
+        #     #* optionally add vertical lines at each of the station positions
+        #     for x in self.timetable_stations_kpoint:
+        #         self.ax2.axvline(x, color='red', alpha=0.5, ls=':', lw=1.5)
+
+        #     # ? Offset tick labels alternative
+        #     txt_height = max(self.ax.get_ylim()) / (8.5)
+        #     txt_width = max(self.ax.get_xlim()) / (110)
+        #     # + 0.005 * labelsize
+        #     # # Get the corrected text positions, then write the text.
+        #     y_height = [max(self.ax.get_ylim())] * len(self.timetable_stations_kpoint)
+        #     text_positions = get_text_positions(
+        #         self.timetable_stations_kpoint,
+        #         y_height,
+        #         txt_width,
+        #         txt_height,
+        #     )
+        #     text_plotter(
+        #         self.timetable_stations_kpoint, self.timetable_stations, y_height, text_positions,
+        #         self.ax, txt_width, txt_height, labelsize, self.dark_mode_set
+        #     )
+        #     self.ax2.xaxis.set_minor_locator(ticker.NullLocator())
+        #     self.ax2.xaxis.set_major_locator(ticker.NullLocator())
+
+        plt.xticks([])  # remove secondary ticks
+
+        #* Twin axis X - Radii
+        if self.ref_parent.cb_radii_results.isChecked():
+            self.ax3 = self.ax.twinx()
+            if self.ref_parent.radioButton_distance.isChecked():
+                self.ax3.set_label('Distance [km] - Radii [m]')
+            else:
+                self.ax3.set_label('Time [s] - Radii [m]')
+            self.ax3.set_ylabel('Radii [m]')
+            self.ax3.set_ylim(top=np.amax(self.df['Radius [m]']) * 4, bottom=0)
+            self.line5, = self.ax3.step(
+                x_axis,
+                self.df['Radius [m]'],
+                linewidth=self.ref_parent.linewidth_results,
+                label="Radius [m]",
+                where="pre"
+            )
+            self.line2.set_color("purple")
+
+        #* Line color has to be set during/after axis plot
+        if self.dark_mode_set: self.line0.set_color("white")
+
+        #* Include watermark if any
+        global watermark
+        self.fig.text(
+            0.5,
+            0.5,
+            watermark,
+            fontsize=20,
+            color='gray',
+            ha='center',
+            va='center',
+            alpha=0.6,
+            transform=self.ax.transAxes
+        )
+
+        #* Chart legend
+        if self.ref_parent.cb_legend_results.isChecked():
+            handles, labels = [], []
+            for ax in self.fig.axes:
+                for h, l in zip(*ax.get_legend_handles_labels()):
+                    handles.append(h)
+                    labels.append(l)
+            self.ax.legend(handles, labels)
+
+        self.fig.tight_layout()
+        self.draw()
+
+    def results_canvas_checkbox_handler(self):
+        """Replot on checkbox state change."""
+        try:
+            self.plot_results(self.ref_parent.linewidth_results, self.ref_parent.labelsize_results)
         except:
             pass
 
@@ -831,7 +1124,7 @@ class Preferences(QWidget, Ui_Form):
         try:
             # * Apply corresponding style
             if not self.dark_mode_set:
-                app.setStyleSheet("")  # Default style
+                app.setStyleSheet('')  # Default style
             else:
                 app.setStyleSheet(qdarkstyle.load_stylesheet())
 
@@ -857,14 +1150,19 @@ class Preferences(QWidget, Ui_Form):
                 pass
         guisave(self, self.GUI_preferences)
 
+    #TODO update simulation plot as well
     def window_plot_update(self):
         """Update icons and replot in all windows"""
-        for index, window in enumerate(self.ref_parent.windowManager.window_list):
+        for _, window in enumerate(self.ref_parent.windowManager.window_list):
             window._iconFixes()
             window.route_canvas = PlotCanvas_route(window.GUI_preferences, window)
             darkMode = bool(int(window.GUI_preferences.value('cb_dark')))
             window.route_toolbar = MyMplToolbar(
-                window.route_canvas, window.route_canvas, coordinates=True, darkMode=darkMode
+                window.route_canvas,
+                window.route_canvas,
+                coordinates=True,
+                darkMode=darkMode,
+                main_dir=BASEDIR
             )
             window.verticalLayout_2.addWidget(window.route_canvas)
             window.verticalLayout_2.addWidget(window.route_toolbar)
@@ -878,6 +1176,8 @@ class Preferences(QWidget, Ui_Form):
                 window.instances_route_toolbar[0].hide()
                 del window.instances_route_canvas[0]
                 del window.instances_route_toolbar[0]
+
+            #* Results tab doesn't use dark mode, i.e. no logic for it
 
     def hide_preferences(self):
         """Exits Preferences window"""
@@ -894,8 +1194,15 @@ if __name__ == "__main__":
     import sys
     app = qtw.QApplication(sys.argv)
     app.setStyle('Fusion')  # ['windowsvista', 'Windows', 'Fusion']
-    w = NewWindow()  # Instantiate window factory class
 
+    path = os.path.join(BASEDIR, 'resources', 'fonts', 'Fira_Sans', 'FiraSans-Medium.ttf')
+    id = QtGui.QFontDatabase.addApplicationFont(path)
+    family = QtGui.QFontDatabase.applicationFontFamilies(id)[0]
+    font = QtGui.QFont(family, 9)
+    app.setFont(font)
+    #TODO: font PYINSTALLER in matplotlib charts is very thin
+
+    w = NewWindow()  # Instantiate window factory class
     #* Exit with Ctrl + C
     timer = QtCore.QTimer()
     timer.timeout.connect(lambda: None)
@@ -904,4 +1211,34 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 """
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png
+"""
+"""
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+def addText(pixmap, w, h, name):
+    painter = QtGui.QPainter(pixmap)        
+    font = QtGui.QFont("Roboto")
+    font.setPointSize(36)
+    position  = QtCore.QRect(0, 0, w, h)
+    painter.setFont(font);
+    painter.drawText(position, QtCore.Qt.AlignCenter, name);
+    painter.end()
+    return pixmap
+
+def create_pixmap():
+    pixmap = QtGui.QPixmap(512*QtCore.QSize(1, 1))
+    pixmap.fill(QtCore.Qt.white)
+    return addText(pixmap, 512, 512, "Stack Overflow")
+
+if __name__ == '__main__':
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    dir_ = QtCore.QDir("Roboto")
+    _id = QtGui.QFontDatabase.addApplicationFont("Roboto/Roboto-Regular.ttf")
+    print(QtGui.QFontDatabase.applicationFontFamilies(_id))
+    w = QtWidgets.QLabel()
+    w.setPixmap(create_pixmap())
+    w.show()
+    sys.exit(app.exec_())
+
 """

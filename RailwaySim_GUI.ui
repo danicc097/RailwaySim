@@ -7,9 +7,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>896</width>
+    <width>904</width>
     <height>758</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Arial</family>
+   </font>
   </property>
   <property name="windowTitle">
    <string>RailwaySim</string>
@@ -56,6 +61,7 @@
       </property>
       <property name="font">
        <font>
+        <family>Fira Sans Medium</family>
         <pointsize>10</pointsize>
        </font>
       </property>
@@ -95,6 +101,7 @@
        </property>
        <property name="font">
         <font>
+         <family>Fira Sans Medium</family>
          <pointsize>8</pointsize>
         </font>
        </property>
@@ -141,6 +148,7 @@
             </property>
             <property name="font">
              <font>
+              <family>Fira Sans Medium</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -174,6 +182,12 @@
                  <height>0</height>
                 </size>
                </property>
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="title">
                 <string/>
                </property>
@@ -182,6 +196,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_11">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_MASS">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Train mass [t]</string>
                     </property>
@@ -189,6 +209,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_MASS">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -212,6 +238,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_17">
                   <item>
                    <widget class="QLabel" name="label_BOGIES">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Bogies [u]</string>
                     </property>
@@ -219,6 +251,12 @@
                   </item>
                   <item>
                    <widget class="QSpinBox" name="BOGIES">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
                     </property>
@@ -239,6 +277,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_16">
                   <item>
                    <widget class="QLabel" name="label_MOTOR_BOGIES">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Motorized bogies [u]</string>
                     </property>
@@ -246,6 +290,12 @@
                   </item>
                   <item>
                    <widget class="QSpinBox" name="MOTOR_BOGIES">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="layoutDirection">
                      <enum>Qt::LeftToRight</enum>
                     </property>
@@ -266,6 +316,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_12">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_ROT_MASS">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Rotational mass [%]</string>
                     </property>
@@ -273,6 +329,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_ROT_MASS">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -293,6 +355,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_13">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_AREA">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Frontal area [m²]</string>
                     </property>
@@ -300,6 +368,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_AREA">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -320,6 +394,12 @@
                  <layout class="QHBoxLayout" name="horizontalLaya_2">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_MAX_SPEED">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Maximum speed [km/h]</string>
                     </property>
@@ -327,6 +407,12 @@
                   </item>
                   <item>
                    <widget class="QSpinBox" name="TRAIN_MAX_SPEED">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -347,6 +433,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_32">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_LENGTH">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Train length [m]</string>
                     </property>
@@ -354,6 +446,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_LENGTH">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -377,6 +475,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_14">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_MAX_A">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Maximum acceleration [ m/s²]</string>
                     </property>
@@ -384,6 +488,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_MAX_A">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -407,6 +517,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_34">
                   <item>
                    <widget class="QLabel" name="label_TRAIN_MAX_D">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Maximum deceleration [ m/s²]</string>
                     </property>
@@ -414,6 +530,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRAIN_MAX_D">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -449,6 +571,7 @@
             </property>
             <property name="font">
              <font>
+              <family>Fira Sans Medium</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -467,6 +590,12 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="title">
                 <string>Rolling resistance [kN]</string>
                </property>
@@ -477,6 +606,7 @@
                    <widget class="QLabel" name="label_ROLLING_R_A">
                     <property name="font">
                      <font>
+                      <family>Fira Sans Medium</family>
                       <pointsize>10</pointsize>
                       <italic>false</italic>
                      </font>
@@ -488,6 +618,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="ROLLING_R_A">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -514,6 +650,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_33">
                   <item>
                    <widget class="QLabel" name="label_ROLLING_R_B">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>B</string>
                     </property>
@@ -521,6 +663,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="ROLLING_R_B">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -547,6 +695,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_49">
                   <item>
                    <widget class="QLabel" name="label_ROLLING_R_C">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>C</string>
                     </property>
@@ -554,6 +708,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="ROLLING_R_C">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -587,6 +747,12 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="title">
                 <string>Curve resistance [kN]</string>
                </property>
@@ -595,6 +761,12 @@
                  <layout class="QHBoxLayout" name="horizontalLayout_50">
                   <item>
                    <widget class="QLabel" name="label_TRACK_GAUGE">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="text">
                      <string>Track gauge [m]</string>
                     </property>
@@ -602,6 +774,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="TRACK_GAUGE">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -635,6 +813,12 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="title">
                 <string>Starting resistance [kN]</string>
                </property>
@@ -645,6 +829,7 @@
                    <widget class="QLabel" name="label_STARTING_R">
                     <property name="font">
                      <font>
+                      <family>Fira Sans Medium</family>
                       <pointsize>10</pointsize>
                       <italic>false</italic>
                      </font>
@@ -656,6 +841,12 @@
                   </item>
                   <item>
                    <widget class="QDoubleSpinBox" name="STARTING_R">
+                    <property name="font">
+                     <font>
+                      <family>Fira Sans Medium</family>
+                      <pointsize>9</pointsize>
+                     </font>
+                    </property>
                     <property name="wrapping">
                      <bool>false</bool>
                     </property>
@@ -697,6 +888,7 @@
             </property>
             <property name="font">
              <font>
+              <family>Fira Sans Medium</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -720,6 +912,12 @@
                </property>
                <item row="0" column="1">
                 <spacer name="horizontalSpacer_2">
+                 <property name="font">
+                  <font>
+                   <family>Fira Sans Medium</family>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -748,6 +946,12 @@
                    <height>0</height>
                   </size>
                  </property>
+                 <property name="font">
+                  <font>
+                   <family>Fira Sans Medium</family>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
                  <property name="title">
                   <string>Locomotive</string>
                  </property>
@@ -759,6 +963,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_7">
                     <item>
                      <widget class="QLabel" name="label_LOCO_MAX_A">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Maximum acceleration [m/s²]</string>
                       </property>
@@ -766,6 +976,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="LOCO_MAX_A">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -789,6 +1005,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_18">
                     <item>
                      <widget class="QLabel" name="label_LOCO_AXLES">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Axles [u]</string>
                       </property>
@@ -796,6 +1018,12 @@
                     </item>
                     <item>
                      <widget class="QSpinBox" name="LOCO_AXLES">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="layoutDirection">
                        <enum>Qt::LeftToRight</enum>
                       </property>
@@ -816,6 +1044,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_3">
                     <item>
                      <widget class="QLabel" name="label_LOCO_ROT_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Rotational mass [%]</string>
                       </property>
@@ -823,6 +1057,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="LOCO_ROT_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -843,6 +1083,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
                      <widget class="QLabel" name="label_LOCO_AREA">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Frontal area [m²]</string>
                       </property>
@@ -850,6 +1096,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="LOCO_AREA">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -870,6 +1122,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout">
                     <item>
                      <widget class="QLabel" name="label_LOCO_NUMBER">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Number [u]</string>
                       </property>
@@ -877,6 +1135,12 @@
                     </item>
                     <item>
                      <widget class="QSpinBox" name="LOCO_NUMBER">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="layoutDirection">
                        <enum>Qt::LeftToRight</enum>
                       </property>
@@ -897,6 +1161,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_2">
                     <item>
                      <widget class="QLabel" name="label_LOCO_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Individual mass [t]</string>
                       </property>
@@ -904,6 +1174,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="LOCO_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -927,6 +1203,12 @@
                    <layout class="QHBoxLayout" name="horizontalLaya">
                     <item>
                      <widget class="QLabel" name="label_LOCO_MAX_SPEED">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Maximum speed [km/h]</string>
                       </property>
@@ -934,6 +1216,12 @@
                     </item>
                     <item>
                      <widget class="QSpinBox" name="LOCO_MAX_SPEED">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -954,13 +1242,26 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_36">
                     <item>
                      <widget class="QLabel" name="label_LOCO_MAX_D">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Maximum deceleration [m/s²]</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QDoubleSpinBox" name="LOCO_MAX_D"/>
+                     <widget class="QDoubleSpinBox" name="LOCO_MAX_D">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
+                     </widget>
                     </item>
                    </layout>
                   </item>
@@ -981,6 +1282,12 @@
                    <height>168</height>
                   </size>
                  </property>
+                 <property name="font">
+                  <font>
+                   <family>Fira Sans Medium</family>
+                   <pointsize>9</pointsize>
+                  </font>
+                 </property>
                  <property name="title">
                   <string>Wagon</string>
                  </property>
@@ -995,6 +1302,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_19">
                     <item>
                      <widget class="QLabel" name="label_WAG_AXLES">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Axles [u]</string>
                       </property>
@@ -1002,6 +1315,12 @@
                     </item>
                     <item>
                      <widget class="QSpinBox" name="WAG_AXLES">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="layoutDirection">
                        <enum>Qt::LeftToRight</enum>
                       </property>
@@ -1022,6 +1341,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_8">
                     <item>
                      <widget class="QLabel" name="label_WAG_NUMBER">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Number [u]</string>
                       </property>
@@ -1029,6 +1354,12 @@
                     </item>
                     <item>
                      <widget class="QSpinBox" name="WAG_NUMBER">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="layoutDirection">
                        <enum>Qt::LeftToRight</enum>
                       </property>
@@ -1049,6 +1380,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_5">
                     <item>
                      <widget class="QLabel" name="label_WAG_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Individual mass [t]</string>
                       </property>
@@ -1056,6 +1393,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="WAG_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -1079,6 +1422,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
                     <item>
                      <widget class="QLabel" name="label_WAG_ROT_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Rotational mass [%]</string>
                       </property>
@@ -1086,6 +1435,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="WAG_ROT_MASS">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -1106,6 +1461,12 @@
                    <layout class="QHBoxLayout" name="horizontalLayout_35">
                     <item>
                      <widget class="QLabel" name="label_LOCO_LENGTH">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="text">
                        <string>Consist length [m]</string>
                       </property>
@@ -1113,6 +1474,12 @@
                     </item>
                     <item>
                      <widget class="QDoubleSpinBox" name="LOCO_LENGTH">
+                      <property name="font">
+                       <font>
+                        <family>Fira Sans Medium</family>
+                        <pointsize>9</pointsize>
+                       </font>
+                      </property>
                       <property name="wrapping">
                        <bool>false</bool>
                       </property>
@@ -1145,6 +1512,12 @@
        </layout>
       </widget>
       <widget class="QWidget" name="TractionChainTab">
+       <property name="font">
+        <font>
+         <family>Fira Sans Medium</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <attribute name="title">
         <string>Traction chain</string>
        </attribute>
@@ -1162,6 +1535,7 @@
           </property>
           <property name="font">
            <font>
+            <family>Fira Sans Medium</family>
             <pointsize>9</pointsize>
            </font>
           </property>
@@ -1180,6 +1554,12 @@
           <layout class="QVBoxLayout" name="verticalLayout">
            <item>
             <widget class="QFrame" name="frame">
+             <property name="font">
+              <font>
+               <family>Fira Sans Medium</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -1201,6 +1581,12 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Fira Sans Medium</family>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Tractive Effort - Speed curve (.csv) </string>
                 </property>
@@ -1212,6 +1598,7 @@
                  <widget class="QToolButton" name="E_TECurveEditButton">
                   <property name="font">
                    <font>
+                    <family>Fira Sans Medium</family>
                     <pointsize>9</pointsize>
                     <kerning>true</kerning>
                    </font>
@@ -1223,6 +1610,12 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="E_TECurveLoadFilename">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -1230,6 +1623,12 @@
                 </item>
                 <item>
                  <widget class="QToolButton" name="E_TECurveLoadButton">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>...</string>
                   </property>
@@ -1242,6 +1641,12 @@
            </item>
            <item>
             <widget class="QFrame" name="frame_2">
+             <property name="font">
+              <font>
+               <family>Fira Sans Medium</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -1263,6 +1668,12 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Fira Sans Medium</family>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Braking Effort - Speed curve (.csv) </string>
                 </property>
@@ -1274,6 +1685,7 @@
                  <widget class="QToolButton" name="E_BECurveEditButton">
                   <property name="font">
                    <font>
+                    <family>Fira Sans Medium</family>
                     <pointsize>9</pointsize>
                     <kerning>true</kerning>
                    </font>
@@ -1285,6 +1697,12 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="E_BECurveLoadFilename">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -1297,6 +1715,12 @@
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -1312,6 +1736,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_6">
              <item>
               <widget class="QLabel" name="label_E_AUX_CONS">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Auxiliaries consumption [kWh]</string>
                </property>
@@ -1319,6 +1749,12 @@
              </item>
              <item>
               <widget class="QSpinBox" name="E_AUX_CONS">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1339,6 +1775,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_11">
              <item>
               <widget class="QLabel" name="label_E_MAX_RATE">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Max effort rate [kN/s]</string>
                </property>
@@ -1346,6 +1788,12 @@
              </item>
              <item>
               <widget class="QSpinBox" name="E_MAX_RATE">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1378,6 +1826,7 @@
           </property>
           <property name="font">
            <font>
+            <family>Fira Sans Medium</family>
             <pointsize>9</pointsize>
            </font>
           </property>
@@ -1396,6 +1845,12 @@
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QFrame" name="frame_4">
+             <property name="font">
+              <font>
+               <family>Fira Sans Medium</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -1417,6 +1872,12 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Fira Sans Medium</family>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Tractive Effort - Speed curve (.csv) </string>
                 </property>
@@ -1428,6 +1889,7 @@
                  <widget class="QToolButton" name="D_TECurveEditButton">
                   <property name="font">
                    <font>
+                    <family>Fira Sans Medium</family>
                     <pointsize>9</pointsize>
                     <kerning>true</kerning>
                    </font>
@@ -1439,6 +1901,12 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="D_TECurveLoadFilename">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -1446,6 +1914,12 @@
                 </item>
                 <item>
                  <widget class="QToolButton" name="D_TECurveLoadButton">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>...</string>
                   </property>
@@ -1458,6 +1932,12 @@
            </item>
            <item>
             <widget class="QFrame" name="frame_5">
+             <property name="font">
+              <font>
+               <family>Fira Sans Medium</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
              </property>
@@ -1479,6 +1959,12 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="font">
+                 <font>
+                  <family>Fira Sans Medium</family>
+                  <pointsize>9</pointsize>
+                 </font>
+                </property>
                 <property name="text">
                  <string>Braking Effort - Speed curve (.csv) </string>
                 </property>
@@ -1490,6 +1976,7 @@
                  <widget class="QToolButton" name="D_BECurveEditButton">
                   <property name="font">
                    <font>
+                    <family>Fira Sans Medium</family>
                     <pointsize>9</pointsize>
                     <kerning>true</kerning>
                    </font>
@@ -1501,6 +1988,12 @@
                 </item>
                 <item>
                  <widget class="QLineEdit" name="D_BECurveLoadFilename">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="readOnly">
                    <bool>true</bool>
                   </property>
@@ -1508,6 +2001,12 @@
                 </item>
                 <item>
                  <widget class="QToolButton" name="D_BECurveLoadButton">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>...</string>
                   </property>
@@ -1522,6 +2021,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_9">
              <item>
               <widget class="QLabel" name="label_D_AUX_CONS">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Auxiliaries consumption [kWh]</string>
                </property>
@@ -1529,6 +2034,12 @@
              </item>
              <item>
               <widget class="QSpinBox" name="D_AUX_CONS">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1549,6 +2060,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_10">
              <item>
               <widget class="QLabel" name="label_D_MAX_RATE">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Max effort rate [kN/s]</string>
                </property>
@@ -1556,6 +2073,12 @@
              </item>
              <item>
               <widget class="QSpinBox" name="D_MAX_RATE">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>9</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1583,6 +2106,12 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="font">
+           <font>
+            <family>Fira Sans Medium</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
           <property name="title">
            <string>Efficiency</string>
           </property>
@@ -1594,6 +2123,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout_48">
              <item>
               <widget class="QLabel" name="label_TRAFO_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Transformer [%]</string>
                </property>
@@ -1601,6 +2136,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="TRAFO_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1624,6 +2165,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout_54">
              <item>
               <widget class="QLabel" name="label_RECT_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Rectifier [%]</string>
                </property>
@@ -1631,6 +2178,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="RECT_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1654,6 +2207,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout_55">
              <item>
               <widget class="QLabel" name="label_INV_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Inverter [%]</string>
                </property>
@@ -1661,6 +2220,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="INV_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1684,6 +2249,12 @@
             <layout class="QHBoxLayout" name="horizontalLayout_56">
              <item>
               <widget class="QLabel" name="label_MOTOR_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Motor [%]</string>
                </property>
@@ -1691,6 +2262,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="MOTOR_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1714,6 +2291,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_8">
              <item>
               <widget class="QLabel" name="label_AUX_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Auxilaries [%]</string>
                </property>
@@ -1721,6 +2304,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="AUX_EFF">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1744,6 +2333,12 @@
             <layout class="QHBoxLayout" name="horizontalLaya_12">
              <item>
               <widget class="QLabel" name="label_BRAKE_DELAY">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="text">
                 <string>Brake delay [s]</string>
                </property>
@@ -1751,6 +2346,12 @@
              </item>
              <item>
               <widget class="QDoubleSpinBox" name="BRAKE_DELAY">
+               <property name="font">
+                <font>
+                 <family>Fira Sans Medium</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
                <property name="wrapping">
                 <bool>false</bool>
                </property>
@@ -1786,6 +2387,7 @@
           </property>
           <property name="font">
            <font>
+            <family>Fira Sans Medium</family>
             <pointsize>9</pointsize>
            </font>
           </property>
@@ -1810,6 +2412,12 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="font">
+              <font>
+               <family>Fira Sans Medium</family>
+               <pointsize>9</pointsize>
+              </font>
+             </property>
              <property name="title">
               <string>Battery</string>
              </property>
@@ -1818,6 +2426,12 @@
                <layout class="QHBoxLayout" name="horizontalLayout_22">
                 <item>
                  <widget class="QLabel" name="label_BATT_NUMBER">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Number [u]</string>
                   </property>
@@ -1825,6 +2439,12 @@
                 </item>
                 <item>
                  <widget class="QSpinBox" name="BATT_NUMBER">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="layoutDirection">
                    <enum>Qt::LeftToRight</enum>
                   </property>
@@ -1845,6 +2465,12 @@
                <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <item>
                  <widget class="QLabel" name="label_BATT_CAPACITY">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Capacity [kWh]</string>
                   </property>
@@ -1852,6 +2478,12 @@
                 </item>
                 <item>
                  <widget class="QSpinBox" name="BATT_CAPACITY">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="layoutDirection">
                    <enum>Qt::LeftToRight</enum>
                   </property>
@@ -1872,6 +2504,12 @@
                <layout class="QHBoxLayout" name="horizontalLayout_23">
                 <item>
                  <widget class="QLabel" name="label_BATT_CHARG_RATE">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Max charging rate [kWh/s]</string>
                   </property>
@@ -1879,6 +2517,12 @@
                 </item>
                 <item>
                  <widget class="QDoubleSpinBox" name="BATT_CHARG_RATE">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="wrapping">
                    <bool>false</bool>
                   </property>
@@ -1902,6 +2546,12 @@
                <layout class="QHBoxLayout" name="horizontalLayout_24">
                 <item>
                  <widget class="QLabel" name="label_BATT_DISCHARG_RATE">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="text">
                    <string>Max discharging rate [kWh/s]</string>
                   </property>
@@ -1909,6 +2559,12 @@
                 </item>
                 <item>
                  <widget class="QDoubleSpinBox" name="BATT_DISCHARG_RATE">
+                  <property name="font">
+                   <font>
+                    <family>Fira Sans Medium</family>
+                    <pointsize>9</pointsize>
+                   </font>
+                  </property>
                   <property name="wrapping">
                    <bool>false</bool>
                   </property>
@@ -1934,6 +2590,12 @@
        </layout>
       </widget>
       <widget class="QWidget" name="RouteTab">
+       <property name="font">
+        <font>
+         <family>Fira Sans Medium</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <attribute name="title">
         <string>Route</string>
        </attribute>
@@ -2000,7 +2662,7 @@
           </item>
          </layout>
         </item>
-        <item>
+        <item alignment="Qt::AlignVCenter">
          <widget class="QGroupBox" name="groupBox_15">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -2018,11 +2680,14 @@
            <string/>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_28">
+           <property name="spacing">
+            <number>6</number>
+           </property>
            <property name="topMargin">
             <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>4</number>
+            <number>9</number>
            </property>
            <item>
             <widget class="QCheckBox" name="cb_InvertRoute">
@@ -2295,6 +2960,7 @@
                </property>
                <property name="font">
                 <font>
+                 <family>Fira Sans Medium</family>
                  <pointsize>8</pointsize>
                 </font>
                </property>
@@ -2346,13 +3012,6 @@
             </layout>
            </item>
            <item>
-            <widget class="Line" name="line_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
             <layout class="QVBoxLayout" name="dial_layout_2">
              <property name="spacing">
               <number>0</number>
@@ -2367,6 +3026,7 @@
                </property>
                <property name="font">
                 <font>
+                 <family>Fira Sans Medium</family>
                  <pointsize>8</pointsize>
                 </font>
                </property>
@@ -2427,6 +3087,12 @@
        </layout>
       </widget>
       <widget class="QWidget" name="SimulationTab">
+       <property name="font">
+        <font>
+         <family>Fira Sans Medium</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <attribute name="title">
         <string>Simulation</string>
        </attribute>
@@ -2434,15 +3100,15 @@
         <item alignment="Qt::AlignHCenter">
          <widget class="QGroupBox" name="groupBox_2">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
-            <height>90</height>
+            <width>920</width>
+            <height>100</height>
            </size>
           </property>
           <property name="title">
@@ -2472,18 +3138,24 @@
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_31">
-             <item alignment="Qt::AlignVCenter">
-              <widget class="QLabel" name="label_24">
-               <property name="text">
-                <string>Plot vs</string>
-               </property>
-              </widget>
-             </item>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_6">
                <property name="spacing">
                 <number>0</number>
                </property>
+               <item alignment="Qt::AlignVCenter">
+                <widget class="QLabel" name="label_24">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>22</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>X-Axis:</string>
+                 </property>
+                </widget>
+               </item>
                <item>
                 <widget class="QRadioButton" name="radioButton_time">
                  <property name="text">
@@ -2504,6 +3176,13 @@
               </layout>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -2541,6 +3220,13 @@
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="Line" name="line_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -2624,6 +3310,13 @@
             </layout>
            </item>
            <item>
+            <widget class="Line" name="line_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="verticalLayout_17">
              <item>
               <widget class="QCheckBox" name="cb_stations_results">
@@ -2648,6 +3341,13 @@
             </layout>
            </item>
            <item>
+            <widget class="Line" name="line_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QVBoxLayout" name="dial_layout_3">
              <property name="spacing">
               <number>0</number>
@@ -2662,6 +3362,7 @@
                </property>
                <property name="font">
                 <font>
+                 <family>Fira Sans Medium</family>
                  <pointsize>8</pointsize>
                 </font>
                </property>
@@ -2710,13 +3411,6 @@
             </layout>
            </item>
            <item>
-            <widget class="Line" name="line_4">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item>
             <layout class="QVBoxLayout" name="dial_layout_4">
              <property name="spacing">
               <number>0</number>
@@ -2731,6 +3425,7 @@
                </property>
                <property name="font">
                 <font>
+                 <family>Fira Sans Medium</family>
                  <pointsize>8</pointsize>
                 </font>
                </property>
@@ -2766,6 +3461,63 @@
              </item>
             </layout>
            </item>
+           <item>
+            <widget class="Line" name="line_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame">
+             <property name="maximumSize">
+              <size>
+               <width>710</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_20">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="addToReport">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>130</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Add chart to report</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="combo_charts">
+                <property name="maximumSize">
+                 <size>
+                  <width>590</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -2780,9 +3532,14 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>896</width>
-     <height>21</height>
+     <width>904</width>
+     <height>20</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -2852,6 +3609,11 @@
    <property name="text">
     <string>New Window</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -2867,6 +3629,11 @@
    <property name="text">
     <string>Open...</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -2879,6 +3646,11 @@
    <property name="text">
     <string>Save</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
+   </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
@@ -2886,6 +3658,11 @@
   <action name="actionSave_as">
    <property name="text">
     <string>Save as...</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -2899,10 +3676,20 @@
    <property name="text">
     <string>GitHub Homepage</string>
    </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
+   </property>
   </action>
   <action name="actionEdit">
    <property name="text">
     <string>Preferences</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
    </property>
    <property name="shortcut">
     <string/>
@@ -2914,6 +3701,11 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
    </property>
   </action>
   <action name="actionPrintToPDF">
@@ -2930,6 +3722,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Fira Sans Medium</family>
+    </font>
    </property>
   </action>
   <action name="actionopenCSV">
@@ -2962,6 +3759,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
+   </property>
+  </action>
+  <action name="actionAddToReport">
+   <property name="text">
+    <string>AddToReport</string>
+   </property>
+   <property name="toolTip">
+    <string>Add current chart to report file</string>
    </property>
   </action>
  </widget>

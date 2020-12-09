@@ -90,7 +90,8 @@ def text_plotter(
             rotation=20,
             color='black' if not darkMode else 'white',
             clip_on=False,
-            fontsize=labelsize
+            fontsize=labelsize,
+            weight='normal',
         )
         if h != t:
             axis.arrow(

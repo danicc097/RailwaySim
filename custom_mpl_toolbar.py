@@ -39,7 +39,9 @@ from matplotlib.backends.qt_compat import (
     QtCore, QtGui, QtWidgets, _getSaveFileName, is_pyqt5, __version__, QT_API
 )
 
-BASEDIR = os.path.dirname(__file__)
+#! BASEDIR is in "temp" with pyinstaller onefile
+# BASEDIR = os.path.dirname(__file__)
+
 # define which modifier keys are collected on keyboard events.
 # elements are (mpl names, Modifier Flag, Qt Key) tuples
 SUPER = 0
@@ -63,11 +65,12 @@ cursord = {
 
 
 class MyMplToolbar(NavigationToolbar):
-    def __init__(self, canvas, parent, coordinates=True, darkMode=True):
+    def __init__(self, canvas, parent, coordinates=True, darkMode=True, main_dir=None):
         self.canvas = canvas
         self.parent = parent
         self.coordinates = coordinates
         self._actions = {}
+        self.main_dir = main_dir  #* Necessary for PyInstaller onefile, else dir is in "Temp"
         self.darkMode = darkMode
         QtWidgets.QToolBar.__init__(self, parent)
         NavigationToolbar2.__init__(self, canvas)
@@ -75,7 +78,11 @@ class MyMplToolbar(NavigationToolbar):
     def _init_toolbar(self):
         # ! Choose icon theme
         if self.darkMode == True:
-            self.basedir = os.path.join(BASEDIR, 'resources/images_dark/matplotlib-dark-images')
+            print('000000000000000000000000')
+            self.basedir = os.path.join(
+                self.main_dir, 'resources', 'images_dark', 'matplotlib-dark-images'
+            )
+            print('basedir ', self.basedir)
         else:
             self.basedir = os.path.join(matplotlib.rcParams['datapath'], 'images')
 

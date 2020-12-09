@@ -2,6 +2,7 @@ RailwaySim_Notes.ipynb
 __pycache__/
 build/
 dist/
+RailwaySim__main__.exe
 TODO/
 *.spec
 Rail_tests.py

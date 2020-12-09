@@ -29,6 +29,7 @@
     <widget class="QCheckBox" name="cb_dark">
      <property name="font">
       <font>
+       <family>Fira Sans Medium</family>
        <pointsize>10</pointsize>
       </font>
      </property>
@@ -46,6 +47,7 @@
       <widget class="QCheckBox" name="cb_watermark">
        <property name="font">
         <font>
+         <family>Fira Sans Medium</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -65,6 +67,12 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="font">
+        <font>
+         <family>Fira Sans Medium</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <property name="clearButtonEnabled">
         <bool>false</bool>
        </property>
@@ -76,6 +84,7 @@
     <widget class="QPushButton" name="pushButton">
      <property name="font">
       <font>
+       <family>Fira Sans Medium</family>
        <pointsize>10</pointsize>
       </font>
      </property>

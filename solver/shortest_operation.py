@@ -325,7 +325,7 @@ class ShortestOperationSolver():
                 row = np.searchsorted(array[:, -1], station[-1], side="right")
                 array = np.insert(array, row, station_rows[i], axis=0)
                 array = np.delete(array, row - 1, axis=0)  # Delete previous duplicate kpoint
-                array[row - 2, -1] = array[row - 1, -1]
+                array[row - 2, -1] = array[row - 1, -1]  # Match station and previous row kpoints
                 # array[row, -1] = array[row + 1, -1]
                 # array[row, 0] = (array[row, -1] - array[row - 1, -1]) * 1000
                 # array[row + 2, 0] = (array[row + 1, -1] - array[row, -1]) * 1000
@@ -477,6 +477,7 @@ class ShortestOperationSolver():
             try:
                 Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(C['D_TECurveLoadFilename'])
                 Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(C['D_BECurveLoadFilename'])
+                MAX_SPEED = min(MAX_SPEED, Diesel_T_speed[-1])
             except Exception as e:
                 return qtw.QMessageBox.critical(
                     window, "Error", "Could not load Diesel traction - speed curve data: " + str(e)
@@ -491,6 +492,7 @@ class ShortestOperationSolver():
                 Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
                     C['E_BECurveLoadFilename']
                 )
+                MAX_SPEED = min(MAX_SPEED, Electric_T_speed[-1])
             except Exception as e:
                 return qtw.QMessageBox.critical(
                     window, "Error",
@@ -518,9 +520,10 @@ class ShortestOperationSolver():
         # a = np.hstack((a, kpoint.reshape(kpoint.size, 1)))
         a = new_speed(dataset_np_original)
         virtual_speed_array = np.copy(a)
-        v = pd.DataFrame(data=a, dtype=float)
 
-        export_output(v, 'virtual')
+        # v = pd.DataFrame(data=a, dtype=float)
+
+        # export_output(v, 'virtual')
 
         ######################################################
 
@@ -558,11 +561,12 @@ class ShortestOperationSolver():
             row = np.searchsorted(lookup_kpoint, kpoint, side=side)
             grade_steps = []
             accum_length = (kpoint - lookup_kpoint[row - 1]) * 1000
+            orig_grade = copy.deepcopy(lookup_grade_array[row, 1])
             if accum_length > L_TRAIN:
-                return lookup_grade_array[row, 1]
+                return lookup_grade_array[row, 1], orig_grade
             grade_steps.append(accum_length * lookup_grade_array[row, 1])
             row -= 1
-            if row < 0: return lookup_grade_array[0, 1]
+            if row < 0: return lookup_grade_array[0, 1], orig_grade
             while accum_length < L_TRAIN:
                 d_same_grade, grade = lookup_grade_array[row, 0], lookup_grade_array[row, 1]
                 if d_same_grade > (L_TRAIN - accum_length):
@@ -576,7 +580,7 @@ class ShortestOperationSolver():
             total_sum = 0
             for i in grade_steps:
                 total_sum += i
-            return total_sum / L_TRAIN
+            return total_sum / L_TRAIN, orig_grade
 
         def max_effort(speed, speed_limit, mode=1, track=None):
             """Returns the maximum effort available at current speed.\n
@@ -776,7 +780,7 @@ class ShortestOperationSolver():
             try:
                 braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
                 braking[k][0, 1] = dx_braking
-                braking[k][0, 5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+                braking[k][0, 5], orig_grade = grade_equiv(lookup_grade_array, kpoint, 'left')
                 braking[k][0, 6] = radius(lookup_grade_array, kpoint)
                 braking[k][0, 7] = speed_limit
                 braking[k][0, 10] = R_i(braking[k][1, 3], braking[k][0, 5], braking[k][0, 6])
@@ -790,6 +794,8 @@ class ShortestOperationSolver():
                 braking[k][0, 2] = dx_braking / ((braking[k][0, 3] + braking[k][1, 3]) / 3.6 / 2)
                 braking[k][0, 11] = track_e
                 braking[k][0, 12] = braking[k][0, 9] * braking[k][0, 3] / 3.6
+                braking[k][0, 13] = orig_grade
+                #TODO: offset time. row+1.
 
             except Exception as e:
                 qtw.QMessageBox.critical(
@@ -808,7 +814,7 @@ class ShortestOperationSolver():
             speed_limit = copy.deepcopy(speed_limit)
             output[-1][0] = kpoint = copy.deepcopy(output[-2][0] + dx / 1000)
             output[-1][1] = dx
-            output[-1][5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1][5], orig_grade = grade_equiv(lookup_grade_array, kpoint, 'left')
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
@@ -834,6 +840,7 @@ class ShortestOperationSolver():
 
             if output[-1][3] > speed_limit: output[-1][3] == speed_limit
             output[-1][12] = (output[-1][8] + output[-1][9]) * output[-1][3] / 3.6
+            output[-1][13] = orig_grade
             return kpoint
 
         def _new_cruising_step(dx, lookup_grade_array, speed_limit, kpoint):
@@ -843,7 +850,7 @@ class ShortestOperationSolver():
             speed_limit = copy.deepcopy(speed_limit)
             output[-1][0] = kpoint = copy.deepcopy(output[-2][0] + dx / 1000)
             output[-1][1] = dx
-            output[-1][5] = grade_equiv(lookup_grade_array, kpoint, 'left')
+            output[-1][5], orig_grade = grade_equiv(lookup_grade_array, kpoint, 'left')
             output[-1][6] = radius(lookup_grade_array, kpoint)
             output[-1][7] = speed_limit
             output[-1][10] = R_i(output[-2][3], output[-1][5], output[-1][6])
@@ -860,6 +867,7 @@ class ShortestOperationSolver():
             output[-1][2] = dx / ((output[-1][3] + output[-2][3]) / 3.6 / 2)
             output[-1][11] = track_e
             output[-1][12] = (output[-1][8] + output[-1][9]) * output[-1][3] / 3.6
+            output[-1][13] = orig_grade
             return kpoint
 
         def _get_braking_curve(braking, dx_braking, kpoint):
@@ -896,12 +904,13 @@ class ShortestOperationSolver():
             'Acceleration [m/s²]',  #4
             'Equivalent grade [‰]',  #5
             'Radius [m]',  #6
-            'Speed restriction [km/h]',  #7
+            'Virtual speed restriction [km/h]',  #7
             'Tractive Effort [kN]',  #8
             'Braking Effort [kN]',  #9
             'Resistance [kN]',  #10
             'Energy source',  #11
             'Power [kW]',  #12 
+            'Grade [‰]',  #13 
             #TODO break 12 into braking power regen at wheel (without losses)
             # and tractive power required at wheel (after losses)
         ]
@@ -919,7 +928,7 @@ class ShortestOperationSolver():
             #* Initialize train start up:
             output[0][0] = kpoint = 0
             output[0][3] = speed = 0
-            output[0][5] = grade_equiv(lookup_grade_array, output[0][0], 'right')
+            output[0][5], orig_grade = grade_equiv(lookup_grade_array, output[0][0], 'right')
             output[0][6] = radius(lookup_grade_array, output[0][0])
             output[0][10] = resistance = R_i(speed, output[0][5], output[0][6])
             track_e = electrification(lookup_grade_array, kpoint + 0.001)
@@ -928,6 +937,7 @@ class ShortestOperationSolver():
             )
             output[0][7] = speed_limit = lookup_array[1, 3]
             output[0][11] = track_e
+            output[0][13] = orig_grade
             lookup_kpoint = lookup_array[:, -1]  # Don't use [:][-1] !
             dx = C['DISTANCE_STEP']
             kpoint = _new_powering_step(dx, lookup_grade_array, speed_limit, kpoint)
@@ -1023,8 +1033,8 @@ class ShortestOperationSolver():
             ax = plt.subplot(111)
             ax.set_title(f"Length of train: {L_TRAIN} m")
             ax.step(
-                virtual_speed_array[9],
-                virtual_speed_array[3],
+                virtual_speed_array[9],  # kpoint
+                virtual_speed_array[3],  # speed res
                 color='purple',
                 label="Virtual speed limit",
                 where="pre",
@@ -1036,13 +1046,13 @@ class ShortestOperationSolver():
                 # s=1,
                 label="Speed",
             )
-            ax.scatter(
-                ORIG_BRAKING[0],
-                ORIG_BRAKING[3],
-                color='red',
-                s=1,
-                label="Braking curves",
-            )
+            # ax.scatter(
+            #     ORIG_BRAKING[0],
+            #     ORIG_BRAKING[3],
+            #     color='red',
+            #     s=1,
+            #     label="Braking curves",
+            # )
             # ax.step(
             #     virtual_speed_array[9],
             #     virtual_speed_array[1],
@@ -1078,30 +1088,63 @@ class ShortestOperationSolver():
         #? SWAP COLUMNS WHEN WRITING TO PANDAS, DON'T CHANGE FUNCTION ORDER
         #? columns:
         # STATIONS: WHERE SPEED = 0 --> FILL WITH STATION LIST FROM ROUTE TAB
-        # USE C['cb_InvertRoute']
-
         #? columns: Power calculations
-        #? replace speed res with ORIGINAL. adjacent column with VIRTUAL SPEED LIMIT
-
-        # !!!!!!!!!!!!!!
-        #? SAVE RESULTS IN MAINWINDOW BASED ON USER PATH SELECTION
-        #? (ANOTHER QLINEEDIT IN SIM TAB - EXACTLY AS ROUTE!)
-        #? SO THAT THEY'RE RESTORED AFTER OPENING THAT SAME RESULTS FILE
 
         output = main_simulation(virtual_speed_array, grade_array)
         output = np.vstack(output)
 
-        plot_virtual_speed(output)
+        # plot_virtual_speed(output)
 
         ##########     ndarray to dataframe      #############
         ######################################################
         output_df = pd.DataFrame(data=output, columns=column_values, dtype=float)
+
+        #* Rearrange existing columns
+        a = output_df['Grade [‰]'].copy(deep=True)
+        output_df = output_df.drop(columns='Grade [‰]')
+        idx = output_df.columns.get_loc('Equivalent grade [‰]')
+        output_df.insert(idx, 'Grade [‰]', a)
+        # output_df = output_df[
+        #     [c for c in output_df if c not in ['Grade [‰]', 'Equivalent grade [‰]']] +
+        #     ['Grade [‰]', 'Equivalent grade [‰]']]
         #* Additional columns inserted into base output
         col = output_df['Time [s]'].cumsum()
         idx = output_df.columns.get_loc('Time [s]') + 1
         output_df.insert(idx, 'Elapsed time [s]', col)
         col = col.apply(s_to_hhmmss, 0)
         output_df.insert(idx, 'Elapsed time [hh:mm:ss]', col)
+
+        #* Compute profile. Has to be done after forward and braking curves are connected
+        def get_profile_step(step, grade):
+            return step * grade / 1000
+
+        idx = output_df.columns.get_loc('Radius [m]') + 1
+        col = output_df.apply(
+            lambda x: get_profile_step(x['Distance step [m]'], x['Grade [‰]']), axis=1
+        )
+        col = col.cumsum()
+        output_df.insert(idx, 'Profile [m]', col)
+
+        #* Searchsort and insert original and virtual speed array
+        def searchsort_speed(kpoint, array):
+            row = np.searchsorted(array[:, 9], kpoint, side='left')
+            return array[row, 3]
+
+        output_df['Virtual speed restriction [km/h]'] = output_df.apply(
+            lambda x: searchsort_speed(x['KP [km]'], virtual_speed_array), axis=1
+        )
+
+        idx = output_df.columns.get_loc('Virtual speed restriction [km/h]') + 1
+        col = output_df.apply(lambda x: searchsort_speed(x['KP [km]'], dataset_np_original), axis=1)
+        output_df.insert(idx, 'Speed restriction [km/h]', col)
+
+        #* Set speed limit = 0 in stations as visual reference
+        mask = (output_df['Speed [km/h]'] == 0)
+        stations_found = output_df[mask]  # TODO: output to report
+        print(stations_found)
+        output_df.loc[mask, ['Virtual speed restriction [km/h]']] = 0
+        output_df.loc[mask, ['Speed restriction [km/h]']] = 0
+
         #* Conversion to string done later since ndarray is of type float
         output_df['Energy source'] = output_df['Energy source'].apply(energy_source)
 
