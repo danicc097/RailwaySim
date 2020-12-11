@@ -1085,9 +1085,8 @@ class ShortestOperationSolver():
             plt.show()
 
         # TODO: column pandas
-        #? SWAP COLUMNS WHEN WRITING TO PANDAS, DON'T CHANGE FUNCTION ORDER
         #? columns:
-        # STATIONS: WHERE SPEED = 0 --> FILL WITH STATION LIST FROM ROUTE TAB
+        # STATIONS: apply mask speed=0
         #? columns: Power calculations
 
         output = main_simulation(virtual_speed_array, grade_array)

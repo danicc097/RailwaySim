@@ -369,11 +369,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.cb_r_profile,
                     self.cb_r_radii,
                     self.cb_r_legend,
-                    self.cb_InvertRoute,
                 ]
                 for cb in self.route_checkbuttons:
                     cb.stateChanged.connect(self.route_canvas.route_canvas_checkbox_handler)
-
+                self.cb_InvertRoute.stateChanged.connect(
+                    self.route_canvas.route_canvas_invert_route
+                )
         except Exception as e:
             self.statusBar().showMessage(
                 "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
@@ -779,13 +780,15 @@ class PlotCanvas_route(FigureCanvas):
         rcParams['savefig.dpi'] = 300
         path = os.path.join(BASEDIR, 'resources', 'fonts', 'Fira_Sans', 'FiraSans-Medium.ttf')
         prop = font_manager.FontProperties(fname=path)
-        font_manager._rebuild()
+        # font_manager._rebuild()
         rcParams['font.family'] = prop.get_name()
+        rcParams['font.weight'] = 'regular'
+        rcParams["axes.labelweight"] = 'regular'
 
         #* Plot axes
         self.ax = self.fig.add_subplot(111)
         self.ax.set_xlabel("Distance [km]")
-        self.ax.set_ylabel("Speed [km/h]")
+        self.ax.set_ylabel("Speed [km/h]", )
         try:
             #* Plotting on main axis sharing X
             if self.ref_parent.cb_r_speedres.isChecked():
@@ -937,8 +940,10 @@ class PlotCanvas_results(FigureCanvas):
         rcParams['savefig.dpi'] = 300
         path = os.path.join(BASEDIR, 'resources', 'fonts', 'Fira_Sans', 'FiraSans-Medium.ttf')
         prop = font_manager.FontProperties(fname=path)
-        font_manager._rebuild()
+        # font_manager._rebuild()
         rcParams['font.family'] = prop.get_name()
+        rcParams['font.weight'] = 'regular'
+        rcParams["axes.labelweight"] = 'regular'
 
         #* Plot axes
         self.ax = self.fig.add_subplot(111)
@@ -1146,6 +1151,9 @@ class Preferences(QWidget, Ui_Form):
         for window in self.ref_parent.windowManager.window_list:
             try:
                 window.route_canvas.plot_route(self.ref_parent.linewidth, self.ref_parent.labelsize)
+                window.results_canvas.plot_results(
+                    self.ref_parent.linewidth_results, self.ref_parent.labelsize_results
+                )
             except:
                 pass
         guisave(self, self.GUI_preferences)
@@ -1164,10 +1172,19 @@ class Preferences(QWidget, Ui_Form):
                 darkMode=darkMode,
                 main_dir=BASEDIR
             )
+            window.results_toolbar = MyMplToolbar(
+                window.results_canvas,
+                window.results_canvas,
+                coordinates=True,
+                darkMode=darkMode,
+                main_dir=BASEDIR
+            )
             window.verticalLayout_2.addWidget(window.route_canvas)
             window.verticalLayout_2.addWidget(window.route_toolbar)
+            window.verticalLayout_19.addWidget(window.results_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
             window.instances_route_toolbar.append(window.route_toolbar)
+            window.instances_results_toolbar.append(window.results_toolbar)
 
             #* Keep only one canvas and toolbar in memory
             #* Delete blank charts where no file was selected (len == 1)
@@ -1177,6 +1194,9 @@ class Preferences(QWidget, Ui_Form):
                 del window.instances_route_canvas[0]
                 del window.instances_route_toolbar[0]
 
+            del window.instances_results_toolbar[0]
+            window.instances_results_toolbar[0].hide()
+
             #* Results tab doesn't use dark mode, i.e. no logic for it
 
     def hide_preferences(self):
@@ -1185,6 +1205,7 @@ class Preferences(QWidget, Ui_Form):
         try:
             for window in self.ref_parent.windowManager.window_list:
                 window.setup_route_checkbuttons()  # Must be called every replot
+                window.setup_results_checkbuttons()  # Must be called every replot
         except:
             pass
         self.hide()
@@ -1200,7 +1221,7 @@ if __name__ == "__main__":
     family = QtGui.QFontDatabase.applicationFontFamilies(id)[0]
     font = QtGui.QFont(family, 9)
     app.setFont(font)
-    #TODO: font PYINSTALLER in matplotlib charts is very thin
+    #TODO: matplotlib charts is very thin. Unrelated to the above!
 
     w = NewWindow()  # Instantiate window factory class
     #* Exit with Ctrl + C

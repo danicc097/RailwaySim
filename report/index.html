@@ -13,12 +13,12 @@
       <img src="logo.png">
     </div>
     <h1>INVOICE 3-2-1</h1>
-    <div id="company" class="clearfix">
+    <!-- <div id="company" class="clearfix">
       <div>Company Name</div>
       <div>455 Foggy Heights,<br /> AZ 85004, US</div>
       <div>(602) 519-0450</div>
       <div><a href="mailto:company@example.com">company@example.com</a></div>
-    </div>
+    </div> -->
     <div id="project">
       <div><span>PROJECT</span> Website development</div>
       <div><span>CLIENT</span> John Doe</div>
@@ -39,7 +39,7 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody align="center">
         <tr>
           <td>43211</td>
           <td>2013-01-07</td>
@@ -63,7 +63,10 @@
         </tr>
       </tbody>
     </table>
-    <p align="center"><img src="../resources/images/Braking_example_88.svg" /></p>
+    <!-- TODO FORMAT PROPERLY TO SPLIT PAGES -->
+    <p align="center"><img src="images/15S_Route_input.svg" width="800" /></p>
+    <p align="center"><img src="images/15S_Route_results_1.svg" width="800" /></p>
+    <p align="center"><img src="images/15S_Route_results_2.svg" width="800" /></p>
     <div id="notices">
       <div>NOTICE:</div>
       <div class="notice">A finance charge of 1.5% will be made on unpaid balances after 30 days.</div>
@@ -79,13 +82,22 @@
 
 <style>
   * {
-    font-family: "myFirstFont";
-    /* Change your font family */
+    font-family: "Fira Medium";
   }
 
   @font-face {
-    font-family: "myFirstFont";
+    font-family: "Fira Medium";
     src: url("../resources/fonts/Fira_Sans/FiraSans-Medium.ttf");
+  }
+
+  @font-face {
+    font-family: "Fira Light";
+    src: url("../resources/fonts/Fira_Sans/FiraSans-Light.ttf");
+  }
+
+  @font-face {
+    font-family: "Fira Bold";
+    src: url("../resources/fonts/Fira_Sans/FiraSans-Bold.ttf");
   }
 
   .clearfix:after {
@@ -110,12 +122,20 @@
   }
 
   table tbody tr td {
-    font-size: 11px;
+    font-size: 9px;
+  }
+
+  table th {
+    font-size: 9px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-family: "Fira Light";
   }
 
   header {
     padding: 10px 0;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+    margin-top: 10px;
   }
 
   #logo {
@@ -144,12 +164,13 @@
   }
 
   #project span {
-    color: #5D6975;
+    color: #1e5892;
     text-align: right;
-    width: 52px;
+    width: 62px;
     margin-right: 10px;
     display: inline-block;
-    font-size: 0.8em;
+    font-size: 1em;
+    font-family: "Fira Bold";
   }
 
   #company {
@@ -185,15 +206,31 @@
 
   table tr th,
   table tr td {
-    border-right: 1px solid #bbb;
-    border-bottom: 1px solid #bbb;
-    box-shadow: 2px 2px 1px #e5dfcc;
+    border-bottom: 1px solid rgb(110, 140, 179);
+    box-shadow: 2px 2px 1px #ccd0e5;
   }
 
+  table tr th {
+    border-top: 1px solid #bbb;
+  }
 
   table th {
-    background-color: #c3cdff;
+    background-color: #4d7cb9;
+    color: #ffffff;
+    font-weight: lighter;
   }
+
+  /* table {
+    position: relative;
+    top: -10px;
+  } */
+
+  tr td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+
 
   table tr th {
     border-top: 1px solid rgb(228, 227, 227);
@@ -201,23 +238,23 @@
 
   /* top-left border-radius */
   table tr:first-child th:first-child {
-    border-top-left-radius: 4px;
+    border-top-left-radius: 3px;
   }
 
   /* top-right border-radius */
   table tr:first-child th:last-child {
-    border-top-right-radius: 4px;
+    border-top-right-radius: 3px;
   }
 
   /* bottom-left border-radius */
-  table tr:last-child td:first-child {
-    border-bottom-left-radius: 4px;
-  }
+  /* table tr:last-child td:first-child {
+    border-bottom-left-radius: 2px;
+  } */
 
   /* bottom-right border-radius */
-  table tr:last-child td:last-child {
-    border-bottom-right-radius: 4px;
-  }
+  /* table tr:last-child td:last-child {
+    border-bottom-right-radius: 2px;
+  } */
 
   th,
   td {
