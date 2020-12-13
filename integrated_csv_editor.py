@@ -24,12 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import sys
-from PyQt5 import QtWidgets as qtw
-from PyQt5 import QtCore as qtc
-
 import csv
+import sys
 
+from PyQt5 import QtCore as qtc
+from PyQt5 import QtWidgets as qtw
 from PyQt5.QtCore import QSize
 from PyQt5.QtWidgets import QWidget
 

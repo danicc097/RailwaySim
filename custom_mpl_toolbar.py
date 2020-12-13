@@ -2,44 +2,26 @@
 Modified matplotlib navigation toolbar to use dark theme icons.
 """
 
-import functools
 import os
-import re
-import signal
-import sys
-import traceback
-
 import matplotlib
-
+import matplotlib.backends.qt_editor.figureoptions as figureoptions
+import PyQt5.QtGui as QtGui
 from matplotlib import backend_tools, cbook
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import (
-    _Backend, FigureCanvasBase, FigureManagerBase, NavigationToolbar2, TimerBase, cursors,
-    ToolContainerBase, StatusbarBase, MouseButton
+    FigureCanvasBase, FigureManagerBase, MouseButton, NavigationToolbar2, StatusbarBase, TimerBase,
+    ToolContainerBase, _Backend
 )
-import matplotlib.backends.qt_editor.figureoptions as figureoptions
-from matplotlib.backends.qt_editor.formsubplottool import UiSubplotTool
-from matplotlib.backend_managers import ToolManager
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backend_bases import cursors as mplCursors
-from matplotlib.figure import Figure
-import os
-import PyQt5.QtGui as QtGui
-import matplotlib
-
-from matplotlib._pylab_helpers import Gcf
-from matplotlib.backend_bases import (
-    _Backend, FigureCanvasBase, FigureManagerBase, NavigationToolbar2, TimerBase, cursors,
-    ToolContainerBase, StatusbarBase, MouseButton
-)
-
+from matplotlib.backend_bases import cursors
+from matplotlib.backends.backend_qt5agg import \
+    NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.qt_compat import (
-    QtCore, QtGui, QtWidgets, _getSaveFileName, is_pyqt5, __version__, QT_API
+    QT_API, QtCore, QtGui, QtWidgets, __version__, _getSaveFileName, is_pyqt5
 )
+from matplotlib.backends.qt_editor.formsubplottool import UiSubplotTool
+from matplotlib.figure import Figure
 
-#! BASEDIR is in "temp" with pyinstaller onefile
+#! TODO: BASEDIR is in "temp" with pyinstaller onefile
 # BASEDIR = os.path.dirname(__file__)
 
 # define which modifier keys are collected on keyboard events.

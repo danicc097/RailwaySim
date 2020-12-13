@@ -15,34 +15,56 @@
  /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
 #####################################################################
 """
+"""
+#//############################################################################
+#TODO path cleaning for bundle and non-bundle cases
+#* Paths to use in all package modules (except __main__ itself):
+#? __file__ will be " sys._MEIPASS + 'mypackage/mymodule.pyc' "
+from os import path
+path_to_dat = path.abspath(path.join(path.dirname(__file__), 'file.dat'))
 
-import matplotlib.font_manager as font_manager
+#* Paths to use in __main__ to find data files relative to the main script:
+from os import path
+import sys
+# It is always best to use absolute paths
+bundle_dir = getattr(sys, '_MEIPASS', path.abspath(path.dirname(__file__)))
+path_to_dat = path.abspath(path.join(bundle_dir, 'other-file.dat'))
 
+#* Alternative::::::
+
+#//############################################################################
+"""
+
+import configparser
+import copy
 import ctypes
 import os
 import sys
 import traceback
 import warnings
-import copy
-import pandas as pd
+
+# ext packages
 import matplotlib.cbook
+import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
+import pandas as pd
 import qdarkstyle
-import configparser
-
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from matplotlib.pyplot import rcParams, style
-# from matplotlib.ticker import FixedFormatter, FixedLocator, NullFormatter
-from PyQt5 import QtCore, QtGui
+from matplotlib.pyplot import rcParams
+from matplotlib.pyplot import style
+from matplotlib.ticker import AutoMinorLocator
+from PyQt5 import QtCore
+from PyQt5 import QtGui
 from PyQt5 import QtWidgets as qtw
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (
-    QAbstractButton, QDialog, QMainWindow, QSizePolicy, QSystemTrayIcon, QWidget
-)
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSystemTrayIcon
+from PyQt5.QtWidgets import QWidget
 from termcolor import colored
 
 # cwd
@@ -50,27 +72,30 @@ import integrated_csv_editor
 from custom_mpl_toolbar import MyMplToolbar
 from RailwaySim_GUI import Ui_MainWindow
 from RailwaySim_GUI_pref import Ui_Form
-from save_restore import grab_GC, guirestore, guisave
-from solver.data_formatter import (get_text_positions, hhmm_to_s, s_to_hhmmss, text_plotter)
+from save_restore import guisave
+from save_restore import guirestore
+from save_restore import grab_GC
+from solver.data_formatter import get_text_positions
+from solver.data_formatter import hhmm_to_s
+from solver.data_formatter import text_plotter
 from solver.shortest_operation import ShortestOperationSolver
 
 warnings.filterwarnings("ignore", category=matplotlib.cbook.mplDeprecation)
 
 BASEDIR = os.path.dirname(__file__)
+SEP = os.path.sep
 
 #* Dot separated values enforcement with "C"
 QtCore.QLocale.setDefault(QtCore.QLocale(1))
 
-SEP = os.path.sep
-
-# set icon on Windows
+#* Set icon on Windows
 if sys.platform == 'win32':
     myappid = 'RailwaySim.v0'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 class NewWindow(QMainWindow):
-    """MainWindow factory"""
+    """MainWindow factory."""
     def __init__(self):
         super().__init__()
         GUI_preferences_path = os.path.join(BASEDIR, 'resources', 'GUI_preferences.ini')
@@ -80,7 +105,7 @@ class NewWindow(QMainWindow):
         self.add_new_window()
 
     def add_new_window(self):
-        """Create now MainWindow instance"""
+        """Creates new MainWindow instance."""
         self.app_icon = QIcon()
         app_icon_path = os.path.join(BASEDIR, 'resources', 'images', 'RailwaySimIcon.png')
         self.app_icon.addFile(app_icon_path)
@@ -92,6 +117,7 @@ class NewWindow(QMainWindow):
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    """Main application window."""
     def __init__(self, window, GUI):
         super().__init__()
         self.setupUi(self)
@@ -116,6 +142,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             darkPath = 'resources' + SEP + 'images' + SEP
         else:
             darkPath = 'resources' + SEP + 'images_dark' + SEP
+
+        self.tabWidget.setTabIcon(
+            self.tabWidget.indexOf(self.RollingStockTab),
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'rolling_tab.png'))
+        )
+        self.tabWidget.setTabIcon(
+            self.tabWidget.indexOf(self.TractionChainTab),
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'traction_tab.png'))
+        )
+        self.tabWidget.setTabIcon(
+            self.tabWidget.indexOf(self.RouteTab),
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'route_tab.png'))
+        )
+        self.tabWidget.setTabIcon(
+            self.tabWidget.indexOf(self.SimulationTab),
+            QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'sim_tab.png'))
+        )
         self.actionSave.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'save.png')))
         self.actionOpen.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'open.png')))
         self.actionAbout.setIcon(QtGui.QIcon(os.path.join(BASEDIR, darkPath, 'about.png')))
@@ -199,7 +242,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _mainEdits(self):
         """MainWindow GUI changes"""
-        self.tabWidget.setCurrentIndex(0)  # Open on first tab
+        self.tabWidget.setCurrentIndex(0)  # Open on first tab by default
 
         #* PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
@@ -210,7 +253,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionExit.triggered.connect(self.close)
         self.actionEdit.triggered.connect(self.show_preferences)
 
-        #* open and save triggers
+        #* Open and save triggers
         # WindowShortcut context is required with multiple windows
         self.actionNew_Window.triggered.connect(self.windowManager.add_new_window)
         self.actionOpen.triggered.connect(self.readFile)
@@ -228,7 +271,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.verticalLayout_2.addItem(self.spacerItem)
         self.verticalLayout_19.addItem(self.spacerItem)
 
-        #* Loco or passenger train simulation selection - basically radio buttons...
+        #* Loco or passenger train simulation selection
         self.gb_locomotive.toggled.connect(
             lambda checked: checked and self.gb_passenger.setChecked(False)
             if self.gb_passenger.isChecked() else checked
@@ -241,16 +284,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #* Dials
         self.dial_label_size.valueChanged.connect(self.dial_refresh)
         self.dial_stroke_size.valueChanged.connect(self.dial_refresh)
+        self.dial_font_size.valueChanged.connect(self.dial_refresh)
         self.dial_label_size_results.valueChanged.connect(self.dial_refresh_results)
         self.dial_stroke_size_results.valueChanged.connect(self.dial_refresh_results)
+        self.dial_font_size_results.valueChanged.connect(self.dial_refresh_results)
 
         #* System tray
         self.createTrayIcon()
         self.trayIcon.setIcon(self.windowManager.app_icon)
-        self.trayIcon.messageClicked.connect(self.show)  # TODO jump to sim tab
+        self.trayIcon.messageClicked.connect(self.notification_handler)
 
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
+
+    def notification_handler(self):
+        """Shows the results tab after the simulation is completed."""
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+        self.show()
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowStaysOnTopHint)
+        self.show()
 
     def changeEvent(self, event):
         """Hides the system tray icon when the main window is visible, and viceversa."""
@@ -260,7 +312,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             event.accept()
         else:
             try:
-                self.trayIcon.hide()
+                global message_is_being_shown
+                if not message_is_being_shown:
+                    self.trayIcon.hide()
             except:
                 pass
 
@@ -270,6 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.route_canvas.flush_events()
             self.linewidth = self.dial_stroke_size.value() / 2.5
             self.labelsize = 8 + self.dial_label_size.value()
+            self.fontsize = 8 + self.dial_font_size.value()
             self.route_canvas.plot_route(self.linewidth, self.labelsize)
             self.route_canvas.fig.set_tight_layout(True)
 
@@ -278,6 +333,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.simulation_finished:
             self.linewidth_results = self.dial_stroke_size_results.value() / 2.5
             self.labelsize_results = 8 + self.dial_label_size_results.value()
+            self.fontsize_results = 8 + self.dial_font_size_results.value()
             self.results_canvas.plot_results(self.linewidth_results, self.labelsize_results)
             self.results_canvas.fig.set_tight_layout(True)
 
@@ -513,7 +569,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.my_settings = QtCore.QSettings(self.filename, QtCore.QSettings.IniFormat)
                     guirestore(self, self.my_settings)
                     self.config.read(self.filename)
-                    self.resultsFilename = self.config['General']['Results_file']
+                    try:
+                        self.resultsFilename = self.config['General']['Results_file']
+                    except:
+                        pass
                     self.statusBar().showMessage(
                         "Changes now being saved to: {}".format(self.filename)
                     )
@@ -531,9 +590,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         self.create_route_plot()
                         self.setup_route_checkbuttons()
                         self.dial_refresh()
-
-                    #TODO: plot results
-                    #* Create a results plot if a simulation finished
+                    #* Results WON'T be saved and plotted upon reopen
+                    #* Additionally, clear canvas when opening any file
                     if self.simulation_finished:
                         try:
                             self.instances_results_canvas[0].hide()
@@ -542,9 +600,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             del self.instances_results_toolbar[0]
                         except:
                             pass
-                        # self.create_results_plot()
-                        # self.setup_results_checkbuttons()
-                        # self.dial_refresh_results()
                 except Exception as e:
                     qtw.QMessageBox.critical(self, 'Error', f"Could not open settings: {e}")
             else:
@@ -599,10 +654,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def showSuccess(self, sim_time):
         """System tray notification displaying simulation ended."""
         self.trayIcon.show()
-        self.trayIcon.showMessage(
-            f"Simulation ended successfully in {sim_time} seconds!\n",
-            "Click here to see the results.", self.windowManager.app_icon, 1200 * 1000
-        )  # milliseconds default
+        if not self.hasFocus():
+            global message_is_being_shown
+            message_is_being_shown = True
+            self.trayIcon.showMessage(
+                f"Simulation ended successfully in {sim_time} seconds!\n",
+                "Click here to see the results.", self.windowManager.app_icon, 1200 * 1000
+            )  # milliseconds default
 
     def start_simulation(self):
         """Saves changes and runs the selected solver"""
@@ -619,39 +677,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 qtw.QMessageBox.Yes | qtw.QMessageBox.No
             )
         if runSim == qtw.QMessageBox.Yes:
+            #* Save any changes to the GUI
+            self.writeFile()
+            #* Save current window's user input to a dict
+            constants = grab_GC(self, self.my_settings)
             try:
-                #* Save any changes to the GUI
-                self.writeFile()
-                #* Save current window's user input to a dict
-                constants = grab_GC(self, self.my_settings)
+                sim_time = ShortestOperationSolver.main(self, constants, self.resultsFilename)
+                self.simulation_finished = True
+                self.showSuccess(sim_time)
+                # self.actionSaveResults.triggered.connect() TODO: toolbar button saves all results+report
+                #* Change current view to simulation tab and plot
+                self.tabWidget.setCurrentIndex(3)
+                #* Clear any old results
                 try:
-                    sim_time = ShortestOperationSolver.main(self, constants, self.resultsFilename)
-                    self.simulation_finished = True
-                    self.showSuccess(sim_time)
-                    # self.actionSaveResults.triggered.connect() TODO:
-                    #* Change to simulation tab and plot
-                    try:
-                        self.instances_results_canvas[0].hide()
-                        self.instances_results_toolbar[0].hide()
-                        del self.instances_results_canvas[0]
-                        del self.instances_results_toolbar[0]
-                    except:
-                        pass
-                    self.create_results_plot()
-                    self.setup_results_checkbuttons()
-                    self.dial_refresh_results()
-                    #TODO: show sim tab and plot results
-
-                except Exception as e:
-                    error_type, error, tb = sys.exc_info()
-                    print(
-                        colored((traceback.format_list(traceback.extract_tb(tb)[-1:])[-1]), "red")
-                    )
-                    print(colored(error_type, "yellow"))
-                    print(colored(error, "red"))
+                    self.instances_results_canvas[0].hide()
+                    self.instances_results_toolbar[0].hide()
+                    del self.instances_results_canvas[0]
+                    del self.instances_results_toolbar[0]
+                except:
+                    pass
+                self.create_results_plot()
+                self.setup_results_checkbuttons()
+                self.dial_refresh_results()
 
             except Exception as e:
-                qtw.QMessageBox.critical(self, "An error ocurred: ", str(e))
+                error_type, error, tb = sys.exc_info()
+                print(colored((traceback.format_list(traceback.extract_tb(tb)[-1:])[-1]), "red"))
+                print(colored(error_type, "yellow"))
+                print(colored(error, "red"))
 
 
 class PlotCanvas_route(FigureCanvas):
@@ -784,11 +837,16 @@ class PlotCanvas_route(FigureCanvas):
         rcParams['font.family'] = prop.get_name()
         rcParams['font.weight'] = 'regular'
         rcParams["axes.labelweight"] = 'regular'
+        rcParams['font.size'] = self.ref_parent.fontsize
+        rcParams["axes.labelsize"] = self.ref_parent.fontsize
 
         #* Plot axes
         self.ax = self.fig.add_subplot(111)
         self.ax.set_xlabel("Distance [km]")
         self.ax.set_ylabel("Speed [km/h]", )
+        self.ax.xaxis.set_minor_locator(AutoMinorLocator())
+        self.ax.yaxis.set_minor_locator(AutoMinorLocator())
+
         try:
             #* Plotting on main axis sharing X
             if self.ref_parent.cb_r_speedres.isChecked():
@@ -944,6 +1002,8 @@ class PlotCanvas_results(FigureCanvas):
         rcParams['font.family'] = prop.get_name()
         rcParams['font.weight'] = 'regular'
         rcParams["axes.labelweight"] = 'regular'
+        rcParams['font.size'] = self.ref_parent.fontsize_results
+        rcParams["axes.labelsize"] = self.ref_parent.fontsize_results
 
         #* Plot axes
         self.ax = self.fig.add_subplot(111)
@@ -955,6 +1015,8 @@ class PlotCanvas_results(FigureCanvas):
             x_axis = self.df['Elapsed time [s]']
 
         self.ax.set_ylabel("Speed [km/h]")
+        self.ax.xaxis.set_minor_locator(AutoMinorLocator())
+        self.ax.yaxis.set_minor_locator(AutoMinorLocator())
 
         #* Plotting on main axis sharing X
         if self.ref_parent.cb_speedres_results.isChecked():
@@ -1141,7 +1203,7 @@ class Preferences(QWidget, Ui_Form):
             self.window_plot_update()
 
         except:
-            qtw.QMessageBox.critical(self, "Error", "Could not set all stylesheet settings.")
+            pass
 
     def cb_watermark_check(self):
         """Define watermark based on checkbox state and line text"""
@@ -1158,7 +1220,6 @@ class Preferences(QWidget, Ui_Form):
                 pass
         guisave(self, self.GUI_preferences)
 
-    #TODO update simulation plot as well
     def window_plot_update(self):
         """Update icons and replot in all windows"""
         for _, window in enumerate(self.ref_parent.windowManager.window_list):
@@ -1172,21 +1233,14 @@ class Preferences(QWidget, Ui_Form):
                 darkMode=darkMode,
                 main_dir=BASEDIR
             )
-            window.results_toolbar = MyMplToolbar(
-                window.results_canvas,
-                window.results_canvas,
-                coordinates=True,
-                darkMode=darkMode,
-                main_dir=BASEDIR
-            )
+
+            # if len(window.instances_route_canvas) == 0:
             window.verticalLayout_2.addWidget(window.route_canvas)
             window.verticalLayout_2.addWidget(window.route_toolbar)
-            window.verticalLayout_19.addWidget(window.results_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
             window.instances_route_toolbar.append(window.route_toolbar)
-            window.instances_results_toolbar.append(window.results_toolbar)
 
-            #* Keep only one canvas and toolbar in memory
+            #* Keep only one route canvas and toolbar in memory
             #* Delete blank charts where no file was selected (len == 1)
             if len(window.instances_route_toolbar) > 0:
                 window.instances_route_canvas[0].hide()
@@ -1194,10 +1248,19 @@ class Preferences(QWidget, Ui_Form):
                 del window.instances_route_canvas[0]
                 del window.instances_route_toolbar[0]
 
-            del window.instances_results_toolbar[0]
-            window.instances_results_toolbar[0].hide()
-
             #* Results tab doesn't use dark mode, i.e. no logic for it
+            #* Except for its toolbar
+            window.instances_results_toolbar[0].hide()
+            del window.instances_results_toolbar[0]
+            window.results_toolbar = MyMplToolbar(
+                window.results_canvas,
+                window.results_canvas,
+                coordinates=True,
+                darkMode=darkMode,
+                main_dir=BASEDIR
+            )
+            window.verticalLayout_19.addWidget(window.results_toolbar)
+            window.instances_results_toolbar.append(window.results_toolbar)
 
     def hide_preferences(self):
         """Exits Preferences window"""

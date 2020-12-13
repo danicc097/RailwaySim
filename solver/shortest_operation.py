@@ -113,8 +113,6 @@ constants['TRAIN_LENGTH'] = 850
 
 class ShortestOperationSolver():
     def __init__(self):
-        # global break_execution
-        # break_execution = False
         pass
 
     # def execution_watcher(func):
@@ -125,6 +123,8 @@ class ShortestOperationSolver():
     # threading.Thread(group=None, target=execution_watcher, args=())
     # @execution_watcher
     def main(window, constants, resultsFilename):
+        global break_execution
+        break_execution = False
         C = constants
         dataset_np = np.genfromtxt(
             C['ProfileLoadFilename'],
@@ -165,7 +165,7 @@ class ShortestOperationSolver():
 
         parentDirectory = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
-        # TODO: qfiledialog selection
+        # TODO: EXPORT BUTTON. (plus save images in folder, etc)
         def export_output(output, suffix):
             output.to_csv(
                 parentDirectory + '/Output_template_COPY_' + suffix + '.csv',
@@ -280,7 +280,6 @@ class ShortestOperationSolver():
         def new_speed(original_array):
             """Calculate a new virtual speed limit based on train length."""
             ROUTE_LENGTH = original_array[-1, -1]
-            print("ROUTE_LENGTH: ", ROUTE_LENGTH)
 
             dx_acc = 5
             lookup_array = np.copy(original_array)
@@ -498,7 +497,10 @@ class ShortestOperationSolver():
                     window, "Error",
                     "Could not load Electric traction - speed curve data: " + str(e)
                 )
-
+        if not C['gb_electric_traction'] and not C['gb_diesel_engine']:
+            return qtw.QMessageBox.critical(
+                window, "Error", "Provide at least one traction chain mode: "
+            )
         ########## Virtual speed based on length #############
         ##########              &                #############
         ##########    Equivalent grade array     #############
@@ -582,31 +584,49 @@ class ShortestOperationSolver():
                 total_sum += i
             return total_sum / L_TRAIN, orig_grade
 
+        #TODO return actual mode selected as tuple in case it's overridden
         def max_effort(speed, speed_limit, mode=1, track=None):
             """Returns the maximum effort available at current speed.\n
             Parameters:
             -----------
             `mode`: `1` (powering/cruising), `2` (braking)
-            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery/No electrification) \n
+            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery) \n
             """
             max_effort = 0
             #* In case of a electrified track, this mode will always be selected first.
             if mode == 1:
-                if speed > speed_limit:
-                    speed = speed_limit
-                if track == 1 or track == 2 or track == 4:
-                    max_effort = np.interp(speed, Electric_T_speed, Electric_T_effort)
-                elif track == 3:
-                    max_effort = np.interp(speed, Diesel_T_speed, Diesel_T_effort)
+                if C['gb_electric_traction']:
+                    electric_speed_mode = Electric_T_speed
+                    electric_effort_mode = Electric_T_effort
+                if C['gb_diesel_engine']:
+                    diesel_speed_mode = Diesel_T_speed
+                    diesel_effort_mode = Diesel_T_effort
             elif mode == 2:
-                if speed > speed_limit:
-                    speed = speed_limit
-                if track == 1 or track == 2 or track == 4:
-                    max_effort = abs(np.interp(speed, Electric_B_speed, Electric_B_effort))
-                elif track == 3:
-                    max_effort = abs(np.interp(speed, Diesel_B_speed, Diesel_B_effort))
+                if C['gb_electric_traction']:
+                    electric_speed_mode = Electric_B_speed
+                    electric_effort_mode = Electric_B_effort
+                if C['gb_diesel_engine']:
+                    diesel_speed_mode = Diesel_B_speed
+                    diesel_effort_mode = Diesel_B_effort
             else:
-                raise ValueError("Powering mode must be either 1 or 2.")
+                raise ValueError("Powering mode must be either 1 or 2 for powering or braking.")
+            if speed > speed_limit:
+                speed = speed_limit
+            if track == 1 or track == 2 or track == 4:
+                if C['gb_electric_traction']:
+                    max_effort = abs(np.interp(speed, electric_speed_mode, electric_effort_mode))
+                elif C['gb_diesel_engine']:
+                    max_effort = abs(np.interp(speed, diesel_speed_mode, diesel_effort_mode))
+            elif track == 3:
+                if C['gb_diesel_engine']:
+                    max_effort = abs(np.interp(speed, diesel_speed_mode, diesel_effort_mode))
+                else:
+                    global break_execution
+                    break_execution = True
+                    return qtw.QMessageBox.critical(
+                        window, "Error",
+                        "Attempting to travel in Diesel mode without a diesel engine."
+                    )
             return max_effort
 
         ROLLING_R_A = C['ROLLING_R_A']
@@ -635,14 +655,14 @@ class ShortestOperationSolver():
                 starting_R = 0
             return starting_R + curve_R + grade_R + rolling_R
 
-        #TODO: diesel electric arguments
+        # TODO  return actual track_e from max_effort
         def accel_i(speed, speed_limit, resistance, mode=1, track=None):
             """Determine instantaneous acceleration. 
             Returns a tuple of isntantaneous acceleration and effort.\n
             Parameters:
             -----------
             `mode`: `1` (powering), `2` (braking), `3` (cruising) \n
-            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery/No electrification) \n
+            `track`: `1` (AC), `2` (DC), `3` (Diesel), `4` (Battery) \n
             """
 
             # * Ensure it goes down when not enough power!!
@@ -778,6 +798,7 @@ class ShortestOperationSolver():
             #* The braking curve is the first thing to be computed after the virtual speed
             #* array. Catch exceptions here.
             try:
+                #TODO offset time. row+1.
                 braking[k][0, 0] = kpoint = braking[k][1, 0] - dx_braking / 1000
                 braking[k][0, 1] = dx_braking
                 braking[k][0, 5], orig_grade = grade_equiv(lookup_grade_array, kpoint, 'left')
@@ -795,7 +816,10 @@ class ShortestOperationSolver():
                 braking[k][0, 11] = track_e
                 braking[k][0, 12] = braking[k][0, 9] * braking[k][0, 3] / 3.6
                 braking[k][0, 13] = orig_grade
-                #TODO: offset time. row+1.
+
+                global break_execution
+                if break_execution:
+                    return None
 
             except Exception as e:
                 qtw.QMessageBox.critical(
@@ -911,6 +935,7 @@ class ShortestOperationSolver():
             'Energy source',  #11
             'Power [kW]',  #12 
             'Grade [‰]',  #13 
+            #TODO energy average ??
             #TODO break 12 into braking power regen at wheel (without losses)
             # and tractive power required at wheel (after losses)
         ]
@@ -1015,9 +1040,7 @@ class ShortestOperationSolver():
             global sim_time
             sim_time = int(time.time() - start_time)
             print("Simulation completed in %s seconds." % sim_time)
-            print(len(output))
             output = np.array(output, dtype=float)
-            print(output.shape)
             return output
 
         def plot_virtual_speed(output):
