@@ -1,12 +1,12 @@
 <p align="center">
   <br>
-  <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src="resources/images/GPLv3_badge.svg"></a>
-  <a ><img alt="undefined" src="resources/images/Windows_badge.svg"></a>
-  <a ><img alt="undefined" src="resources/images/Linux_badge.svg"></a>
+  <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src="github/GPLv3_badge.svg"></a>
+  <a ><img alt="undefined" src="github/Windows_badge.svg"></a>
+  <a ><img alt="undefined" src="github/Linux_badge.svg"></a>
   <br>
 </p>
 
-<p align="center"><img src="resources/images/RailwaySimLogo.svg" width="250"/ ></p>
+<p align="center"><img src="github/RailwaySimLogo.svg" width="250"/ ></p>
 
 #### Table of contents  <!-- omit in toc -->
 - [RailwaySim](#railwaysim)
@@ -25,8 +25,8 @@
 # RailwaySim
 A deterministic tool to perform railway route simulations. 
 
-<p align="center"><img src="resources/tabScreen.png" alt="tab"/></p>
-<p align="center"><img src="resources/tabScreenDark.png" alt="tab"/></p>
+<p align="center"><img src="github/dark_route_screenshot.png" alt="tab"/></p>
+<p align="center"><img src="github/light_results_screenshot.png" alt="tab"/></p>
 
 
 ## Development
@@ -34,17 +34,17 @@ A deterministic tool to perform railway route simulations.
 #### Requirements
 - `Python +3.8`
 - `pip3`
-- `PyQt5` (or `PySide2`; in this case, its licensing is the only difference)
+- `PyQt5` (for full PyInstaller support)
 - `pipenv` (recommended)
 - Packages inside `pipfile`. They will be installed by default in the virtual environment with `pipenv install`.
 
 To get started:
 1. Clone the repo: `git clone https://github.com/danicc097/RailwaySim.git`
 2. Install the required packages and corresponding versions with `pipenv install`
-3. Run the main program file with `pipenv run python RailwaySim__main__.py`
+3. Run the main program file with `pipenv run python main.py`
 4. If you make any changes to a `.ui` file, convert it later to python with
-   `pyuic5 -x input_file.ui -o output_file.py` 
-5. To distribute using `PyInstaller`, execute `pipenv run pyinstaller --onefile RailwaySim__main__.py -i railwaysimicon.ico`.
+   `ui_to_py.ps1` or `ui_to_py.sh` 
+5. To distribute using `PyInstaller`, compile with `build-windows.ps1` or `build-linux.sh` inside a virtual environment.
 
 ## Features
 
@@ -52,26 +52,29 @@ To get started:
 
 To ensure that the rolling stock complies with the predefined track speed limits at all points, it is necessary to take its total length into account. In a nutshell, this algorithm will offset the original speed limit by the train length when a target is encountered, <i>i.e.</i> when the next speed is higher than the preceding one, splitting the original array while preserving the rest of the track's parameters (grade, curve radius, etc.). The simulation point is set to be in the front of the train for further calculations.
 
-<p align="center"><img src="resources/images/Virtual_speed_acceleration_example.svg" alt="resistances" width="750"/></p>
-<p align="center"><img src="resources/images/Virtual_speed_example.svg" alt="resistances" width="750"/></p>
+<p align="center"><img src="github/virtual_speed_acceleration_example.svg" width="750"/></p>
+<p align="center"><img src="github/virtual_speed_example.svg" width="750"/></p>
 
 Train length is equally essential to determine the average grade to which the system is subjected, instead of using the front car as only reference. A far more accurate equivalent grade can be obtained based on train length and weighing one grade step backwards at a time up until the total length is reached. Curve resistance is however independent of train length and calculated based on the current simulation point.
 
 To determine the actual braking curve, whenever any intersection is found (A) between the powering/cruising and braking matrices, the remaining curve that follows is appended.
 
-<p align="center"><img src="resources/images/Braking_example.svg"/></p>
+<p align="center"><img src="github/braking_example.svg"/></p>
 
 
 ##### Rolling stock resistance
 Total resistance effort is currently computed based on the following set of formulas. Custom formulas defined by the user with a given set of variables may be implemented in the future.
 
-<p align="center"><img src="resources/images/formulas/Resistances.png" alt="resistances" width="350"/></p>
-where <i>m</i> is the total mass in tonnes, <i>u</i> is speed in km/h and <i>g</i> is gravity in m/s<sup>2</sup>. <i>R<sub>S</sub></i> is the starting resistance, introduced manually as deemed fit for the system. Rolling resistance <i>R<sub>R</sub></i> is given by the Davis formula with coefficients <i>A</i>, <i>B</i> and <i>C</i>, which depend on the particular vehicle. Resistance due to grade, <i>R<sub>G</sub></i>, is dependent on the track slope. Finally, <i>R<sub>C</sub></i> is given by the empirical Desdovits formula and is passed the current curve radius and track gauge.       
+<p align="center"><img src="github/resistances.png" alt="resistances" width="350"/></p>
+where <i>m</i> is the total mass in tonnes, <i>u</i> is speed in km/h and <i>g</i> is gravity in m/s<sup>2</sup>. <i>R<sub>S</sub></i> is the starting resistance, introduced manually as deemed fit for the system. Rolling resistance <i>R<sub>R</sub></i> is given by the Davis formula with coefficients <i>A</i>, <i>B</i> and <i>C</i>, which depend on the particular vehicle. Resistance due to grade, <i>R<sub>G</sub></i>, is dependent on the track slope. Finally, <i>R<sub>C</sub></i> is given by the empirical Desdovits formula and is passed the current curve radius and track gauge. 
+
 ## Installation
+
+Simply launch the whole package from the executable for your system. Currently built and tested in both Windows 10 and Ubuntu 18.04.
 
 ## Usage
 
-
+WIP
 
 ### Solvers
 As of now, unless the project gains some <i>traction</i>, the only available solver is 1. Any contribution is welcome.

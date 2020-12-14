@@ -2,11 +2,11 @@ RailwaySim_Notes.ipynb
 __pycache__/
 build/
 dist/
-RailwaySim__main__.exe
+main.exe
 TODO/
 *.spec
 Rail_tests.py
-**/shortest_operation_old.py
+**/solvers_old.py
 .ipynb_checkpoints
 csv_editor.py
 scaled_labels.py
