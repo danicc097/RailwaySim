@@ -1,7 +1,7 @@
 pipenv run pyinstaller src/main.py \
 --noconfirm \
 --onefile \
---name "RailwaySim-windows" \
+--name "RailwaySim-linux" \
 --paths="src/" \
 --icon='src/mainicon.ico' \
 --add-data "src/data/:data" \

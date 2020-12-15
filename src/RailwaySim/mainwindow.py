@@ -44,8 +44,6 @@ import traceback
 import warnings
 import time
 
-# ext packages
-import matplotlib.cbook
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
