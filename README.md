@@ -37,10 +37,10 @@ A deterministic tool to perform railway route simulations.
 
 #### Requirements
 
-📝 `Python +3.8` \
-📝 `pip3` \
-📝 `PyQt5` (for full PyInstaller support) \
-📝 `pipenv` (recommended) \
+📝 `Python +3.8`  
+📝 `pip3`  
+📝 `PyQt5` (for full PyInstaller support)  
+📝 `pipenv` (recommended)  
 📝 Packages inside `pipfile`. They will be installed in the virtual environment with `pipenv install`.
 
 To get started:
@@ -100,15 +100,15 @@ An output CSV file is saved with relevant results to represent the unit's perfor
 
 ## WIPs
 
-☑️ Include WIPs \
-⬜ Custom report generation \
+☑️ Include WIPs  
+⬜ Custom report generation  
 ⬜ Energy usage
 
 ## Relevant links and references
 
-📙 [Open data from SNCF](https://data.sncf.com/pages/accueil/) \
-📙 [An algorithm for braking curve calculations in ERTMS train protection systems](https://www.witpress.com/Secure/elibrary/papers/CR06/CR06042FU1.pdf) \
-📙 [Quantitative Analysis of Regenerative energy in Electric Rail Traction Systems](https://academicworks.cuny.edu/cgi/viewcontent.cgi?article=1724&context=cc_pubs) \
+📙 [Open data from SNCF](https://data.sncf.com/pages/accueil/)  
+📙 [An algorithm for braking curve calculations in ERTMS train protection systems](https://www.witpress.com/Secure/elibrary/papers/CR06/CR06042FU1.pdf)  
+📙 [Quantitative Analysis of Regenerative energy in Electric Rail Traction Systems](https://academicworks.cuny.edu/cgi/viewcontent.cgi?article=1724&context=cc_pubs)  
 📙 [Modelling energy consumption in diesel multiple units](https://journals.sagepub.com/doi/abs/10.1177/0954409717737226)
 
 ---
