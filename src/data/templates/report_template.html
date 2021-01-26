@@ -1,0 +1,69 @@
+<html>
+
+
+<head>
+    <style type="text/css">
+        html,
+        body {
+            width: 500px;
+            font-size: 12px;
+            background: #fff;
+            padding: 0px;
+        }
+
+        #my-custom-table {
+            width: 500px;
+            border: 0;
+            margin-top: 20px;
+        }
+
+        #my-custom-table td {
+            padding: 5px 0px 1px 5px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    {% for row_ix, row in df.iterrows() %}
+
+    <table cellspacing="0" border="0" style="width:500px; border:0; font-size: 14px;">
+        <tr>
+            <td style="text-align:left;">
+                <b><span>Title of the PDF report - Row {{ row_ix + 1 }}</span></b>
+            </td>
+            <td style="text-align:right;">
+                <b><span>{{ date }}</span></b>
+            </td>
+        </tr>
+    </table>
+
+    <table cellspacing="0" border="0.1" id="my-custom-table">
+        {% for variable_name, variable_value in row.iteritems() %}
+        {% if loop.index0 == 0 %}
+        <tr style="border-top: 1px solid black;
+                   border-bottom: 1px solid black;
+                   font-weight: bold;">
+            <td>Variable name</td>
+            <td>Variable value</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td>{{ variable_name }}</td>
+            <td>{{ variable_value }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+
+    <!-- Page break (the syntax is for xhtml2pdf) -->
+    <pdf:nextpage />
+
+    {% endfor %}
+
+
+</body>
+
+</html>

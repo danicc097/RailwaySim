@@ -15,25 +15,6 @@
  /-OO----OO""="OO--OO"="OO--------OO"="OO--------OO"="OO--------OO"
 #####################################################################
 """
-"""
-#//############################################################################
-#TODO path cleaning for bundle and non-bundle cases
-#* Paths to use in all package modules (except __main__ itself):
-#? __file__ will be " sys._MEIPASS + 'mypackage/mymodule.pyc' "
-from os import path
-path_to_dat = path.abspath(path.join(path.dirname(__file__), 'file.dat'))
-
-#* Paths to use in __main__ to find data files relative to the main script:
-from os import path
-import sys
-# It is always best to use absolute paths
-bundle_dir = getattr(sys, '_MEIPASS', path.abspath(path.dirname(__file__)))
-path_to_dat = path.abspath(path.join(bundle_dir, 'other-file.dat'))
-
-#* Alternative::::::
-
-#//############################################################################
-"""
 
 import configparser
 import copy
@@ -42,7 +23,8 @@ import os
 import sys
 import traceback
 import warnings
-import time
+import tempfile
+import shutil
 
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
@@ -78,6 +60,7 @@ from .save_restore import grab_GC
 from .data_formatter import get_text_positions
 from .data_formatter import hhmm_to_s
 from .data_formatter import text_plotter
+from .data_formatter import effort_curve_to_arrays
 from .solvers import ShortestOperationSolver
 
 warnings.filterwarnings("ignore")
@@ -123,7 +106,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, window, GUI):
         super().__init__()
         self.setupUi(self)
-        # self.setFont(mainFont)
         self.windowManager = window
         self.GUI_preferences = GUI
         self.config = configparser.ConfigParser()
@@ -244,6 +226,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """MainWindow GUI changes"""
         self.tabWidget.setCurrentIndex(0)  # Open on first tab by default
 
+        #* Save results and report
+        self.actionSaveResults.triggered.connect(self.save_results)
+
         #* PushButtons
         self.StartSimButton.clicked.connect(self.start_simulation)
 
@@ -297,6 +282,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #* window exit
         qtw.QAction("Quit", self).triggered.connect(self.closeEvent)
 
+    def save_results(self):
+        """Saves the selected charts, simulation data and report into the chosen directory"""
+        #TODO: this data will come from the temp folder (right after finishing the simulation)
+        directory = qtw.QFileDialog.getExistingDirectory(
+            self,
+            "Select a directory to save results",
+            str(BASEDIR),
+            options=qtw.QFileDialog.DontResolveSymlinks
+        )
+        print(directory)
+        # os.makedirs(directory, exist_ok=True)
+
     def notification_handler(self):
         """Shows the results tab after the simulation is completed."""
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
@@ -321,7 +318,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def dial_refresh(self):
         """Update route plot line width."""
         if len(self.ProfileLoadFilename.text()) > 3:
-            # self.route_canvas.flush_events()
             self.linewidth = self.dial_stroke_size.value() / 2.5
             self.labelsize = 8 + self.dial_label_size.value()
             self.fontsize = 8 + self.dial_font_size.value()
@@ -432,9 +428,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.route_canvas.route_canvas_invert_route
                 )
         except Exception as e:
-            self.statusBar().showMessage(
-                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
-            )
+            self.statusBar().showMessage("Could not setup checkboxes: " + str(e))
 
     def setup_results_checkbuttons(self):
         """Simulation tab checkboxes. Must be called after each plot update."""
@@ -466,9 +460,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 )
 
         except Exception as e:
-            self.statusBar().showMessage(
-                "Could not setup checkboxes: \n" + str(e) + "\n Try again or reload the data"
-            )
+            self.statusBar().showMessage("Could not setup checkboxes: " + str(e))
 
     def createTrayIcon(self):
         self.restoreAction = qtw.QAction("&Restore", self, triggered=self.showNormal)
@@ -648,6 +640,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         close.exec()  # Necessary for property-based API
         if close.clickedButton() == close_accept:
             self.trayIcon.setVisible(False)
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
             event.accept()
         else:
             event.ignore()
@@ -683,10 +676,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             #* Save current window's user input to a dict
             constants = grab_GC(self, self.my_settings)
             try:
-                sim_time = ShortestOperationSolver.main(self, constants, self.resultsFilename)
+                sim_time, self.stations_found = ShortestOperationSolver.main(
+                    self, constants, self.resultsFilename
+                )
+
                 self.simulation_finished = True
+                self.temp_dir = tempfile.mkdtemp()
                 self.showSuccess(sim_time)
-                # self.actionSaveResults.triggered.connect() TODO: toolbar button saves all results+report
                 #* Change current view to simulation tab and plot
                 self.tabWidget.setCurrentIndex(3)
                 #* Clear any old results
@@ -700,6 +696,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.create_results_plot()
                 self.setup_results_checkbuttons()
                 self.dial_refresh_results()
+
+                ################ Data for report #################
+                #* Indexes must match after masking
+                self.stations_found = self.stations_found.reset_index(drop=True)
+                df_station_names = pd.DataFrame(
+                    self.route_canvas.timetable_stations, columns=["Station"], dtype=str
+                )
+                self.stations_found.insert(1, "Station", df_station_names)
+                self.sim_route_title = df_station_names.iloc[0].to_string(
+                    header=False, index=False
+                ) + " - " + df_station_names.iloc[-1].to_string(header=False, index=False)
+
+                self.sim_route_length = str(
+                    self.stations_found.iloc[-1]["KP [km]"].round(2)
+                ) + " km"
+                self.sim_route_max_grade = str(np.amax(self.route_canvas.grade, axis=0)) + " ‰"
+                self.sim_route_min_grade = str(np.amin(self.route_canvas.grade, axis=0)) + " ‰"
+                self.sim_route_avg_grade = str(
+                    np.around(np.average(self.route_canvas.grade, axis=0), 3)
+                ) + " ‰"
+                t = str(self.stations_found.iloc[-1]["Elapsed time [hh:mm:ss]"]).split(':')
+                t = [x.lstrip('0') for x in t]
+                self.sim_route_time = f'{t[0]} hours, {t[1]} minutes and {t[2]} seconds.'
+                #TODO: include traction plots, which were just plotted
+
+                ##################################################
 
             except Exception as e:
                 error_type, error, tb = sys.exc_info()
@@ -762,7 +784,6 @@ class PlotCanvas_route(FigureCanvas):
             self.grade = np.array(self.ROUTE_INPUT_DF[4][:], dtype=float)
             self.radii = np.array(self.ROUTE_INPUT_DF[5][:], dtype=float)
             self.speed_res = np.array(self.ROUTE_INPUT_DF[6][:], dtype=float)
-            self.station_names = np.array(self.ROUTE_INPUT_DF[12][:], dtype=str)
 
             #* Calculate profile height from distance steps and grade
             self.profile = np.zeros(len(self.distance), dtype=float)
@@ -776,7 +797,7 @@ class PlotCanvas_route(FigureCanvas):
 
             # * Main timetable
             self.timetable_stations = np.array(
-                [str(a) for a in self.ROUTE_INPUT_DF[0][:] if a != ""]
+                [str(a).strip() for a in self.ROUTE_INPUT_DF[0][:] if a != ""]
             )
             # * Find station kilometric points (0 m travelled paths)
             self.timetable_stations_kpoint = np.array(
@@ -976,8 +997,8 @@ class PlotCanvas_results(FigureCanvas):
     """Simulation output data graph"""
     def __init__(self, GUI, ref_parent, dpi=100):
         self.GUI_preferences = GUI
-        # Don't use "parent" as variable name.
-        self.ref_parent = ref_parent  # pass MainWindow to access its widgets.
+        # Don't use "parent" as variable name
+        self.ref_parent = ref_parent  # pass MainWindow to access its widgets
         self.fig = Figure(dpi=dpi)  # 100 dpi recommended
         FigureCanvas.__init__(self, self.fig)
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -1086,6 +1107,7 @@ class PlotCanvas_results(FigureCanvas):
                 x_axis, self.outputEffort, linewidth=linewidth, label="Effort [kN]"
             )
 
+        # TODO stations in results tab
         # #* Twin axis Y - station tick marks
         # if self.ref_parent.cb_stations_results.isChecked():
         #     self.ax2 = self.ax.twiny()
@@ -1162,6 +1184,63 @@ class PlotCanvas_results(FigureCanvas):
 
         self.fig.tight_layout()
         self.draw()
+
+        #TODO: plot and save traction curves by default to folder
+        self.plot_save_traction_curve()
+
+    def plot_save_traction_curve(self):
+        fig_traction, ax = plt.subplots()
+        ax.set_xlabel("Speed [km/h]")
+        ax.set_ylabel("Effort [kN]")
+
+        if self.ref_parent.gb_electric_traction.isChecked():
+            Electric_T_speed, Electric_T_effort = effort_curve_to_arrays(
+                self.ref_parent.E_TECurveLoadFilename.text()
+            )
+            Electric_B_speed, Electric_B_effort = effort_curve_to_arrays(
+                self.ref_parent.E_BECurveLoadFilename.text()
+            )
+            line0, = ax.plot(
+                Electric_T_speed,
+                Electric_T_effort,
+                label="Electric effort [kN]",
+            )
+        if self.ref_parent.gb_diesel_engine.isChecked():
+            Diesel_T_speed, Diesel_T_effort = effort_curve_to_arrays(
+                self.ref_parent.D_TECurveLoadFilename.text()
+            )
+            Diesel_B_speed, Diesel_B_effort = effort_curve_to_arrays(
+                self.ref_parent.D_BECurveLoadFilename.text()
+            )
+            line1, = ax.plot(
+                Diesel_T_speed,
+                Diesel_T_effort,
+                label="Diesel effort [kN]",
+            )
+
+        global watermark
+        fig_traction.text(
+            0.5,
+            0.5,
+            watermark,
+            fontsize=20,
+            color='gray',
+            ha='center',
+            va='center',
+            alpha=0.6,
+            transform=ax.transAxes
+        )
+        handles, labels = [], []
+        for ax in fig_traction.axes:
+            for h, l in zip(*ax.get_legend_handles_labels()):
+                handles.append(h)
+                labels.append(l)
+        ax.legend(handles, labels)
+
+        #* Save traction curves to a temp folder
+        rcParams["savefig.format"] = 'svg'
+        fig_path = os.path.join(self.ref_parent.temp_dir, "traction_curves.svg")
+        fig_traction.savefig(fig_path)
 
     def results_canvas_checkbox_handler(self):
         """Replot on checkbox state change."""
@@ -1250,7 +1329,6 @@ class Preferences(QWidget, Ui_Form):
                 main_dir=str(BASEDIR.parent)
             )
 
-            # if len(window.instances_route_canvas) == 0:
             window.verticalLayout_2.addWidget(window.route_canvas)
             window.verticalLayout_2.addWidget(window.route_toolbar)
             window.instances_route_canvas.append(window.route_canvas)
@@ -1309,7 +1387,6 @@ w = NewWindow()  # Instantiate window factory
 timer = QtCore.QTimer()
 timer.timeout.connect(lambda: None)
 timer.start(100)
-
 sys.exit(app.exec_())
 """
 # * ImageMagick icons: magick mogrify tranparent -channel RGB -negate *.png

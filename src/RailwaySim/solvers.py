@@ -1009,11 +1009,6 @@ class ShortestOperationSolver():
 
             plt.show()
 
-        # TODO: column pandas
-        #? columns:
-        # STATIONS: apply mask speed=0
-        #? columns: Power calculations
-
         output = main_simulation(virtual_speed_array, grade_array)
         output = np.vstack(output)
 
@@ -1064,18 +1059,19 @@ class ShortestOperationSolver():
 
         #* Set speed limit = 0 in stations as visual reference
         mask = (output_df['Speed [km/h]'] == 0)
-        stations_found = output_df[mask]  # TODO: output to report
-        print(stations_found)
         output_df.loc[mask, ['Virtual speed restriction [km/h]']] = 0
         output_df.loc[mask, ['Speed restriction [km/h]']] = 0
 
         #* Conversion to string done later since ndarray is of type float
         output_df['Energy source'] = output_df['Energy source'].apply(energy_source)
 
+        stations_found = output_df[mask]
+        stations_found = stations_found[["KP [km]", "Elapsed time [hh:mm:ss]"]]
+
         #* Export to same directory as settings file by default
         output_df.to_csv(resultsFilename, encoding='utf-8-sig', float_format='%1.8f', index=False)
         #* Return simulation time to display on notification bubble
-        return sim_time
+        return sim_time, stations_found
 
 
 # ShortestOperationSolver.main(None, constants)
