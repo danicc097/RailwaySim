@@ -1,4 +1,8 @@
 <p align="center">
+<sup><i>There's no way I'm touching this code again</i></sup>
+</p>
+
+<p align="center">
   <br>
   <a href="https://github.com/danicc097/RailwaySim/blob/master/LICENSE"><img alt="undefined" src=".github/GPLv3_badge.svg"></a>
   <a href="https://github.com/danicc097/RailwaySim/releases/download/v1.0/RailwaySim-windows.exe"><img alt="undefined" src=".github/Windows_badge.svg"></a>
